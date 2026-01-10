@@ -1,10 +1,17 @@
 <?php
 
+use App\Http\Controllers\SourcedatasController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\AssignmentsController;
+use App\Http\Controllers\TypesController;
+use App\Http\Controllers\RanksController;
+use App\Http\Controllers\RankpointsController;
+
+
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -36,6 +43,31 @@ Route::middleware('auth')->group(function () {
         ->name('audit-trails.massDestroy');
     Route::resource('audit-trails', AuditController::class);
     Route::get('/audit-trails-list', [AuditController::class, 'list'])->name('audit-trails.list'); // AJAX
+
+    Route::delete('assignments/destroy', [AssignmentsController::class, 'massDestroy'])
+        ->name('assignments.massDestroy');
+    Route::resource('assignments', AssignmentsController::class);
+    Route::get('/assignments-list', [AssignmentsController::class, 'list'])->name('assignments.list'); // AJAX
+
+    Route::delete('types/destroy', [TypesController::class, 'massDestroy'])
+        ->name('types.massDestroy');
+    Route::resource('types', TypesController::class);
+    Route::get('/types-list', [TypesController::class, 'list'])->name('types.list'); // AJAX
+
+    Route::delete('ranks/destroy', [RanksController::class, 'massDestroy'])
+        ->name('ranks.massDestroy');
+    Route::resource('ranks', RanksController::class);
+    Route::get('/ranks-list', [RanksController::class, 'list'])->name('ranks.list'); // AJAX
+
+    Route::delete('rankpoints/destroy', [RankpointsController::class, 'massDestroy'])
+        ->name('rankpoints.massDestroy');
+    Route::resource('rankpoints', RankpointsController::class);
+    Route::get('/rankpoints-list', [RankpointsController::class, 'list'])->name('rankpoints.list'); // AJAX
+
+    Route::delete('sourcedatas/destroy', [SourcedatasController::class, 'massDestroy'])
+        ->name('sourcedatas.massDestroy');
+    Route::resource('sourcedatas', SourcedatasController::class);
+    Route::get('/sourcedatas-list', [SourcedatasController::class, 'list'])->name('sourcedatas.list'); // AJAX
 
 });
 

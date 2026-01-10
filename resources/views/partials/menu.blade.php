@@ -23,9 +23,77 @@
                     </a>
                 </li>
                 @endcan
+
+                @can('reference_access')
+                    <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }}">
+                        <a class="nav-link nav-dropdown-toggle" href="#">
+                            <i class="fa-fw fas fa-users">
+
+                            </i>
+                            <p>
+                                <span>References</span>
+                                <i class="right fa fa-fw fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                @can('assignment_access')
+                                <a href="{{ route("assignments.index") }}"  class="nav-link {{ request()->is('assignments') || request()->is('assignments/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-unlock-alt">
+
+                                    </i>
+                                    <p>
+                                        <span>Assignments</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can('type_access')
+                                <a href="{{ route("types.index") }}" class="nav-link {{ request()->is('types') || request()->is('types/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-briefcase">
+
+                                    </i>
+                                    <p>
+                                        <span>Type of Assignment</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can('rank_access')
+                                <a href="{{ route("ranks.index") }}" class="nav-link {{ request()->is('ranks') || request()->is('ranks/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-user">
+
+                                    </i>
+                                    <p>
+                                        <span>Ranks</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can('rankpoint_access')
+                                <a href="{{ route("rankpoints.index") }}" class="nav-link {{ request()->is('rankpoints') || request()->is('rankpoints/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+
+                                    </i>
+                                    <p>
+                                        <span>Rank points</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can('sourcedata_access')
+                                <a href="{{ route("sourcedatas.index") }}" class="nav-link {{ request()->is('sourcedatas') || request()->is('sourcedatas/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+
+                                    </i>
+                                    <p>
+                                        <span>Source Data</span>
+                                    </p>
+                                </a>
+                                @endcan                                
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
         
                 @can('user_management_access')
-                <li class="nav-item has-treeview {{ request()->is('audit-trails*') ? 'menu-open' : '' }} {{ request()->is('users*') ? 'menu-open' : '' }} {{ request()->is('roles*') ? 'menu-open' : '' }} {{ request()->is('permissions*') ? 'menu-open' : '' }}">
+                    <li class="nav-item has-treeview {{ request()->is('audit-trails*') ? 'menu-open' : '' }} {{ request()->is('users*') ? 'menu-open' : '' }} {{ request()->is('roles*') ? 'menu-open' : '' }} {{ request()->is('permissions*') ? 'menu-open' : '' }}">
                         <a class="nav-link nav-dropdown-toggle" href="#">
                             <i class="fa-fw fas fa-users">
 
@@ -80,7 +148,7 @@
                             </li>
                         </ul>
                     </li>
-                    @endcan
+                @endcan
         
 
 
