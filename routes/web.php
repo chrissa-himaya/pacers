@@ -10,6 +10,7 @@ use App\Http\Controllers\AssignmentsController;
 use App\Http\Controllers\TypesController;
 use App\Http\Controllers\RanksController;
 use App\Http\Controllers\RankpointsController;
+use App\Http\Controllers\OfficersController;
 
 
 
@@ -68,6 +69,11 @@ Route::middleware('auth')->group(function () {
         ->name('sourcedatas.massDestroy');
     Route::resource('sourcedatas', SourcedatasController::class);
     Route::get('/sourcedatas-list', [SourcedatasController::class, 'list'])->name('sourcedatas.list'); // AJAX
+
+    Route::delete('officers/destroy', [OfficersController::class, 'massDestroy'])
+        ->name('officers.massDestroy');
+    Route::resource('officers', OfficersController::class);
+    Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list'); // AJAX
 
 });
 
