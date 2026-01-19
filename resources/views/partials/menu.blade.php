@@ -24,6 +24,80 @@
                 </li>
                 @endcan
 
+                @can('home_access')
+                    <li class="nav-header">HOME</li>
+
+                    @can('qrsprofile_access')
+                    <li class="nav-item">
+                         <a href="{{ route('qrsprofiles.index') }}"
+                            class="nav-link {{ request()->is('qrsprofiles') || request()->is('qrsprofiles/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-unlock-alt nav-icon"></i>
+                            <p>QRS Profile</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('officerdata_access')
+                    <li class="nav-item">
+                        <a href="{{ route('officers.index') }}"
+                        class="nav-link {{ request()->is('officers') || request()->is('officers/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-unlock-alt nav-icon"></i>
+                            <p>List of Officers</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('type_access')
+                    <li class="nav-item">
+                        <a href="{{ route('types.index') }}"
+                        class="nav-link {{ request()->is('types') || request()->is('types/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-briefcase nav-icon"></i>
+                            <p>Schooling</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('rank_access')
+                    <li class="nav-item">
+                        <a href="{{ route('ranks.index') }}"
+                        class="nav-link {{ request()->is('ranks') || request()->is('ranks/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-user nav-icon"></i>
+                            <p>Assignment History</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('rankpoint_access')
+                    <li class="nav-item">
+                        <a href="{{ route('rankpoints.index') }}"
+                        class="nav-link {{ request()->is('rankpoints') || request()->is('rankpoints/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-list nav-icon"></i>
+                            <p>Awards</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('sourcedata_access')
+                    <li class="nav-item">
+                        <a href="{{ route('sourcedatas.index') }}"
+                        class="nav-link {{ request()->is('sourcedatas') || request()->is('sourcedatas/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-database nav-icon"></i>
+                            <p>PFT</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('sourcedata_access')
+                    <li class="nav-item">
+                        <a href="{{ route('sourcedatas.index') }}"
+                        class="nav-link {{ request()->is('sourcedatas') || request()->is('sourcedatas/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-database nav-icon"></i>
+                            <p>Career Advising Records</p>
+                        </a>
+                    </li>
+                    @endcan
+                @endcan
+
                 @can('reference_access')
                     <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }}">
                         <a class="nav-link nav-dropdown-toggle" href="#">
@@ -91,6 +165,60 @@
                         </ul>
                     </li>
                 @endcan
+
+                <!-- @can('reference_access')
+                    <li class="nav-header">REFERENCES</li>
+
+                    @can('assignment_access')
+                    <li class="nav-item">
+                        <a href="{{ route('assignments.index') }}"
+                        class="nav-link {{ request()->is('assignments') || request()->is('assignments/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-unlock-alt nav-icon"></i>
+                            <p>Assignments</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('type_access')
+                    <li class="nav-item">
+                        <a href="{{ route('types.index') }}"
+                        class="nav-link {{ request()->is('types') || request()->is('types/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-briefcase nav-icon"></i>
+                            <p>Type of Assignment</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('rank_access')
+                    <li class="nav-item">
+                        <a href="{{ route('ranks.index') }}"
+                        class="nav-link {{ request()->is('ranks') || request()->is('ranks/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-user nav-icon"></i>
+                            <p>Ranks</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('rankpoint_access')
+                    <li class="nav-item">
+                        <a href="{{ route('rankpoints.index') }}"
+                        class="nav-link {{ request()->is('rankpoints') || request()->is('rankpoints/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-list nav-icon"></i>
+                            <p>Rank Points</p>
+                        </a>
+                    </li>
+                    @endcan
+
+                    @can('sourcedata_access')
+                    <li class="nav-item">
+                        <a href="{{ route('sourcedatas.index') }}"
+                        class="nav-link {{ request()->is('sourcedatas') || request()->is('sourcedatas/*') ? 'active' : '' }}">
+                            <i class="fa-fw fas fa-database nav-icon"></i>
+                            <p>Source Data</p>
+                        </a>
+                    </li>
+                    @endcan
+                @endcan -->
         
                 @can('user_management_access')
                     <li class="nav-item has-treeview {{ request()->is('audit-trails*') ? 'menu-open' : '' }} {{ request()->is('users*') ? 'menu-open' : '' }} {{ request()->is('roles*') ? 'menu-open' : '' }} {{ request()->is('permissions*') ? 'menu-open' : '' }}">

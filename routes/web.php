@@ -11,6 +11,7 @@ use App\Http\Controllers\TypesController;
 use App\Http\Controllers\RanksController;
 use App\Http\Controllers\RankpointsController;
 use App\Http\Controllers\OfficersController;
+use App\Http\Controllers\QRSProfilesController;
 
 
 
@@ -74,6 +75,11 @@ Route::middleware('auth')->group(function () {
         ->name('officers.massDestroy');
     Route::resource('officers', OfficersController::class);
     Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list'); // AJAX
+
+    Route::delete('qrsprofiles/destroy', [QRSProfilesController::class, 'massDestroy'])
+        ->name('qrsprofiles.massDestroy');
+    Route::resource('qrsprofiles', QRSProfilesController::class);
+    Route::get('/qrsprofiles-list', [QRSProfilesController::class, 'list'])->name('qrsprofiles.list'); // AJAX
 
 });
 
