@@ -13,6 +13,8 @@ use App\Http\Controllers\RanksController;
 use App\Http\Controllers\RankpointsController;
 use App\Http\Controllers\OfficersController;
 use App\Http\Controllers\QRSProfilesController;
+use App\Http\Controllers\SchoolingUnitsController;
+use App\Http\Controllers\SchoolingEntrysController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -84,6 +86,16 @@ Route::middleware('auth')->group(function () {
         ->name('schoolings.massDestroy');
     Route::resource('schoolings', SchoolingsController::class);
     Route::get('/schoolings-list', [SchoolingsController::class, 'list'])->name('schoolings.list'); // AJAX
+
+    Route::delete('schoolingunits/destroy', [SchoolingUnitsController::class, 'massDestroy'])
+        ->name('schoolingunits.massDestroy');
+    Route::resource('schoolingunits', SchoolingUnitsController::class);
+    Route::get('/schoolingunits-list', [SchoolingUnitsController::class, 'list'])->name('schoolingunits.list'); // AJAX
+
+    Route::delete('schoolingentries/destroy', [SchoolingEntrysController::class, 'massDestroy'])
+        ->name('schoolingentries.massDestroy');
+    Route::resource('schoolingentries', SchoolingEntrysController::class);
+    Route::get('/schoolingentries-list', [SchoolingEntrysController::class, 'list'])->name('schoolingentries.list'); // AJAX
 
 });
 
