@@ -99,7 +99,7 @@
                 @endcan
 
                 @can('reference_access')
-                    <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }} {{ request()->is('schoolingunits*') ? 'menu-open' : '' }}">
+                    <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }} {{ request()->is('schoolingunits*') ? 'menu-open' : '' }} {{ request()->is('schoolingentries*') ? 'menu-open' : '' }}">
                         <a class="nav-link nav-dropdown-toggle" href="#">
                             <i class="fa-fw fas fa-users">
 
@@ -158,6 +158,16 @@
                                     </i>
                                     <p>
                                         <span>School and Units</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can('schoolingentry_access')
+                                <a href="{{ route("schoolingentries.index") }}" class="nav-link {{ request()->is('schoolingentries') || request()->is('schoolingentries/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+
+                                    </i>
+                                    <p>
+                                        <span>Schooling entries</span>
                                     </p>
                                 </a>
                                 @endcan
