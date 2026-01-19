@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
@@ -12,8 +13,6 @@ use App\Http\Controllers\RanksController;
 use App\Http\Controllers\RankpointsController;
 use App\Http\Controllers\OfficersController;
 use App\Http\Controllers\QRSProfilesController;
-
-
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -80,6 +79,11 @@ Route::middleware('auth')->group(function () {
         ->name('qrsprofiles.massDestroy');
     Route::resource('qrsprofiles', QRSProfilesController::class);
     Route::get('/qrsprofiles-list', [QRSProfilesController::class, 'list'])->name('qrsprofiles.list'); // AJAX
+
+    Route::delete('schoolings/destroy', [SchoolingsController::class, 'massDestroy'])
+        ->name('schoolings.massDestroy');
+    Route::resource('schoolings', SchoolingsController::class);
+    Route::get('/schoolings-list', [SchoolingsController::class, 'list'])->name('schoolings.list'); // AJAX
 
 });
 
