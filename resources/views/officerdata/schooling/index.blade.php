@@ -4,9 +4,9 @@
 <div class="card">
     <div class="card-header">
         <h4 class="d-inline">{{$config_data->module_name}}</h4>
-        <a href="{{ route("$config_data->module_route.create")  }}" class="btn btn-primary float-end">
+        <a href="{{ route("$config_data->module_route.create", "") }}" class="btn btn-primary float-end">
             Create
-        </a>
+        </a>  
     </div>
 
     <div class="card-body">
@@ -14,25 +14,35 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Name</th>
-                    <th>Type</th>
+                    <th>PMCode</th>
+                    <th>Schooling Entry</th>
+                    <th>School/Unit</th>
+                    <th>Assignments</th>
+                    <th>Date Completed</th>
+                    <th>Rating</th>
+                    <th>Standing</th>
+                    <th>Total Student</th>
+                    <th>Rank during completion</th>
+                    <th>2LT</th>
+                    <th>1LT</th>
+                    <th>CPT</th>
+                    <th>LTC</th>
+                    <th>COL</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
             </tbody>
         </table>
-
     </div>
 </div>
 @endsection
 @section('scripts')
     <script>
-
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\User::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\User::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\User::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Rank::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rank::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rank::class));
     let url_route = "{{ $config_data->module_route }}";
 
         $('#dataTable').DataTable({
@@ -50,8 +60,20 @@
                     orderable: false,
                     searchable: false
                 },
-                { data: 'name' },
-                { data: 'types.name' },
+                { data: 'pm_code' },
+                { data: 'schoolingentries.name' },
+                { data: 'schoolingunits.name' },
+                { data: 'assignments.name' },
+                { data: 'date_completed' },
+                { data: 'rating' },
+                { data: 'standing' },
+                { data: 'total_student' },
+                { data: 'rank_during_completion' },
+                { data: '2lt' },
+                { data: '1lt' },
+                { data: 'cpt' },
+                { data: 'ltc' },
+                { data: 'col' },
                 {
                     data: 'id',
                     render: function (data) {

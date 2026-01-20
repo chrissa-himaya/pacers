@@ -47,10 +47,10 @@
                     </li>
                     @endcan
 
-                    @can('type_access')
+                    @can('schooling_access')
                     <li class="nav-item">
-                        <a href="{{ route('types.index') }}"
-                        class="nav-link {{ request()->is('types') || request()->is('types/*') ? 'active' : '' }}">
+                        <a href="{{ route('schoolings.index') }}"
+                        class="nav-link {{ request()->is('schoolings') || request()->is('schoolings/*') ? 'active' : '' }}">
                             <i class="fa-fw fas fa-briefcase nav-icon"></i>
                             <p>Schooling</p>
                         </a>
