@@ -14,11 +14,17 @@ class SchoolingEntry extends Model implements Auditable
     public $table = 'schooling_entries';
     protected $fillable = [
         'name',
-        'school_unit_id',
+        'schooling_unit_id',
+        'assignment_id',
     ];
 
     public function schoolingunits()
     {
-        return $this->belongsTo(SchoolUnit::class, 'school_unit_id', 'id');
+        return $this->belongsTo(SchoolingUnit::class, 'schooling_unit_id', 'id');
+    }
+
+    public function assignments()
+    {
+        return $this->belongsTo(Assignment::class, 'assignment_id', 'id');
     }
 }

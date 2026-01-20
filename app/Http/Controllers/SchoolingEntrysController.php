@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolingEntry;
-use App\Models\SchoolUnit;
+use App\Models\SchoolingUnit;
+use App\Models\Assignment;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,8 +19,8 @@ class SchoolingEntrysController extends Controller
     public function __construct(SchoolingEntry $schoolingentry)
     {
         $columnHidden = array_merge($schoolingentry->getDates(), ['id']);
-        $columnLabels = ['schoolingunits'  => 'Schooling Unit', 'school_unit_id'  => 'Schooling Unit', 'name'  => 'Schooling Unit Name',];    
-        $optionalFields = ['name', 'school_unit_id'];
+        $columnLabels = ['schoolingunits'  => 'Schooling Unit', 'schooling_unit_id'  => 'Schooling Unit', 'name'  => 'Schooling Unit Name',];    
+        $optionalFields = ['name', 'schooling_unit_id'];
 
         $this->config_data = (object) [
             "module_name"=>"Schooling Entries", //Module name
@@ -47,9 +48,11 @@ class SchoolingEntrysController extends Controller
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schoolingentry = SchoolingEntry::find(1);    
         $schoolingentry->fill([
-            'school_unit_id' => null,
+            'schooling_unit_id' => null,
+            'assignment_id' => null,
         ]);
-        $schoolingunits = SchoolUnit::all()->pluck('name', 'id');
+        $schoolingunits = SchoolingUnit::all()->pluck('name', 'id');
+        $assignments = Assignment::all()->pluck('name', 'id');
         $data_items = [
             "data" => $schoolingentry,
             "column_hidden" => $this->config_data->columnHidden,
@@ -58,6 +61,7 @@ class SchoolingEntrysController extends Controller
             "optional_fields" => $this->config_data->optionalFields,
             "bulk_insert" => $id,
             "schoolingunits" => $schoolingunits,
+            "assignments" => $assignments,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -80,7 +84,7 @@ class SchoolingEntrysController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schoolingentry->load('schoolingunits');
-        $columnHidden = array_merge($schoolingentry->getDates(), ['id','school_unit_id']);
+        $columnHidden = array_merge($schoolingentry->getDates(), ['id','schooling_unit_id']);
         $data_items = [
             "data" => $schoolingentry,
             "column_hidden" => $columnHidden,
@@ -98,7 +102,8 @@ class SchoolingEntrysController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $columnHidden = array_merge($schoolingentry->getDates(), ['id']);   
-        $schoolingunits = SchoolUnit::all()->pluck('name', 'id')   ;
+        $schoolingunits = SchoolingUnit::all()->pluck('name', 'id');
+        $assignments = Assignment::all()->pluck('name', 'id');
         $data_items = [
             "data" => $schoolingentry,
             "column_hidden" => $columnHidden,
@@ -106,6 +111,7 @@ class SchoolingEntrysController extends Controller
             "operation_type" => "edit",
             "optional_fields" => $this->config_data->optionalFields,
             "schoolingunits" => $schoolingunits,
+            "assignments" => $assignments,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -135,7 +141,7 @@ class SchoolingEntrysController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'name', 'school_unit_id', 'created_at'];
+        $columns = ['id', 'name', 'schooling_unit_id', 'assignment_id', 'created_at'];
 
         // Pagination values from DataTables
         $start  = $request->input('start', 0);
@@ -176,7 +182,7 @@ class SchoolingEntrysController extends Controller
         $data = $query->orderBy($orderColumn, $orderDir)
                       ->skip($start)
                       ->take($length)
-                       ->with(relations: 'schoolingunits') 
+                       ->with(relations:[ 'schoolingunits', 'assignments'])
                       ->get();
 
         // Transform types so DataTables can display them
