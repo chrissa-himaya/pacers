@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 
-class SchoolUnit extends Model implements Auditable
+class SchoolingUnit extends Model implements Auditable
 {
     use AuditableTrait;
-    public $table = 'school_units';
+    public $table = 'schooling_units';
     protected $fillable = [
         'name',
         'location',

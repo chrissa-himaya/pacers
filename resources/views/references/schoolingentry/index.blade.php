@@ -17,6 +17,7 @@
                     <th>Name</th>
                     <th>Schooling Unit</th>
                     <th>Location</th>
+                    <th>Category</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -54,6 +55,7 @@
                 { data: 'name' },
                 { data: 'schoolingunits.name' },
                 { data: 'schoolingunits.location' },
+                { data: 'assignments.name' },
                 {
                     data: 'id',
                     render: function (data) {

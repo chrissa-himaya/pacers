@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SchoolUnit;
+use App\Models\SchoolingUnit;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +14,7 @@ class SchoolingUnitsController extends Controller
      * Display a listing of the resource.
      */
     protected $config_data;
-    public function __construct(SchoolUnit $schoolingunit)
+    public function __construct(SchoolingUnit $schoolingunit)
     {
         $columnHidden = array_merge($schoolingunit->getDates(), ['id']);
         $columnLabels = [''];    
@@ -44,7 +44,7 @@ class SchoolingUnitsController extends Controller
     public function create($id="0")
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $schoolingunit = SchoolUnit::find(1);
+        $schoolingunit = SchoolingUnit::find(1);
         $columnHidden = array_merge($schoolingunit->getDates(), ['id']);
         $columnLabels = [
             'name'  => 'School/Unit Name',
@@ -69,14 +69,14 @@ class SchoolingUnitsController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
-        $schoolingunit = SchoolUnit::create($data);
+        $schoolingunit = SchoolingUnit::create($data);
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(SchoolUnit $schoolingunit)
+    public function show(SchoolingUnit $schoolingunit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data_items = [
@@ -91,7 +91,7 @@ class SchoolingUnitsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(SchoolUnit $schoolingunit)
+    public function edit(SchoolingUnit $schoolingunit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $columnHidden = array_merge($schoolingunit->getDates(), ['id']);
@@ -113,7 +113,7 @@ class SchoolingUnitsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, SchoolUnit $schoolingunit)
+    public function update(Request $request, SchoolingUnit $schoolingunit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
@@ -124,7 +124,7 @@ class SchoolingUnitsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SchoolUnit $schoolingunit)
+    public function destroy(SchoolingUnit $schoolingunit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schoolingunit->delete();
@@ -158,7 +158,7 @@ class SchoolingUnitsController extends Controller
         $orderColumn = $columns[$orderIndex] ?? 'id';
 
         // Base query
-        $query = SchoolUnit::query();
+        $query = SchoolingUnit::query();
 
         // Search filter
         $search = $request->input('search.value');
@@ -169,7 +169,7 @@ class SchoolingUnitsController extends Controller
         }
 
         // Total records
-        $totalData = SchoolUnit::count();
+        $totalData = SchoolingUnit::count();
         $filteredData = $query->count();
 
         // Apply ordering and pagination
