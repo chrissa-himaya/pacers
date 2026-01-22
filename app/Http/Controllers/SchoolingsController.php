@@ -21,43 +21,53 @@ class SchoolingsController extends Controller
     public function __construct(Schooling $schooling)
     {
         $columnHidden = array_merge($schooling->getDates(), ['id']);
-        $columnLabels = [''];    
+        $columnLabels = [''];
         $optionalFields = ['name', 'email'];
 
         $this->config_data = (object) [
-            "module_name"=>"Schoolings", //Module name
-            "module_perm_name"=>"schooling", //Permission name
-            "module_route"=>"schoolings", //Web route
-            "module_view_folder"=>"officerdata.schooling", //View folder
-            "columnHidden"=>$columnHidden,
-            "columnLabels"=>$columnLabels,
-            "optionalFields"=>$optionalFields,
+            "module_name" => "Schoolings", //Module name
+            "module_perm_name" => "schooling", //Permission name
+            "module_route" => "schoolings", //Web route
+            "module_view_folder" => "officerdata.schooling", //View folder
+            "columnHidden" => $columnHidden,
+            "columnLabels" => $columnLabels,
+            "optionalFields" => $optionalFields,
         ];
 
         view()->share('config_data', $this->config_data);
-    }  
+    }
 
     public function index()
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        return view($this->config_data->module_view_folder.'.index');
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        return view($this->config_data->module_view_folder . '.index');
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create($id="0")
+    public function create($id = "0")
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schooling = Schooling::find(1);
         $schooling->fill([
+            'pm_code' => null,
             'schooling_entries_id' => null,
-            'school_unit_id' => null,
+            'schooling_unit_id' => null,
             'assignment_id' => null,
         ]);
 
         $schoolingentries = SchoolingEntry::with('schoolingunits')->get()->keyBy('id');
         $assignments = Assignment::with('types')->get()->keyBy('id');
+
+        $pmcodes = Officer::query()
+            ->select('pm_code')
+            ->whereNotNull('pm_code')
+            ->where('pm_code', '!=', '')
+            ->distinct()
+            ->orderBy('pm_code')
+            ->pluck('pm_code');
+
         $data_items = [
             "data" => $schooling,
             "column_hidden" => $this->config_data->columnHidden,
@@ -67,9 +77,10 @@ class SchoolingsController extends Controller
             "bulk_insert" => $id,
             "assignments" => $assignments,
             "schoolingentries" => $schoolingentries,
+            "pm_codes" => $pmcodes,
         ];
 
-        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
+        return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
     /**
@@ -79,34 +90,65 @@ class SchoolingsController extends Controller
     {
         $action = $request->input('action');
         $pm_code = $request->input('pm_code');
+        $schooling = Officer::where('PM_CODE', $pm_code)->first();
+
 
         if ($action == 'Fetch Data') {
-            echo "Fetch Data button was clicked.".$pm_code;
-
-            $schooling = Officer::where('PM_CODE', $pm_code)->first();
-
             return back()->withInput($request->all())
-            ->with([
-                'rank' => $schooling->RANK,
-                'name' => $schooling->NAME,
-                'afpsn' => $schooling->AFPSN,
-                'afpos' => $schooling->AFPOS,
-                // 'sex' => $schooling->SEX,
-                'dob' => $schooling->DOB,
-                'date_ret' => $schooling->RET,
-                'soc' => $schooling->SOC,
-                'type' => $schooling->TYPE,
-                'otd' => $schooling->OTD,
-                'dor' => $schooling->DOR,
-                'tig' => $schooling->TIG,
-                'designation' => $schooling->DESIGNATION,
-                'unit' => $schooling->UNIT,
+                ->with([
+                    'rank' => $schooling->RANK,
+                    'name' => $schooling->NAME,
+                    'afpsn' => $schooling->AFPSN,
+                    'afpos' => $schooling->AFPOS,
+                    'sex' => $schooling->SEX,
+                    'dob' => $schooling->DOB,
+                    'date_ret' => $schooling->RET,
+                    'soc' => $schooling->SOC,
+                    'type' => $schooling->TYPE,
+                    'otd' => $schooling->OTD,
+                    'dor' => $schooling->DOR,
+                    'sig' => $schooling->SIG,
+                    'designation' => $schooling->DESIGNATION,
+                    'unit' => $schooling->UNIT,
+                ]);
+
+        } elseif ($action === 'Show info') {
+
+            $request->validate([
+                'schooling_entries_id' => ['required', 'integer', 'exists:schooling_entries,id'],
             ]);
 
+            $entryId = (int) $request->input('schooling_entries_id');
+
+            $schoolingentries = SchoolingEntry::with(['schoolingunits', 'assignments'])->findOrFail($entryId);
+            // return $request->all();
+            return back()
+                ->withInput($request->all())
+                ->with([
+                    'schooling_unit_id' => $schoolingentries->schoolingunits->name,
+                    'schooling_unit_location' => $schoolingentries->schoolingunits->location,
+                    'assignment_id' => $schoolingentries->assignments->name,
+
+                    'rank' => $schooling->RANK,
+                    'name' => $schooling->NAME,
+                    'afpsn' => $schooling->AFPSN,
+                    'afpos' => $schooling->AFPOS,
+                    'sex' => $schooling->SEX,
+                    'dob' => $schooling->DOB,
+                    'date_ret' => $schooling->RET,
+                    'soc' => $schooling->SOC,
+                    'type' => $schooling->TYPE,
+                    'otd' => $schooling->OTD,
+                    'dor' => $schooling->DOR,
+                    'sig' => $schooling->SIG,
+                    'designation' => $schooling->DESIGNATION,
+                    'unit' => $schooling->UNIT,
+                ]);
+
         } elseif ($action == 'Save') {
-            dd( $request->all());
+            // dd( $request->all());
         }
-            
+
     }
 
     /**
@@ -114,7 +156,54 @@ class SchoolingsController extends Controller
      */
     public function show(Schooling $schooling)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        // Load relationships for the schooling record
+    $schooling->load(['schoolingunits', 'assignments']);
+    $schoolingentries = SchoolingEntry::with('schoolingunits')->get()->keyBy('id');
+    $assignments = Assignment::with('types')->get()->keyBy('id');
+    $pm_codes = Officer::all()->pluck('PM_CODE');
+
+    // If the schooling record has a PM code, look up the officer.
+    // Use the same column name you use in your store() method ('PMCODE').
+    if ($schooling->pm_code) {
+        $officer = Officer::where('PM_CODE', $schooling->pm_code)->first();
+
+        if ($officer) {
+            // Set session values using the officer's attributes (use uppercase names)
+            session([
+                'rank'        => $officer->RANK,
+                'name'        => $officer->NAME,
+                'afpsn'       => $officer->AFPSN,
+                'afpos'       => $officer->AFPOS,
+                'sex'         => $officer->SEX,
+                'dob'         => $officer->DOB,
+                'date_ret'    => $officer->RET,
+                'soc'         => $officer->SOC,
+                'type'        => $officer->TYPE,
+                'otd'         => $officer->OTD,
+                'dor'         => $officer->DOR,
+                'sig'         => $officer->SIG,
+                'designation' => $officer->DESIGNATION,
+                'unit'        => $officer->UNIT,
+            ]);
+        }
+    }
+
+    // Build the data array with the additional collections you need (as before)
+    $columnHidden = array_merge($schooling->getDates(), ['id']);
+    $data_items = [
+        'data'           => $schooling,
+        'column_hidden'  => $columnHidden,
+        'column_labels'  => $this->config_data->columnLabels,
+        'operation_type' => 'show',
+        'schooling'      => $schooling,
+        'schoolingentries' => $schoolingentries, // retrieved as shown earlier
+        'assignments'      => $assignments,
+        'pm_codes'         => $pm_codes,
+    ];
+
+
+        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
@@ -143,12 +232,12 @@ class SchoolingsController extends Controller
 
     public function list(Request $request)
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = [ 'id', 'pm_code', 'schooling_entries_id', 'schooling_unit_id', 'assignment_id', 'rating', 'standing', 'total_student', 'rank_during_completion', '2lt', '1lt', 'cpt', 'ltc', 'col', 'created_at', 'updated_at' ];
+        $columns = ['id', 'pm_code', 'schooling_entries_id', 'schooling_unit_id', 'assignment_id', 'rating', 'standing', 'total_student', 'rank_during_completion', '2lt', '1lt', 'cpt', 'ltc', 'col', 'created_at', 'updated_at'];
 
         // Pagination values from DataTables
-        $start  = $request->input('start', 0);
+        $start = $request->input('start', 0);
         $length = $request->input('length', 10);
 
         // Prevent invalid length (MariaDB requires LIMIT)
@@ -158,7 +247,7 @@ class SchoolingsController extends Controller
 
         // Ordering
         $orderIndex = $request->input('order.0.column', 0);
-        $orderDir   = $request->input('order.0.dir', 'asc');
+        $orderDir = $request->input('order.0.dir', 'asc');
 
         // Validate order direction
         if (!in_array($orderDir, ['asc', 'desc'])) {
@@ -169,6 +258,7 @@ class SchoolingsController extends Controller
 
         // Base query
         $query = Schooling::query();
+
 
         // Search filter
         $search = $request->input('search.value');
@@ -184,17 +274,17 @@ class SchoolingsController extends Controller
 
         // Apply ordering and pagination
         $data = $query->orderBy($orderColumn, $orderDir)
-                      ->skip($start)
-                      ->take($length)
-                      ->with(['schoolingentries', 'schoolingunits', 'assignments'])
-                      ->get();
+            ->skip($start)
+            ->take($length)
+            ->get()
+            ->loadMissing(['schoolingentries', 'schoolingunits', 'assignments']);
 
         // Return JSON in DataTables format
         return response()->json([
-            'draw'            => intval($request->input('draw')),
-            'recordsTotal'    => $totalData,
+            'draw' => intval($request->input('draw')),
+            'recordsTotal' => $totalData,
             'recordsFiltered' => $filteredData,
-            'data'            => $data,
-        ]);     
+            'data' => $data,
+        ]);
     }
 }

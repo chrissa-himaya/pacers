@@ -21,8 +21,10 @@ class Officer extends Model implements Auditable
         'RANK',
         'AFPSN',
         'AFPOS',
+        'SEX',
         'SIG',
         'DOR',
+        'TYPE',
         'TACS',
         'DOC',
         'DOB',
@@ -31,9 +33,6 @@ class Officer extends Model implements Auditable
         'HCC',
         'SOC',
         'REMARKS',
-        'LAST_NAME',
-        'FIRST_NAME',
-        'MID_INITIAL',
         'SUFFIX',
     ];
 }

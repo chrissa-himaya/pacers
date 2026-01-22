@@ -1,48 +1,55 @@
 @extends('layouts.app')
 @section('content')
 
-<div class="card">
+  <div class="card">
     <div class="card-header">
-        @if($data_items['operation_type']=="show")
-            <h4 class="d-inline">{{$config_data->module_name}} | VIEW - {{$data_items["data"]->name}}</h4>
-        @elseif($data_items['operation_type']=="edit")
-            <h4 class="d-inline">{{$config_data->module_name}} | EDIT - {{$data_items["data"]->name}}</h4>
-        @elseif($data_items['operation_type']=="create")
-            <h4 class="d-inline">{{$config_data->module_name}} | CREATE</h4>            
-        @endif
-        <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary float-end">
-            Back
-        </a>
-
+      @if($data_items['operation_type'] == "show")
+        <h4 class="d-inline">{{$config_data->module_name}} | VIEW - {{$data_items["data"]->name}}</h4>
+      @elseif($data_items['operation_type'] == "edit")
+        <h4 class="d-inline">{{$config_data->module_name}} | EDIT - {{$data_items["data"]->name}}</h4>
+      @elseif($data_items['operation_type'] == "create")
+        <h4 class="d-inline">{{$config_data->module_name}} | CREATE</h4>
+      @endif
     </div>
 
     <div class="card-body">
-        <form action="{{ $data_items['operation_type'] === 'create' 
-        ? route("$config_data->module_route.store") 
-        : route("$config_data->module_route.update", [$data_items['data']->id]) }}" 
-        method="POST" 
+      <form action="{{ $data_items['operation_type'] === 'create'
+    ? route("$config_data->module_route.store")
+    : route("$config_data->module_route.update", [$data_items['data']->id]) }}" method="POST"
         enctype="multipart/form-data">
         @csrf
         @if($data_items["operation_type"] == "edit")
-            @method('PUT')
+          @method('PUT')
         @endif
-            <!-- OFFICER INFORMATION -->
+        <!-- OFFICER INFORMATION -->
         <!-- <div class="form-section-title">Officer Information (Read-Only)</div> -->
         <div class="row">
           <div class="col-md-3">
             <label>PM Code</label>
             <div class="input-group">
-                <input type="text" class="form-control" name="pm_code" value="{{ old('pm_code') }}" required>
-                <input type="submit" class="btn btn-info" name="action" value="Fetch Data">
-            </div>
-        </div>
-        </div>
+              @php
+                $key = 'pm_code';
+                $current = old('pm_code', $data_items['data']->pm_code ?? '');
+              @endphp
 
-        <div class="row mt-3">
-          
-        <div class="col-md-3">
-            <label>AFPSN</label>
-            <input type="text" class="form-control" value="{{ session('afpsn') }}" disabled>
+              @if($data_items["operation_type"] !== "show")
+                <select name="pm_code" id="pm_code" class="form-control select2">
+                  <option value="">-- Select PM Code --</option>
+
+                  @foreach(($data_items['pm_codes'] ?? []) as $pmcode)
+                    <option value="{{ $pmcode }}" {{ $current == $pmcode ? 'selected' : '' }}>
+                      {{ $pmcode }}
+                    </option>
+                  @endforeach
+                </select>
+
+                <button type="submit" class="btn btn-info" name="action" value="Fetch Data">
+                  Fetch Data
+                </button>
+              @else
+                <input type="text" class="form-control" value="{{ $current }}" disabled>
+              @endif
+            </div>
           </div>
           <div class="col-md-3">
             <label>Rank</label>
@@ -58,12 +65,15 @@
           </div>
         </div>
 
-        <div class="row mt-3"> 
-          
-          <!-- <div class="col-md-3">
+        <div class="row mt-3">
+          <div class="col-md-3">
+            <label>AFPSN</label>
+            <input type="text" class="form-control" value="{{ session('afpsn') }}" disabled>
+          </div>
+          <div class="col-md-3">
             <label>Sex</label>
-            <input type="text" class="form-control" name="sex" value="{{ session('sex') }}">
-          </div> -->
+            <input type="text" class="form-control" name="sex" value="{{ session('sex') }}" disabled>
+          </div>
           <div class="col-md-3">
             <label>DOB</label>
             <input type="text" class="form-control" value="{{ session('dob') }}" disabled>
@@ -72,6 +82,9 @@
             <label>Date Ret</label>
             <input type="text" class="form-control" value="{{ session('date_ret') }}" disabled>
           </div>
+        </div>
+
+        <div class="row mt-3">
           <div class="col-md-3">
             <label>DOR</label>
             <input type="text" class="form-control" value="{{ session(key: 'dor') }}" disabled>
@@ -80,151 +93,125 @@
             <label>SOC</label>
             <input type="text" class="form-control" value="{{ session('soc') }}" disabled>
           </div>
-        </div>
-
-        <div class="row mt-4">
           <div class="col-md-3">
             <label>Type</label>
             <input type="text" class="form-control" value="{{ session('type') }}" disabled>
           </div>
-          
+
           <div class="col-md-3">
-            <label>TIG</label>
-            <input type="text" class="form-control" value="{{ session('tig') }}" disabled>
+            <label>SIG</label>
+            <input type="text" class="form-control" value="{{ session('sig') }}" disabled>
           </div>
-          
+        </div>
+
+        <div class="row mt-4">
           <div class="col-md-3">
-            <label>Designation</label>
+            <label>Current Designation</label>
             <input type="text" class="form-control" value="{{ session('designation') }}" disabled>
           </div>
           <div class="col-md-3">
-            <label>Unit</label>
+            <label>Current Unit</label>
             <input type="text" class="form-control" value="{{ session('unit') }}" disabled>
           </div>
         </div>
-
         <hr>
-
         <!-- CAREER ADVISER INPUTS -->
-        <div class="row">
-            <div class="col-md-3">
-                <label>Entry</label>
-                <select name="schooling_entries_id" class="form-control select2">
-                    <option value="">-- Select Entry --</option>
-                    @foreach($data_items['schoolingentries'] as $id => $entry)
-                        <option value="{{ $id }}" 
-                            {{ old('schooling_entries_id', $data_items['data']->schooling_entries_id) == $id ? 'selected' : '' }}>
-                            {{ $entry->name }}
-                        </option>
-                    @endforeach
-                </select>
+        @if(session('name') || $data_items['operation_type'] !== 'create')
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label>Schooling Entry</label>
+                    <div class="input-group">
+                        <select name="schooling_entries_id"
+                                class="form-control select2"
+                                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                            <option value="">-- Select Entry --</option>
+                            @foreach($data_items['schoolingentries'] as $id => $entry)
+                                <option value="{{ $id }}"
+                                        {{ old('schooling_entries_id', $data_items['data']->schooling_entries_id) == $id ? 'selected' : '' }}>
+                                    {{ $entry->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if($data_items['operation_type'] === 'create')
+                            <button type="submit" class="btn btn-info" name="action" value="Show info">Show info</button>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Schooling Unit</label>
+                    <input type="text"
+                          class="form-control"
+                          value="{{ session('schooling_unit_id', $data_items['data']->schoolingunits->name ?? '') }}"
+                          readonly>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Local/Foreign</label>
+                    <input type="text"
+                          class="form-control"
+                          value="{{ session('schooling_unit_location', $data_items['data']->schoolingunits->location ?? '') }}"
+                          readonly>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Assignment</label>
+                    <input type="text"
+                          class="form-control"
+                          value="{{ session('assignment_id', $data_items['data']->assignments->name ?? '') }}"
+                          readonly>
+                </div>
             </div>
 
-            <div class="col-md-3">
-                <label>Assignment</label>
-                <select name="assignment_id" class="form-control select2">
-                    <option value="">-- Select Assignment --</option>
-                    @foreach($data_items['assignments'] as $id => $assignment)
-                        <option value="{{ $id }}" 
-                            {{ old('assignment_id', $data_items['data']->assignment_id) == $id ? 'selected' : '' }}>
-                            {{ $assignment->name }} - {{ $assignment->types->name }}
-                        </option>
-                    @endforeach
-                </select>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label>Date completed</label>
+                    <input type="date"
+                          name="date_completed"
+                          class="form-control"
+                          value="{{ old('date_completed', $data_items['data']->date_completed) }}"
+                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                </div>
+                <div class="col-md-3">
+                    <label>Rating</label>
+                    <input type="number"
+                          name="rating"
+                          class="form-control"
+                          value="{{ old('rating', $data_items['data']->rating) }}"
+                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                </div>
+                <div class="col-md-3">
+                    <label>Standing</label>
+                    <input type="number"
+                          name="standing"
+                          class="form-control"
+                          value="{{ old('standing', $data_items['data']->standing) }}"
+                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                </div>
+                <div class="col-md-3">
+                    <label>Total Students</label>
+                    <input type="number"
+                          name="total_student"
+                          class="form-control"
+                          value="{{ old('total_student', $data_items['data']->total_student) }}"
+                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                </div>
             </div>
-
-            <div class="col-md-3">
-                <label>Category</label>
-                <input type="text" name="category" class="form-control" value="{{ old('category') }}">
-            </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-3">
-                <label>School Location</label>
-                <select name="school_location" class="form-control">
-                    <option value="Local" selected>Local</option>
-                    <option value="Foreign">Foreign</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <label>Date Completed</label>
-                <input type="date" name="date_completed" class="form-control" value="{{ old('date_completed') }}">
-            </div>
-
-            <div class="col-md-3">
-                <label>Rating</label>
-                <input type="number" name="rating" class="form-control" value="{{ old('rating') }}">
-            </div>
-
-            <div class="col-md-3">
-                <label>Standing</label>
-                <input type="number" name="standing" class="form-control" value="{{ old('standing') }}">
-            </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-3">
-                <label>Total Students</label>
-                <input type="number" name="total_students" class="form-control" value="{{ old('total_students') }}">
-            </div>
-            <div class="col-md-3">
-                <input type="submit" class="form-control btn btn-primary mt-4" value="Save">
-            </div>
-        </div>
-
-        <!-- AUTO-POPULATED -->
-        <!-- <div class="form-section-title">Auto-Populated (Read-Only)</div> -->
-
-        <div class="row">
-          <div class="col-md-3">
-            <label>Rank During Completion</label>
-            <input type="text" class="form-control readonly" value="2LT" readonly>
-          </div>
-        </div>
-
-        <div class="row mt-3">
-          <div class="col-md-4">
-            <label>2LT</label>
-            <input type="text" class="form-control readonly" value="1.85" readonly>
-          </div>
-          <div class="col-md-4">
-            <label>1LT</label>
-            <input type="text" class="form-control readonly" value="1.85" readonly>
-          </div>
-          <div class="col-md-4">
-            <label>CPT</label>
-            <input type="text" class="form-control readonly" value="-" readonly>
-          </div>
-        </div>
-        <div class="row mt-3">
-          <div class="col-md-4">
-            <label>MAJ</label>
-            <input type="text" class="form-control readonly" value="-" readonly>
-          </div>
-          <div class="col-md-4">
-            <label>LTC</label>
-            <input type="text" class="form-control readonly" value="-" readonly>
-          </div>
-          <div class="col-md-4">
-            <label>COL</label>
-            <input type="text" class="form-control readonly" value="-" readonly>
-          </div>
-        </div>
-        
 
         <div class="mt-4 text-right">
-          <a href="schooling-data.html" class="btn btn-secondary">Cancel</a>
           <input type="submit" class="btn btn-primary" name="action" value="Save">
+          @endif
+          <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary">
+            Back
+        </a>
         </div>
-    </form>    
-</div>
+      </form>
+    </div>
 
-</div>
+  </div>
 @endsection
 @section('scripts')
-    <script>
+  <script>
 
-    </script>
+  </script>
 @endsection

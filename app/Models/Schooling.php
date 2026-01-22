@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Models\Assignment;
 use App\Models\SchoolingEntry;
-use App\Models\SchoolUnit;
+use App\Models\SchoolingUnit;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
@@ -20,7 +20,7 @@ class Schooling extends Model implements Auditable
     protected $fillable = [
         'pm_code',
         'schooling_entries_id',
-        'school_unit_id',
+        'schooling_unit_id',
         'assignment_id',
         'date_completed',
         'rating',
@@ -46,7 +46,7 @@ class Schooling extends Model implements Auditable
 
     public function schoolingunits()
     {
-        return $this->belongsTo(SchoolUnit::class, 'school_unit_id', 'id');
+        return $this->belongsTo(SchoolingUnit::class, 'schooling_unit_id', 'id');
     }
 
     public function assignments()
