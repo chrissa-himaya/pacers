@@ -87,71 +87,86 @@ class OfficersController extends Controller
         //
     }
 
-    public function list(Request $request)
-    {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        // All columns in the table
-        $columns = [
-            'id', 'SRTY', 'PM_CODE', 'NAME', 'RANK', 'AFPSN', 'AFPOS', 'SIG', 'DOR', 
-            'TACS', 'DOC', 'DOB', 'RET', 'HCC', 'SOC', 'REMARKS', 'LAST_NAME', 
-            'FIRST_NAME', 'MID_INITIAL', 'SUFFIX'
-        ];
+public function list(Request $request)
+{
+    abort_if(
+        Gate::denies($this->config_data->module_perm_name.'_access'),
+        Response::HTTP_FORBIDDEN,
+        '403 Forbidden'
+    );
 
-        
+    // DataTables column index mapping (Nr and Actions are null)
+    $dtColumns = [
+        null,        // 0 Nr
+        'SRTY',
+        'PM_CODE',
+        'NAME',
+        'SUFFIX',
+        'RANK',
+        'AFPSN',
+        'AFPOS',
+        'TYPE',
+        'SIG',
+        'SEX',
+        'DOR',
+        'TACS',
+        'DOB',
+        'DOC',
+        'RET',
+        'HCC',
+        'SOC',
+        'REMARKS',
+        null,        // 19 Actions
+    ];
 
-        // Pagination values from DataTables
-        $start  = $request->input('start', 0);
-        $length = $request->input('length', 10);
+    // ✅ Only these will be used for the GLOBAL search box
+    // Example: search only in 4+ columns
+    $globalSearchColumns = ['SRTY','PM_CODE','NAME','SUFFIX','RANK','AFPSN','AFPOS','TYPE','SIG','SEX','DOR','TACS','DOB','DOC','RET','HCC','SOC','REMARKS']; // change as you like
 
-        // Prevent invalid length (MariaDB requires LIMIT)
-        if ($length <= 0) {
-            $length = 10;
-        }
+    $start  = (int) $request->input('start', 0);
+    $length = (int) $request->input('length', 10);
+    if ($length <= 0) $length = 10;
 
-        // Ordering
-        $orderIndex = $request->input('order.0.column', 0);
-        $orderDir   = $request->input('order.0.dir', 'asc');
+    $query = Officer::query();
 
-        // Validate order direction
-        if (!in_array($orderDir, ['asc', 'desc'])) {
-            $orderDir = 'asc';
-        }
-
-        $orderColumn = $columns[$orderIndex] ?? 'id';
-
-        // Base query
-        $query = Officer::query();
-        foreach ($columns as $index => $col) {
-            $searchValue = $request->input("columns.$index.search.value");
-            if(!empty($searchValue)) {
-                $query->where($col, 'like', "%$searchValue%");
+    // ✅ GLOBAL SEARCH (only in selected columns)
+    $search = trim((string) $request->input('search.value', ''));
+    if ($search !== '') {
+        $query->where(function ($q) use ($search, $globalSearchColumns) {
+            foreach ($globalSearchColumns as $col) {
+                $q->orWhere($col, 'like', "%{$search}%");
             }
-        }
-
-        // Search filter
-        // $search = $request->input('search.value');
-        // if (!empty($search)) {
-        //     $query->where(function ($q) use ($search) {
-        //         $q->where('name', 'like', "%{$search}%");
-        //     });
-        // }
-
-        // Total records
-        $totalData = Officer::count();
-        $filteredData = $query->count();
-
-        // Apply ordering and pagination
-        $data = $query->orderBy($orderColumn, $orderDir)
-                      ->skip($start)
-                      ->take($length)
-                      ->get();
-
-        // Return JSON in DataTables format
-        return response()->json([
-            'draw'            => intval($request->input('draw')),
-            'recordsTotal'    => $totalData,
-            'recordsFiltered' => $filteredData,
-            'data'            => $data,
-        ]);     
+        });
     }
+
+    // ✅ PER-COLUMN SEARCH (inputs in each column)
+    foreach ($dtColumns as $index => $column) {
+        if (!$column) continue;
+
+        $colSearch = trim((string) $request->input("columns.$index.search.value", ''));
+        if ($colSearch !== '') {
+            $query->where($column, 'like', "%{$colSearch}%");
+            // $query->where($column, '=', "{$colSearch}");
+        }
+    }
+
+    $totalData    = Officer::count();
+    $filteredData = (clone $query)->count();
+
+    // ✅ REMOVE SORTING: ignore incoming order completely
+    // (optional) but you can still add a stable default if you want:
+    $query->orderBy('id', 'asc');
+
+    $data = $query->skip($start)->take($length)->get();
+
+    return response()->json([
+        'draw'            => (int) $request->input('draw'),
+        'recordsTotal'    => $totalData,
+        'recordsFiltered' => $filteredData,
+        'data'            => $data,
+    ]);
+}
+
+
+
 }

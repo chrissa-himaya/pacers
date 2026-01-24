@@ -18,10 +18,13 @@ class Officer extends Model implements Auditable
         'SRTY',
         'PM_CODE',
         'NAME',
+        'SUFFIX',
         'RANK',
         'AFPSN',
         'AFPOS',
+        'TYPE',
         'SIG',
+        'SEX',
         'DOR',
         'TACS',
         'DOC',
@@ -31,9 +34,5 @@ class Officer extends Model implements Auditable
         'HCC',
         'SOC',
         'REMARKS',
-        'LAST_NAME',
-        'FIRST_NAME',
-        'MID_INITIAL',
-        'SUFFIX',
     ];
 }
