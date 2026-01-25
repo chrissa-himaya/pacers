@@ -49,6 +49,11 @@ class SchoolingsController extends Controller
     public function create($id = "0")
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        // session()->forget([
+        //     'rank',
+        //     'name',
+        // ]);
+
         $schooling = Schooling::find(1);
         $schooling->fill([
             'pm_code' => null,
@@ -158,36 +163,33 @@ class SchoolingsController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // Load relationships for the schooling record
-    $schooling->load(['schoolingunits', 'assignments']);
-    $schoolingentries = SchoolingEntry::with('schoolingunits')->get()->keyBy('id');
-    $assignments = Assignment::with('types')->get()->keyBy('id');
-    $pm_codes = Officer::all()->pluck('PM_CODE');
-
+    $schooling->load(['schoolingentries','schoolingunits', 'assignments']);
     // If the schooling record has a PM code, look up the officer.
     // Use the same column name you use in your store() method ('PMCODE').
     if ($schooling->pm_code) {
-        $officer = Officer::where('PM_CODE', $schooling->pm_code)->first();
+        $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
 
-        if ($officer) {
+        if ($officerData) {
             // Set session values using the officer's attributes (use uppercase names)
-            session([
-                'rank'        => $officer->RANK,
-                'name'        => $officer->NAME,
-                'afpsn'       => $officer->AFPSN,
-                'afpos'       => $officer->AFPOS,
-                'sex'         => $officer->SEX,
-                'dob'         => $officer->DOB,
-                'date_ret'    => $officer->RET,
-                'soc'         => $officer->SOC,
-                'type'        => $officer->TYPE,
-                'otd'         => $officer->OTD,
-                'dor'         => $officer->DOR,
-                'sig'         => $officer->SIG,
-                'designation' => $officer->DESIGNATION,
-                'unit'        => $officer->UNIT,
-            ]);
+            // session([
+            //     'rank'        => $officer->RANK,
+            //     'name'        => $officer->NAME,
+            //     'afpsn'       => $officer->AFPSN,
+            //     'afpos'       => $officer->AFPOS,
+            //     'sex'         => $officer->SEX,
+            //     'dob'         => $officer->DOB,
+            //     'date_ret'    => $officer->RET,
+            //     'soc'         => $officer->SOC,
+            //     'type'        => $officer->TYPE,
+            //     'otd'         => $officer->OTD,
+            //     'dor'         => $officer->DOR,
+            //     'sig'         => $officer->SIG,
+            //     'designation' => $officer->DESIGNATION,
+            //     'unit'        => $officer->UNIT,
+            // ]);
         }
     }
+
 
     // Build the data array with the additional collections you need (as before)
     $columnHidden = array_merge($schooling->getDates(), ['id']);
@@ -197,13 +199,12 @@ class SchoolingsController extends Controller
         'column_labels'  => $this->config_data->columnLabels,
         'operation_type' => 'show',
         'schooling'      => $schooling,
-        'schoolingentries' => $schoolingentries, // retrieved as shown earlier
-        'assignments'      => $assignments,
-        'pm_codes'         => $pm_codes,
+        'officerData' => $officerData 
     ];
 
 
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
+                        
     }
 
     /**
