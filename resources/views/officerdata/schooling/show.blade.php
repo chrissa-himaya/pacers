@@ -142,10 +142,20 @@
 
                 <div class="col-md-3">
                     <label>Schooling Unit</label>
-                    <input type="text"
-                          class="form-control"
-                          value="{{ session('schooling_unit_id', $data_items['data']->schoolingunits->name ?? '') }}"
-                          readonly>
+                    @if($data_items["operation_type"] == "create")
+                      <select name="schooling_unit_id" class="form-control select2" disabled>
+                              <option value="">-</option>
+                              @foreach($data_items['schoolingUnits'] as $id => $entry)
+                                  <option value="{{ $id }}"
+                                    {{ session('schooling_unit_id') == $id ? 'selected' : '' }}>
+                                      {{ $entry }}
+                                  </option>
+                              @endforeach
+                      </select>
+                      <input type="hidden" name="schooling_unit_id" value="{{ session('schooling_unit_id') }}">
+                    @else
+                      <input type="text" class="form-control" value="{{ $data_items['data']->schoolingunits->name }}" disabled>
+                    @endif
                 </div>
 
                 <div class="col-md-3">
@@ -158,10 +168,20 @@
 
                 <div class="col-md-3">
                     <label>Assignment</label>
-                    <input type="text"
-                          class="form-control"
-                          value="{{ session('assignment_id', $data_items['data']->assignments->name ?? '') }}"
-                          readonly>
+                    @if($data_items["operation_type"] == "create")
+                      <select name="assignment_id" class="form-control select2" disabled>
+                              <option value="">-</option>
+                              @foreach($data_items['assignments'] as $id => $entry)
+                                  <option value="{{ $id }}"
+                                    {{ session('assignment_id') == $id ? 'selected' : '' }}>
+                                      {{ $entry }}
+                                  </option>
+                              @endforeach
+                      </select>
+                      <input type="hidden" name="assignment_id" value="{{ session('assignment_id') }}">
+                    @else
+                      <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name }}" disabled>
+                    @endif
                 </div>
             </div>
 
@@ -171,32 +191,28 @@
                     <input type="date"
                           name="date_completed"
                           class="form-control"
-                          value="{{ old('date_completed', $data_items['data']->date_completed) }}"
-                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->date_completed : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
                 </div>
                 <div class="col-md-3">
                     <label>Rating</label>
                     <input type="number"
                           name="rating"
                           class="form-control"
-                          value="{{ old('rating', $data_items['data']->rating) }}"
-                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->rating : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
                 </div>
                 <div class="col-md-3">
                     <label>Standing</label>
                     <input type="number"
                           name="standing"
                           class="form-control"
-                          value="{{ old('standing', $data_items['data']->standing) }}"
-                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->standing : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
                 </div>
                 <div class="col-md-3">
                     <label>Total Students</label>
                     <input type="number"
                           name="total_student"
                           class="form-control"
-                          value="{{ old('total_student', $data_items['data']->total_student) }}"
-                          {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->total_student : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
                 </div>
             </div>
 

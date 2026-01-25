@@ -63,7 +63,8 @@ class SchoolingsController extends Controller
         ]);
 
         $schoolingentries = SchoolingEntry::with('schoolingunits')->get()->keyBy('id');
-        $assignments = Assignment::with('types')->get()->keyBy('id');
+        $assignments = Assignment::all()->pluck('name', 'id');
+        $schoolingUnits = SchoolingUnit::all()->pluck('name', 'id');
 
         $pmcodes = Officer::query()
             ->select('pm_code')
@@ -83,6 +84,7 @@ class SchoolingsController extends Controller
             "assignments" => $assignments,
             "schoolingentries" => $schoolingentries,
             "pm_codes" => $pmcodes,
+            "schoolingUnits" => $schoolingUnits
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -127,12 +129,13 @@ class SchoolingsController extends Controller
 
             $schoolingentries = SchoolingEntry::with(['schoolingunits', 'assignments'])->findOrFail($entryId);
             // return $request->all();
+
             return back()
                 ->withInput($request->all())
                 ->with([
-                    'schooling_unit_id' => $schoolingentries->schoolingunits->name,
+                    'schooling_unit_id' => $schoolingentries->schoolingunits->id,
                     'schooling_unit_location' => $schoolingentries->schoolingunits->location,
-                    'assignment_id' => $schoolingentries->assignments->name,
+                    'assignment_id' => $schoolingentries->assignments->id,
 
                     'rank' => $schooling->RANK,
                     'name' => $schooling->NAME,
@@ -151,7 +154,9 @@ class SchoolingsController extends Controller
                 ]);
 
         } elseif ($action == 'Save') {
-            // dd( $request->all());
+            $data = $request->all();
+            Schooling::create($data);
+            return redirect()->route($this->config_data->module_route . '.index');
         }
 
     }
@@ -201,7 +206,6 @@ class SchoolingsController extends Controller
         'schooling'      => $schooling,
         'officerData' => $officerData 
     ];
-
 
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
                         

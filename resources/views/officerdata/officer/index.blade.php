@@ -18,22 +18,21 @@
                         <th>SRTY</th>
                         <th>PM CODE</th>
                         <th>NAME</th>
+                        <th>SUFFIX</th>                        
                         <th>RANK</th>
                         <th>AFPSN</th>
                         <th>AFPOS</th>
+                        <th>TYPE</th>
                         <th>SIG</th>
+                        <th>SEX</th>
                         <th>DOR</th>
                         <th>TACS</th>
-                        <th>DOC</th>
                         <th>DOB</th>
+                        <th>DOC</th>
                         <th>RET</th>
                         <th>HCC</th>
                         <th>SOC</th>
                         <th>REMARKS</th>
-                        <th>LAST NAME</th>
-                        <th>FIRST NAME</th>
-                        <th>MID INITIAL</th>
-                        <th>SUFFIX</th>
                         <th>Action</th>
                     </tr>
                     <tr class="filter-row">
@@ -41,22 +40,21 @@
                         <th><input type="text" placeholder="Search SRTY" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search PM CODE" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search NAME" class="form-control form-control-sm" /></th>
+                        <th><input type="text" placeholder="Search SUFFIX" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search RANK" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search AFPSN" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search AFPOS" class="form-control form-control-sm" /></th>
+                        <th><input type="text" placeholder="Search TYPE" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search SIG" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search DOR" class="form-control form-control-sm" /></th>
+                        <th><input type="text" placeholder="Search SEX" class="form-control form-control-sm" /></th>
+                        <th><input type="date" placeholder="Search DOR" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search TACS" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search DOC" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search DOB" class="form-control form-control-sm" /></th>
+                        <th><input type="date" placeholder="Search DOB" class="form-control form-control-sm" /></th>
+                        <th><input type="date" placeholder="Search DOC" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search RET" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search HCC" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search SOC" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search REMARKS" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search LAST NAME" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search FIRST NAME" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search MID INITIAL" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search SUFFIX" class="form-control form-control-sm" /></th>
                         <th></th> <!-- Action column no filter -->
                     </tr>
                 </thead>
@@ -74,13 +72,14 @@
     let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rank::class));
     let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rank::class));
     let url_route = "{{ $config_data->module_route }}";
-
-        $('#dataTable').DataTable({
+    
+        const table = $('#dataTable').DataTable({
             processing: true,
             serverSide: true,
+            ordering: false,     // disable ordering UI
+            order: [],           // remove default order           
             ajax: "{{ route("$config_data->module_route.list") }}",
             scrollX: true,
-            order: [[0, 'asc']], // default ordering
             columns: [
                 {
                     data: null,
@@ -93,25 +92,24 @@
                     orderable: false,
                     searchable: false
                 },
-                { data: 'SRTY' },
-                { data: 'PM_CODE' },
-                { data: 'NAME' },
-                { data: 'RANK' },
-                { data: 'AFPSN' },
-                { data: 'AFPOS' },
-                { data: 'SIG' },
-                { data: 'DOR' },
-                { data: 'TACS' },
-                { data: 'DOC' },
-                { data: 'DOB' },
-                { data: 'RET' },
-                { data: 'HCC' },
-                { data: 'SOC' },
-                { data: 'REMARKS' },
-                { data: 'LAST_NAME' },
-                { data: 'FIRST_NAME' },
-                { data: 'MID_INITIAL' },
-                { data: 'SUFFIX' },
+                { data: 'SRTY', searchable: true },
+                { data: 'PM_CODE', searchable: true },
+                { data: 'NAME', searchable: true },
+                { data: 'SUFFIX', searchable: true},
+                { data: 'RANK', searchable: true },
+                { data: 'AFPSN', searchable: true },
+                { data: 'AFPOS', searchable: true },
+                { data: 'TYPE', searchable: true },
+                { data: 'SIG', searchable: true },
+                { data: 'SEX', searchable: true },
+                { data: 'DOR', searchable: true },
+                { data: 'TACS', searchable: true },
+                { data: 'DOB', searchable: true },
+                { data: 'DOC', searchable: true },
+                { data: 'RET', searchable: true },
+                { data: 'HCC', searchable: true },
+                { data: 'SOC', searchable: true },
+                { data: 'REMARKS', searchable: true },
                 {
                     data: 'id',
                     orderable: false, 
@@ -153,9 +151,39 @@
                     
             ],
         });
-        $('#dataTable thead tr.filter-row input').on('keyup change', function() {
-            table.draw();
+
+
+        // ✅ Add per-column search inputs AFTER DataTable is created
+        $('#dataTable thead th').each(function (i) {
+
+            // skip "Nr" (0) and "Actions" (last column)
+            if (i === 0 || i === 19) return;
+
+            // put an input under the header text
+            $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
         });
+
+        // ✅ Bind search event per column
+// ✅ Bind search event per column (DEBOUNCED)
+table.columns().every(function (i) {
+  if (i === 0 || i === 19) return;
+
+  let timer = null;
+  const column = this;
+
+  $('input', this.header()).on('input change clear', function () {
+    const value = this.value;
+
+    clearTimeout(timer);
+
+    timer = setTimeout(function () {
+      column.search(value).draw();
+    }, 500); // ⏳ wait 500ms after user stops typing
+  });
+});
+
+
+
 
         $(document).on('click', '.deleteRecord', function () {
             let id = $(this).data('id');

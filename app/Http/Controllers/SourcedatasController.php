@@ -83,7 +83,7 @@ class SourcedatasController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
-        Assignment::create($data);
+        Sourcedata::create($data);
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
@@ -145,7 +145,9 @@ class SourcedatasController extends Controller
      */
     public function destroy(Sourcedata $sourcedata)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $sourcedata->delete();
+        return back();
     }
 
     public function list(Request $request)
