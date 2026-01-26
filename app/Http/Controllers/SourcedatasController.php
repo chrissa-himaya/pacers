@@ -116,7 +116,7 @@ class SourcedatasController extends Controller
         $assignments = Assignment::with('types')->get()->keyBy('id');
         // $types = Type::all()->pluck('name', 'id');
         $ranks = Rank::all()->pluck('name', 'id');
-        $rankpoints = Rankpoint::all();
+        $rankpoints = Rankpoint::get()->keyBy('id');
 
         $data_items = [
             "data" => $sourcedata,
@@ -129,6 +129,8 @@ class SourcedatasController extends Controller
             "ranks" => $ranks,
             "rankpoints" => $rankpoints,
         ];
+
+        // return $data_items["data"];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
@@ -137,7 +139,11 @@ class SourcedatasController extends Controller
      */
     public function update(Request $request, Sourcedata $sourcedata)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $data = $request->all();
+        $sourcedata->update($data);
+        return redirect()->route($this->config_data->module_route . '.index', $sourcedata->id);
+
     }
 
     /**
