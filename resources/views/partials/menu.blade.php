@@ -57,10 +57,10 @@
                     </li>
                     @endcan
 
-                    @can('rank_access')
+                    @can('assignmenthistory_access')
                     <li class="nav-item">
-                        <a href="{{ route('ranks.index') }}"
-                        class="nav-link {{ request()->is('ranks') || request()->is('ranks/*') ? 'active' : '' }}">
+                        <a href="{{ route('assignmenthistories.index') }}"
+                        class="nav-link {{ request()->is('assignmenthistories') || request()->is('assignmenthistories/*') ? 'active' : '' }}">
                             <i class="fa-fw fas fa-user nav-icon"></i>
                             <p>Assignment History</p>
                         </a>
