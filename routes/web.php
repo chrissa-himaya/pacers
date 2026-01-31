@@ -19,6 +19,7 @@ use App\Http\Controllers\SchoolingUnitsController;
 use App\Http\Controllers\SchoolingEntrysController;
 use App\Http\Controllers\AwardController;
 use App\Http\Controllers\PftController;
+use App\Http\Controllers\AwardHistoryController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -120,6 +121,11 @@ Route::middleware('auth')->group(function () {
         ->name('desigUnits.massDestroy');
     Route::resource('desigUnits', DesigUnitController::class);
     Route::get('/desigUnits-list', [DesigUnitController::class, 'list'])->name('desigUnits.list'); // AJAX
+
+    Route::delete('awardhistories/destroy', [AwardHistoryController::class, 'massDestroy'])
+        ->name('awardhistories.massDestroy');
+    Route::resource('awardhistories', AwardHistoryController::class);
+    Route::get('/awardhistories-list', [AwardHistoryController::class, 'list'])->name('awardhistories.list');
 
 });
 
