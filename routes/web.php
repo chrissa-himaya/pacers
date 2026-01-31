@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssignmentHistoryController;
+use App\Http\Controllers\DesigUnitController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
 use Illuminate\Support\Facades\Route;
@@ -114,6 +115,11 @@ Route::middleware('auth')->group(function () {
         ->name('assignmenthistories.massDestroy');
     Route::resource('assignmenthistories', AssignmentHistoryController::class);
     Route::get('/assignmenthistories-list', [AssignmentHistoryController::class, 'list'])->name('assignmenthistories.list'); // AJAX
+
+    Route::delete('desigUnits/destroy', [DesigUnitController::class, 'massDestroy'])
+        ->name('desigUnits.massDestroy');
+    Route::resource('desigUnits', DesigUnitController::class);
+    Route::get('/desigUnits-list', [DesigUnitController::class, 'list'])->name('desigUnits.list'); // AJAX
 
 });
 
