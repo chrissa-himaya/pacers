@@ -72,7 +72,7 @@
                         <a href="{{ route('rankpoints.index') }}"
                         class="nav-link {{ request()->is('rankpoints') || request()->is('rankpoints/*') ? 'active' : '' }}">
                             <i class="fa-fw fas fa-list nav-icon"></i>
-                            <p>Awards</p>
+                            <p>Awards Data</p>
                         </a>
                     </li>
                     @endcan
@@ -148,6 +148,16 @@
                                     </i>
                                     <p>
                                         <span>Rank points</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can(abilities: 'award_access')
+                                <a href="{{ route("awards.index") }}" class="nav-link {{ request()->is('awards') || request()->is('awards/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-user">
+
+                                    </i>
+                                    <p>
+                                        <span>Awards</span>
                                     </p>
                                 </a>
                                 @endcan

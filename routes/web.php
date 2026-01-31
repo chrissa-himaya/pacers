@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AwardController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
 use Illuminate\Support\Facades\Route;
@@ -96,6 +97,11 @@ Route::middleware('auth')->group(function () {
         ->name('schoolingentries.massDestroy');
     Route::resource('schoolingentries', SchoolingEntrysController::class);
     Route::get('/schoolingentries-list', [SchoolingEntrysController::class, 'list'])->name('schoolingentries.list'); // AJAX
+
+    Route::delete('awards/destroy', [AwardController::class, 'massDestroy'])
+        ->name('awards.massDestroy');
+    Route::resource('awards', AwardController::class);
+    Route::get('/awards-list', [AwardController::class, 'list'])->name('awards.list'); // AJAX
 
 });
 
