@@ -77,12 +77,11 @@
                     </li>
                     @endcan
 
-                    @can('sourcedata_access')
-                    <li class="nav-item">
-                        <a href="#"
-                        class="nav-link">
+                    @can('pfthistory_access')
+                    <a href="{{ route('pfthistories.index') }}"
+                        class="nav-link {{ request()->is('pfthistories') || request()->is('pfthistories/*') ? 'active' : '' }}">
                             <i class="fa-fw fas fa-database nav-icon"></i>
-                            <p>PFT</p>
+                            <p>PFT History</p>
                         </a>
                     </li>
                     @endcan
