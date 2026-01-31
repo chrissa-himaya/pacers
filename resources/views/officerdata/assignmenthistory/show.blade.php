@@ -115,112 +115,61 @@
           </div>
         </div>
         <hr>
-        <!-- CAREER ADVISER INPUTS -->
-        @if((session('name') && $data_items['operation_type'] == 'create') || (isset($data_items['officerData']->NAME) && $data_items['operation_type'] == 'show'))
-            <div class="row mt-3">
-                <div class="col-md-3">
-                    <label>Schooling Entry</label>
-                    <div class="input-group">
-                      @if($data_items["operation_type"] !== "show")
-                        <select name="schooling_entries_id" class="form-control select2">
-                            <option value="">-- Select Entry --</option>
-                            @foreach($data_items['schoolingentries'] as $id => $entry)
-                                <option value="{{ $id }}"
-                                        {{ old('schooling_entries_id', $data_items['data']->schooling_entries_id) == $id ? 'selected' : '' }}>
-                                    {{ $entry->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @endif
-                        @if($data_items['operation_type'] === 'create')
-                            <button type="submit" class="btn btn-info" name="action" value="Show info">Show info</button>
-                        @else
-                        <input type="text" class="form-control" value="{{ $data_items['schooling']->schoolingentries->name }}" disabled>
-                        @endif                       
-                    </div>
-                </div>
 
-                <div class="col-md-3">
-                    <label>Schooling Unit</label>
-                    @if($data_items["operation_type"] == "create")
-                      <select name="schooling_unit_id" class="form-control select2" disabled>
-                              <option value="">-</option>
-                              @foreach($data_items['schoolingUnits'] as $id => $entry)
-                                  <option value="{{ $id }}"
-                                    {{ session('schooling_unit_id') == $id ? 'selected' : '' }}>
-                                      {{ $entry }}
-                                  </option>
-                              @endforeach
-                      </select>
-                      <input type="hidden" name="schooling_unit_id" value="{{ session('schooling_unit_id') }}">
-                    @else
-                      <input type="text" class="form-control" value="{{ $data_items['data']->schoolingunits->name }}" disabled>
-                    @endif
-                </div>
+        <div class="row mt-3">
+          <div class="col-md-3">
+            <label>Entry</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOR : session('dor')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>Unit</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>PAMU</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->TYPE : session('type')}}" disabled>
+          </div>
+        </div>
 
-                <div class="col-md-3">
-                    <label>Local/Foreign</label>
-                    <input type="text"
-                          class="form-control"
-                          value="{{ session('schooling_unit_location', $data_items['data']->schoolingunits->location ?? '') }}"
-                          readonly>
-                </div>
+        <div class="row mt-3">
+          <div class="col-md-3">
+            <label>Category</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>Primary/Secondary</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOR : session('dor')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>Assignment Type</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>Geography</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->TYPE : session('type')}}" disabled>
+          </div>
+        </div>
 
-                <div class="col-md-3">
-                    <label>Assignment</label>
-                    @if($data_items["operation_type"] == "create")
-                      <select name="assignment_id" class="form-control select2" disabled>
-                              <option value="">-</option>
-                              @foreach($data_items['assignments'] as $id => $entry)
-                                  <option value="{{ $id }}"
-                                    {{ session('assignment_id') == $id ? 'selected' : '' }}>
-                                      {{ $entry }}
-                                  </option>
-                              @endforeach
-                      </select>
-                      <input type="hidden" name="assignment_id" value="{{ session('assignment_id') }}">
-                    @else
-                      <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name }}" disabled>
-                    @endif
-                </div>
-            </div>
+        <div class="row mt-3">
+          <div class="col-md-3">
+            <label>Start date</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>End date</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
+          </div>
+          <div class="col-md-3">
+            <label>Rank During Completion</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->TYPE : session('type')}}" disabled>
+          </div>
 
-            <div class="row mt-3">
-                <div class="col-md-3">
-                    <label>Date completed</label>
-                    <input type="date"
-                          name="date_completed"
-                          class="form-control"
-                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->date_completed : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-                </div>
-                <div class="col-md-3">
-                    <label>Rating</label>
-                    <input type="number"
-                          name="rating"
-                          class="form-control"
-                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->rating : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-                </div>
-                <div class="col-md-3">
-                    <label>Standing</label>
-                    <input type="number"
-                          name="standing"
-                          class="form-control"
-                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->standing : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-                </div>
-                <div class="col-md-3">
-                    <label>Total Students</label>
-                    <input type="number"
-                          name="total_student"
-                          class="form-control"
-                          value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->total_student : '' }}" {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-                </div>
-            </div>
-
-        <div class="mt-4 text-right">
-          @if($data_items['operation_type'] === 'create')
-          <input type="submit" class="btn btn-primary" name="action" value="Save">
-          @endif
-      @endif
+          <div class="col-md-3">
+            <label>Year</label>
+            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
+          </div>
+        </div>
+        
           <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary">
             Back
         </a>

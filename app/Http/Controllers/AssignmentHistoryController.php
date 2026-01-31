@@ -14,9 +14,9 @@ class AssignmentHistoryController extends Controller
      * Display a listing of the resource.
      */
     protected $config_data;
-    public function __construct(AssignmentHistory $assignmentHistory)
+    public function __construct(AssignmentHistory $assignmenthistory)
     {
-        $columnHidden = array_merge($assignmentHistory->getDates(), ['id']);
+        $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
         $columnLabels = [''];
         $optionalFields = ['name', 'email'];
 
@@ -43,7 +43,19 @@ class AssignmentHistoryController extends Controller
      */
     public function create()
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $assignmenthistory = AssignmentHistory::find(1);
+        $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
+              
+        
+        $data_items = [
+            "data" => $assignmenthistory,
+            "column_hidden" => $columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
+            "operation_type" => "create",
+            "optional_fields" => $this->config_data->optionalFields,
+        ];
+        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
@@ -57,17 +69,34 @@ class AssignmentHistoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(AssignmentHistory $assignmentHistory)
+    public function show(AssignmentHistory $assignmenthistory)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $data_items = [
+            "data" => $assignmenthistory,
+            "column_hidden" => $this->config_data->columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
+            "operation_type" => "show",
+        ];
+
+        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(AssignmentHistory $assignmentHistory)
+    public function edit(AssignmentHistory $assignmenthistory)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    
+        $data_items = [
+            "data" => $assignmenthistory,
+            "column_hidden" => $this->config_data->columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
+            "operation_type" => "edit",
+            "optional_fields" => $this->config_data->optionalFields,
+        ];
+        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
@@ -132,8 +161,7 @@ class AssignmentHistoryController extends Controller
         $data = $query->orderBy($orderColumn, $orderDir)
             ->skip($start)
             ->take($length)
-            ->get()
-            ->loadMissing(['schoolingentries', 'schoolingunits', 'assignments']);
+            ->get();
 
         // Return JSON in DataTables format
         return response()->json([

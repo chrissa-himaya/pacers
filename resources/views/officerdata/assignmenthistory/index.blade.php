@@ -15,6 +15,8 @@
                 <tr>
                     <th>ID</th>
                     <th>PMCode</th>
+                    <th>Entry</th>
+                    <th>Unit</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -48,6 +50,8 @@
                     searchable: false
                 },
                 { data: 'pm_code' },
+                { data: 'entry' },
+                { data: 'unit' },
                 {
                     data: 'id',
                     render: function (data) {
