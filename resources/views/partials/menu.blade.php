@@ -173,6 +173,15 @@
                                 </a>
                                 @endcan
 
+                                @can('desig_unit_access')
+                                <a href="{{ route("desigUnits.index") }}" class="nav-link {{ request()->is('desigUnits') || request()->is('desigUnits/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+                                    </i>
+                                    <p>
+                                        <span>Designation/Unit</span>
+                                    </p>
+                                </a>
+                                @endcan
                                 @can('schoolingunit_access')
                                 <a href="{{ route("schoolingunits.index") }}" class="nav-link {{ request()->is('schoolingunits') || request()->is('schoolingunits/*') ? 'active' : '' }}">
                                     <i class="fa-fw fas fa-list">
