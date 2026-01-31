@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssignmentHistory;
+use App\Models\Officer;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,7 +47,14 @@ class AssignmentHistoryController extends Controller
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $assignmenthistory = AssignmentHistory::find(1);
         $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
-              
+
+        $pmcodes = Officer::query()
+            ->select('pm_code')
+            ->whereNotNull('pm_code')
+            ->where('pm_code', '!=', '')
+            ->distinct()
+            ->orderBy('pm_code')
+            ->pluck('pm_code');
         
         $data_items = [
             "data" => $assignmenthistory,
@@ -63,7 +71,10 @@ class AssignmentHistoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $data = $request->all();
+        AssignmentHistory::create($data);
+        return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
