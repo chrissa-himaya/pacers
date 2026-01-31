@@ -161,6 +161,18 @@
                                     </p>
                                 </a>
                                 @endcan
+
+                                @can(abilities: 'pft_access')
+                                <a href="{{ route("pfts.index") }}" class="nav-link {{ request()->is('pfts') || request()->is('pfts/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-user">
+
+                                    </i>
+                                    <p>
+                                        <span>PFTs</span>
+                                    </p>
+                                </a>
+                                @endcan
+
                                 @can('schoolingunit_access')
                                 <a href="{{ route("schoolingunits.index") }}" class="nav-link {{ request()->is('schoolingunits') || request()->is('schoolingunits/*') ? 'active' : '' }}">
                                     <i class="fa-fw fas fa-list">

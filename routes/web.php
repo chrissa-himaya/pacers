@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AwardController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +15,8 @@ use App\Http\Controllers\OfficersController;
 use App\Http\Controllers\QRSProfilesController;
 use App\Http\Controllers\SchoolingUnitsController;
 use App\Http\Controllers\SchoolingEntrysController;
+use App\Http\Controllers\AwardController;
+use App\Http\Controllers\PftController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -102,6 +103,11 @@ Route::middleware('auth')->group(function () {
         ->name('awards.massDestroy');
     Route::resource('awards', AwardController::class);
     Route::get('/awards-list', [AwardController::class, 'list'])->name('awards.list'); // AJAX
+
+    Route::delete('pfts/destroy', [PftController::class, 'massDestroy'])
+        ->name('pfts.massDestroy');
+    Route::resource('pfts', PftController::class);
+    Route::get('/pfts-list', [PftController::class, 'list'])->name('pfts.list'); // AJAX
 
 });
 
