@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssignmentHistoryController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
 use Illuminate\Support\Facades\Route;
@@ -99,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('schoolingentries', SchoolingEntrysController::class);
     Route::get('/schoolingentries-list', [SchoolingEntrysController::class, 'list'])->name('schoolingentries.list'); // AJAX
 
+<<<<<<< HEAD
     Route::delete('awards/destroy', [AwardController::class, 'massDestroy'])
         ->name('awards.massDestroy');
     Route::resource('awards', AwardController::class);
@@ -108,6 +110,12 @@ Route::middleware('auth')->group(function () {
         ->name('pfts.massDestroy');
     Route::resource('pfts', PftController::class);
     Route::get('/pfts-list', [PftController::class, 'list'])->name('pfts.list'); // AJAX
+=======
+    Route::delete('assignmenthistories/destroy', [AssignmentHistoryController::class, 'massDestroy'])
+        ->name('assignmenthistories.massDestroy');
+    Route::resource('assignmenthistories', AssignmentHistoryController::class);
+    Route::get('/assignmenthistories-list', [AssignmentHistoryController::class, 'list'])->name('assignmenthistories.list'); // AJAX
+>>>>>>> dev-assignment
 
 });
 
