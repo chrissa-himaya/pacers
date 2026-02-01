@@ -116,12 +116,14 @@ public function list(Request $request)
         'HCC',
         'SOC',
         'REMARKS',
+        'DESIGNATION',
+        'UNIT',
         null,        // 19 Actions
     ];
 
     // ✅ Only these will be used for the GLOBAL search box
     // Example: search only in 4+ columns
-    $globalSearchColumns = ['SRTY','PM_CODE','NAME','SUFFIX','RANK','AFPSN','AFPOS','TYPE','SIG','SEX','DOR','TACS','DOB','DOC','RET','HCC','SOC','REMARKS']; // change as you like
+    $globalSearchColumns = ['SRTY','PM_CODE','NAME','SUFFIX','RANK','AFPSN','AFPOS','TYPE','SIG','SEX','DOR','TACS','DOB','DOC','RET','HCC','SOC','REMARKS','DESIGNATION','UNIT',]; // change as you like
 
     $start  = (int) $request->input('start', 0);
     $length = (int) $request->input('length', 10);

@@ -35,5 +35,7 @@ class Officer extends Model implements Auditable
         'HCC',
         'SOC',
         'REMARKS',
+        'DESIGNATION',
+        'UNIT',
     ];
 }

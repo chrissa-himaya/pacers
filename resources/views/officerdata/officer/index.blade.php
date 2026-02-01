@@ -33,6 +33,8 @@
                         <th>HCC</th>
                         <th>SOC</th>
                         <th>REMARKS</th>
+                        <th>DESIGNATION</th>
+                        <th>UNIT</th>
                         <th>Action</th>
                     </tr>
                     <tr class="filter-row">
@@ -55,6 +57,8 @@
                         <th><input type="text" placeholder="Search HCC" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search SOC" class="form-control form-control-sm" /></th>
                         <th><input type="text" placeholder="Search REMARKS" class="form-control form-control-sm" /></th>
+                        <th><input type="text" placeholder="Search DESIGNATION" class="form-control form-control-sm" /></th>
+                        <th><input type="text" placeholder="Search UNIT" class="form-control form-control-sm" /></th>
                         <th></th> <!-- Action column no filter -->
                     </tr>
                 </thead>
@@ -68,9 +72,9 @@
 @section('scripts')
     <script>
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Rank::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rank::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rank::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Officer::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Officer::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Officer::class));
     let url_route = "{{ $config_data->module_route }}";
     
         const table = $('#dataTable').DataTable({
@@ -110,6 +114,8 @@
                 { data: 'HCC', searchable: true },
                 { data: 'SOC', searchable: true },
                 { data: 'REMARKS', searchable: true },
+                { data: 'DESIGNATION', searchable: true },
+                { data: 'UNIT', searchable: true },
                 {
                     data: 'id',
                     orderable: false, 
@@ -157,7 +163,7 @@
         $('#dataTable thead th').each(function (i) {
 
             // skip "Nr" (0) and "Actions" (last column)
-            if (i === 0 || i === 19) return;
+            if (i === 0 || i === 21) return;
 
             // put an input under the header text
             $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
@@ -166,7 +172,7 @@
         // ✅ Bind search event per column
 // ✅ Bind search event per column (DEBOUNCED)
 table.columns().every(function (i) {
-  if (i === 0 || i === 19) return;
+  if (i === 0 || i === 21) return;
 
   let timer = null;
   const column = this;
