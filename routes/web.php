@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssignmentHistoryController;
+use App\Http\Controllers\CareerAdvisingController;
 use App\Http\Controllers\DesigUnitController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
@@ -120,6 +121,11 @@ Route::middleware('auth')->group(function () {
         ->name('desigUnits.massDestroy');
     Route::resource('desigUnits', DesigUnitController::class);
     Route::get('/desigUnits-list', [DesigUnitController::class, 'list'])->name('desigUnits.list'); // AJAX
+
+    Route::delete('careeradvising/destroy', [CareerAdvisingController::class, 'massDestroy'])
+        ->name('careeradvising.massDestroy');
+    Route::resource('careeradvising', CareerAdvisingController::class);
+    Route::get('/careeradvising-list', [CareerAdvisingController::class, 'list'])->name('careeradvising.list'); // AJAX
 
 });
 
