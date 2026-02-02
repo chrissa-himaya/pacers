@@ -4,6 +4,7 @@ use App\Http\Controllers\AssignmentHistoryController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
+use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\PermissionsController;
@@ -120,6 +121,11 @@ Route::middleware('auth')->group(function () {
         ->name('designations.massDestroy');
     Route::resource('designations', DesignationController::class);
     Route::get('/designations-list', [DesignationController::class, 'list'])->name('designations.list'); // AJAX
+
+    Route::delete('units/destroy', [UnitController::class, 'massDestroy'])
+        ->name('units.massDestroy');
+    Route::resource('units', UnitController::class);
+    Route::get('/units-list', [UnitController::class, 'list'])->name('units.list'); // AJAX
 
 });
 

@@ -3,19 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 
-class Pamu extends Model implements Auditable
+class Unit extends Model implements Auditable
 {
     use AuditableTrait;
-    public $table = 'pamus';
+    public $table = 'units';
     protected $fillable = [
-        'code',
         'name',
-        'pa_equiv',
+        'pamu_id',
     ];
+
+    public function pamus()
+    {
+        return $this->belongsTo(Pamu::class, 'pamu_id', 'id');
+    }
 }
