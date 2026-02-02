@@ -67,12 +67,12 @@
                     </li>
                     @endcan
 
-                    @can('rankpoint_access')
+                    @can('awardhistory_access')
                     <li class="nav-item">
-                        <a href="#"
-                        class="nav-link">
+                        <a href="{{ route('awardhistories.index') }}"
+                        class="nav-link {{ request()->is('awardhistories') || request()->is('awardhistories/*') ? 'active' : '' }}">
                             <i class="fa-fw fas fa-list nav-icon"></i>
-                            <p>Awards Data</p>
+                            <p>Awards History</p>
                         </a>
                     </li>
                     @endcan

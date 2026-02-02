@@ -2,30 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AssignmentHistory;
-use App\Models\Officer;
+use App\Models\AwardHistory;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
-class AssignmentHistoryController extends Controller
+class AwardHistoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     protected $config_data;
-    public function __construct(AssignmentHistory $assignmenthistory)
+    public function __construct(AwardHistory $awardhistory)
     {
-        $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
+        $columnHidden = array_merge($awardhistory->getDates(), ['id']);
         $columnLabels = [''];
         $optionalFields = ['name', 'email'];
 
         $this->config_data = (object) [
-            "module_name" => "Assignment History", //Module name
-            "module_perm_name" => "assignmenthistory", //Permission name
-            "module_route" => "assignmenthistories", //Web route
-            "module_view_folder" => "officerdata.assignmenthistory", //View folder
+            "module_name" => "Award History", //Module name
+            "module_perm_name" => "awardhistory", //Permission name
+            "module_route" => "awardhistories", //Web route
+            "module_view_folder" => "officerdata.awardhistory", //View folder
             "columnHidden" => $columnHidden,
             "columnLabels" => $columnLabels,
             "optionalFields" => $optionalFields,
@@ -33,6 +32,7 @@ class AssignmentHistoryController extends Controller
 
         view()->share('config_data', $this->config_data);
     }
+
     public function index()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -45,19 +45,11 @@ class AssignmentHistoryController extends Controller
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $assignmenthistory = AssignmentHistory::find(1);
-        $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
-
-        $pmcodes = Officer::query()
-            ->select('pm_code')
-            ->whereNotNull('pm_code')
-            ->where('pm_code', '!=', '')
-            ->distinct()
-            ->orderBy('pm_code')
-            ->pluck('pm_code');
+        $awardhistory = AwardHistory::find(1);
+        $columnHidden = array_merge($awardhistory->getDates(), ['id']);
         
         $data_items = [
-            "data" => $assignmenthistory,
+            "data" => $awardhistory,
             "column_hidden" => $columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
@@ -73,18 +65,18 @@ class AssignmentHistoryController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
-        AssignmentHistory::create($data);
+        AwardHistory::create($data);
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(AssignmentHistory $assignmenthistory)
+    public function show(AwardHistory $awardhistory)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data_items = [
-            "data" => $assignmenthistory,
+            "data" => $awardhistory,
             "column_hidden" => $this->config_data->columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "show",
@@ -96,12 +88,12 @@ class AssignmentHistoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(AssignmentHistory $assignmenthistory)
+    public function edit(AwardHistory $awardhistory)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
     
         $data_items = [
-            "data" => $assignmenthistory,
+            "data" => $awardhistory,
             "column_hidden" => $this->config_data->columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "edit",
@@ -113,7 +105,7 @@ class AssignmentHistoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, AssignmentHistory $assignmentHistory)
+    public function update(Request $request, AwardHistory $awardhistory)
     {
         //
     }
@@ -121,7 +113,7 @@ class AssignmentHistoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(AssignmentHistory $assignmentHistory)
+    public function destroy(AwardHistory $awardhistory)
     {
         //
     }
@@ -153,7 +145,7 @@ class AssignmentHistoryController extends Controller
         $orderColumn = $columns[$orderIndex] ?? 'id';
 
         // Base query
-        $query = AssignmentHistory::query();
+        $query = AwardHistory::query();
 
 
         // Search filter
@@ -165,7 +157,7 @@ class AssignmentHistoryController extends Controller
         }
 
         // Total records
-        $totalData = AssignmentHistory::count();
+        $totalData = AwardHistory::count();
         $filteredData = $query->count();
 
         // Apply ordering and pagination

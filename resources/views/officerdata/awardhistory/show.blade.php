@@ -99,56 +99,33 @@
             <input type="text" class="form-control" name="entry" >
           </div>
           <div class="col-md-3">
-            <label>Unit</label>
-            <input type="text" class="form-control" name="unit">
+            <label>Type</label>
+            <input type="text" class="form-control" name="type">
           </div>
           <div class="col-md-3">
-            <label>PAMU</label>
-            <input type="text" class="form-control" name="pamu">
+            <label>Date</label>
+            <input type="date" class="form-control" name="date">
           </div>
         </div>
 
         <div class="row mt-3">
           <div class="col-md-3">
-            <label>Category</label>
-            <input type="text" class="form-control" name="category">
+            <label>GO #</label>
+            <input type="text" class="form-control" name="go_number">
           </div>
           <div class="col-md-3">
-            <label>Primary/Secondary</label>
-            <input type="text" class="form-control" name="pri_sec_spec">
+            <label>Rank</label>
+            <input type="text" class="form-control" name="rank">
           </div>
           <div class="col-md-3">
-            <label>Assignment Type</label>
-            <input type="text" class="form-control" name="assignment_type">
-          </div>
-          <div class="col-md-3">
-            <label>Geography</label>
-            <input type="text" class="form-control" name="geography">
+            <label>Points</label>
+            <input type="text" class="form-control" name="points">
           </div>
         </div>
+        
+         <input type="submit" class="btn btn-primary" name="action" value="Save">
 
-        <div class="row mt-3">
-          <div class="col-md-3">
-            <label>Start date</label>
-            <input type="date" class="form-control" name="start_date">
-          </div>
-          <div class="col-md-3">
-            <label>End date</label>
-            <input type="date" class="form-control" name="end_date">
-          </div>
-          <div class="col-md-3">
-            <label>Rank During Completion</label>
-            <input type="text" class="form-control" name="rank_during_completion">
-          </div>
-
-          <div class="col-md-3">
-            <label>Year</label>
-            <input type="text" class="form-control" name="year">
-          </div>
-        </div>
-                  <input type="submit" class="btn btn-primary" name="action" value="Save">
-
-          <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary">
+        <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary">
             Back
         </a>
         </div>

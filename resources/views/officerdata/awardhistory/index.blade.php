@@ -16,7 +16,8 @@
                     <th>ID</th>
                     <th>PMCode</th>
                     <th>Entry</th>
-                    <th>Unit</th>
+                    <th>Type</th>
+                    <th>GO #</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -29,9 +30,9 @@
 @section('scripts')
     <script>
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Rank::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rank::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rank::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\AwardHistory::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\AwardHistory::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\AwardHistory::class));
     let url_route = "{{ $config_data->module_route }}";
 
         $('#dataTable').DataTable({
@@ -51,7 +52,8 @@
                 },
                 { data: 'pm_code' },
                 { data: 'entry' },
-                { data: 'unit' },
+                { data: 'type' },
+                { data: 'go_number' },
                 {
                     data: 'id',
                     render: function (data) {
