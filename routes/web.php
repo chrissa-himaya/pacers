@@ -20,6 +20,7 @@ use App\Http\Controllers\SchoolingEntrysController;
 use App\Http\Controllers\AwardController;
 use App\Http\Controllers\PftController;
 use App\Http\Controllers\AwardHistoryController;
+use App\Http\Controllers\PftHistoryController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -126,6 +127,11 @@ Route::middleware('auth')->group(function () {
         ->name('awardhistories.massDestroy');
     Route::resource('awardhistories', AwardHistoryController::class);
     Route::get('/awardhistories-list', [AwardHistoryController::class, 'list'])->name('awardhistories.list');
+
+    Route::delete('pfthistories/destroy', [PftHistoryController::class, 'massDestroy'])
+        ->name('pfthistories.massDestroy');
+    Route::resource('pfthistories', PftHistoryController::class);
+    Route::get('/pfthistories-list', [PftHistoryController::class, 'list'])->name('pfthistories.list');
 
 });
 
