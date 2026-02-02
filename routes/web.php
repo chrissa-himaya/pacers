@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AssignmentHistoryController;
 use App\Http\Controllers\CareerAdvisingController;
+use App\Http\Controllers\DateRankController;
 use App\Http\Controllers\DesigUnitController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
@@ -126,6 +127,11 @@ Route::middleware('auth')->group(function () {
         ->name('careeradvising.massDestroy');
     Route::resource('careeradvising', CareerAdvisingController::class);
     Route::get('/careeradvising-list', [CareerAdvisingController::class, 'list'])->name('careeradvising.list'); // AJAX
+
+    Route::delete('dateranks/destroy', [DateRankController::class, 'massDestroy'])
+        ->name('dateranks.massDestroy');
+    Route::resource('dateranks', DateRankController::class);
+    Route::get('/dateranks-list', [DateRankController::class, 'list'])->name('dateranks.list'); // AJAX
 
 });
 
