@@ -86,10 +86,10 @@
                     </li>
                     @endcan
 
-                    @can('sourcedata_access')
+                    @can('careeradvising_access')
                     <li class="nav-item">
-                        <a href="#"
-                        class="nav-link">
+                        <a href="{{ route('careeradvising.index') }}"
+                        class="nav-link {{ request()->is('careeradvising') || request()->is('careeradvising/*') ? 'active' : '' }}">
                             <i class="fa-fw fas fa-database nav-icon"></i>
                             <p>Career Advising Records</p>
                         </a>
