@@ -27,6 +27,8 @@ use App\Http\Controllers\AwardHistoryController;
 use App\Http\Controllers\PftHistoryController;
 
 use App\Http\Controllers\ClassNameController;
+use App\Http\Controllers\SchoolingNameController;
+
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -167,6 +169,11 @@ Route::middleware('auth')->group(function () {
         ->name('classnames.massDestroy');
     Route::resource('classnames', ClassNameController::class);
     Route::get('/classnames-list', [ClassNameController::class, 'list'])->name('classnames.list'); // AJAX
+
+    Route::delete('schoolingnames/destroy', [SchoolingNameController::class, 'massDestroy'])
+        ->name('schoolingnames.massDestroy');
+    Route::resource('schoolingnames', SchoolingNameController::class);
+    Route::get('/schoolingnames-list', [SchoolingNameController::class, 'list'])->name('schoolingnames.list'); // AJAX
 
 });
 
