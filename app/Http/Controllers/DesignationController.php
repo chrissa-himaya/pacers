@@ -2,30 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DesigUnit;
+use App\Models\Designation;
 use Illuminate\Http\Request;
 
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
-class DesigUnitController extends Controller
+class DesignationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     protected $config_data;
-    public function __construct(DesigUnit $desigUnit)
+    public function __construct(Designation $designation)
     {
-        $columnHidden = array_merge($desigUnit->getDates(), ['id']);
+        $columnHidden = array_merge($designation->getDates(), ['id']);
         $columnLabels = [''];    
         $optionalFields = [''];
 
         $this->config_data = (object) [
-            "module_name"=>"DesigUnits", //Module name
-            "module_perm_name"=>"desig_unit", //Permission name
-            "module_route"=>"desigUnits", //Web route
-            "module_view_folder"=>"references.desig_unit", //View folder
+            "module_name"=>"designations", //Module name
+            "module_perm_name"=>"designation", //Permission name
+            "module_route"=>"designations", //Web route
+            "module_view_folder"=>"references.designation", //View folder
             "columnHidden"=>$columnHidden,
             "columnLabels"=>$columnLabels,
             "optionalFields"=>$optionalFields,
@@ -45,11 +45,11 @@ class DesigUnitController extends Controller
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $desigUnit = DesigUnit::find(1);
-        $columnHidden = array_merge($desigUnit->getDates(), ['id']);     
+        $designation = Designation::find(1);
+        $columnHidden = array_merge($designation->getDates(), ['id']);     
         
         $data_items = [
-            "data" => $desigUnit,
+            "data" => $designation,
             "column_hidden" => $columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
@@ -63,46 +63,70 @@ class DesigUnitController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $data = $request->all();
+        Designation::create($data);
+        return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(DesigUnit $desigUnit)
+    public function show(Designation $designation)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $data_items = [
+            "data" => $designation,
+            "column_hidden" => $this->config_data->columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
+            "operation_type" => "show",
+        ];
+        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(DesigUnit $desigUnit)
+    public function edit(Designation $designation)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $data_items = [
+            "data" => $designation,
+            "column_hidden" => $this->config_data->columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
+            "operation_type" => "edit",
+            "optional_fields" => $this->config_data->optionalFields,
+        ];
+        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DesigUnit $desigUnit)
+    public function update(Request $request, Designation $designation)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $data = $request->all();
+        $designation->update($data);
+        return redirect()->route($this->config_data->module_route . '.index', $designation->id);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DesigUnit $desigUnit)
+    public function destroy(Designation $designation)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $designation->delete();
+        return back();
     }
 
     public function list(Request $request)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'designation', 'unit', 'pamu', 'pa_equivalent', 'geography',];
+        $columns = ['id', 'name','created_at', 'updated_at',];
 
         // Pagination values from DataTables
         $start  = $request->input('start', 0);
@@ -125,7 +149,7 @@ class DesigUnitController extends Controller
         $orderColumn = $columns[$orderIndex] ?? 'id';
 
         // Base query
-        $query = DesigUnit::query();
+        $query = Designation::query();
 
         // Search filter
         $search = $request->input('search.value');
@@ -136,7 +160,7 @@ class DesigUnitController extends Controller
         }
 
         // Total records
-        $totalData = DesigUnit::count();
+        $totalData = Designation::count();
         $filteredData = $query->count();
 
         // Apply ordering and pagination

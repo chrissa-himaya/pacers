@@ -3,9 +3,11 @@
 use App\Http\Controllers\AssignmentHistoryController;
 use App\Http\Controllers\CareerAdvisingController;
 use App\Http\Controllers\DateRankController;
-use App\Http\Controllers\DesigUnitController;
+use App\Http\Controllers\DesignationController;
+use App\Http\Controllers\PamuController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
+use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\PermissionsController;
@@ -120,10 +122,20 @@ Route::middleware('auth')->group(function () {
     Route::resource('assignmenthistories', AssignmentHistoryController::class);
     Route::get('/assignmenthistories-list', [AssignmentHistoryController::class, 'list'])->name('assignmenthistories.list'); // AJAX
 
-    Route::delete('desigUnits/destroy', [DesigUnitController::class, 'massDestroy'])
-        ->name('desigUnits.massDestroy');
-    Route::resource('desigUnits', DesigUnitController::class);
-    Route::get('/desigUnits-list', [DesigUnitController::class, 'list'])->name('desigUnits.list'); // AJAX
+    Route::delete('designations/destroy', [DesignationController::class, 'massDestroy'])
+        ->name('designations.massDestroy');
+    Route::resource('designations', DesignationController::class);
+    Route::get('/designations-list', [DesignationController::class, 'list'])->name('designations.list'); // AJAX
+
+    Route::delete('units/destroy', [UnitController::class, 'massDestroy'])
+        ->name('units.massDestroy');
+    Route::resource('units', UnitController::class);
+    Route::get('/units-list', [UnitController::class, 'list'])->name('units.list'); // AJAX
+
+    Route::delete('pamus/destroy', [PamuController::class, 'massDestroy'])
+        ->name('pamus.massDestroy');
+    Route::resource('pamus', PamuController::class);
+    Route::get('/pamus-list', [PamuController::class, 'list'])->name('pamus.list'); // AJAX
 
     Route::delete('awardhistories/destroy', [AwardHistoryController::class, 'massDestroy'])
         ->name('awardhistories.massDestroy');

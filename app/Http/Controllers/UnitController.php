@@ -2,36 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Unit;
 use App\Models\Pamu;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
-class PamuController extends Controller
+
+class UnitController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     protected $config_data;
-    public function __construct(Pamu $pamu)
+    public function __construct(Unit $unit)
     {
-        $columnHidden = array_merge($pamu->getDates(), ['id']);
+        $columnHidden = array_merge($unit->getDates(), ['id']);
         $columnLabels = [''];    
         $optionalFields = [''];
 
         $this->config_data = (object) [
-            "module_name"=>"pamus", //Module name
-            "module_perm_name"=>"pamu", //Permission name
-            "module_route"=>"pamus", //Web route
-            "module_view_folder"=>"references.pamu", //View folder
+            "module_name"=>"Unit", //Module name
+            "module_perm_name"=>"unit", //Permission name
+            "module_route"=>"units", //Web route
+            "module_view_folder"=>"references.unit", //View folder
             "columnHidden"=>$columnHidden,
             "columnLabels"=>$columnLabels,
             "optionalFields"=>$optionalFields,
         ];
 
         view()->share('config_data', $this->config_data);
-    }
+    }  
     public function index()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -44,15 +46,18 @@ class PamuController extends Controller
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $pamu = Pamu::find(1);
-        $columnHidden = array_merge($pamu->getDates(), ['id']);     
-        
+        $unit = Unit::find(1);    
+        $unit->fill([
+            'pamu_id' => null,
+        ]);
+        $pamus = Pamu::all()->pluck('name', 'id');
         $data_items = [
-            "data" => $pamu,
-            "column_hidden" => $columnHidden,
+            "data" => $unit,
+            "column_hidden" => $this->config_data->columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
             "optional_fields" => $this->config_data->optionalFields,
+            "pamus" => $pamus,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -64,38 +69,43 @@ class PamuController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
-        Pamu::create($data);
+        Unit::create($data);
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Pamu $pamu)
+    public function show(Unit $unit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $unit->load('pamus');
+        $columnHidden = array_merge($unit->getDates(), ['id','pamu_id']);
         $data_items = [
-            "data" => $pamu,
-            "column_hidden" => $this->config_data->columnHidden,
+            "data" => $unit,
+            "column_hidden" => $columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "show",
         ];
+
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Pamu $pamu)
+    public function edit(Unit $unit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
+        $columnHidden = array_merge($unit->getDates(), ['id']);   
+        $pamus = Pamu::all()->pluck('name', 'id')   ;
         $data_items = [
-            "data" => $pamu,
-            "column_hidden" => $this->config_data->columnHidden,
+            "data" => $unit,
+            "column_hidden" => $columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "edit",
             "optional_fields" => $this->config_data->optionalFields,
+            "pamus" => $pamus,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -103,21 +113,21 @@ class PamuController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pamu $pamu)
+    public function update(Request $request, Unit $unit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
-        $pamu->update($data);
-        return redirect()->route($this->config_data->module_route . '.index', $pamu->id);
+        $unit->update($data);
+        return redirect()->route($this->config_data->module_route . '.index', $unit->id);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Pamu $pamu)
+    public function destroy(Unit $unit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $pamu->delete();
+        $unit->delete();
         return back();
     }
 
@@ -125,7 +135,7 @@ class PamuController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'code', 'name', 'pa_equiv', 'created_at', 'updated_at',];
+        $columns = ['id', 'name', 'pamu_id', 'created_at', 'updated_at'];
 
         // Pagination values from DataTables
         $start  = $request->input('start', 0);
@@ -148,7 +158,7 @@ class PamuController extends Controller
         $orderColumn = $columns[$orderIndex] ?? 'id';
 
         // Base query
-        $query = Pamu::query();
+        $query = Unit::query();
 
         // Search filter
         $search = $request->input('search.value');
@@ -159,13 +169,14 @@ class PamuController extends Controller
         }
 
         // Total records
-        $totalData = Pamu::count();
+        $totalData = Unit::count();
         $filteredData = $query->count();
 
         // Apply ordering and pagination
-        $data = $query->orderBy($orderColumn, $orderDir)
+       $data = $query->orderBy($orderColumn, $orderDir)
                       ->skip($start)
                       ->take($length)
+                       ->with(relations: 'pamus') 
                       ->get();
 
         // Return JSON in DataTables format
