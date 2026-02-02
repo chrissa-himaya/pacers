@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Rank;
 use App\Models\Rankpoint;
 use Illuminate\Http\Request;
 use Gate;
@@ -42,22 +43,21 @@ class RankpointsController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create($id="0")
+    public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $rankpoint = Rankpoint::find(1);
-        $columnHidden = array_merge($rankpoint->getDates(), ['id']);
-        // $columnLabels = [
-        //     'name'  => 'Rank Name',
-        // ];       
-        
+        $rankpoint = Rankpoint::find(1);    
+        $rankpoint->fill([
+            'rank_id' => null,
+        ]);
+        $ranks = Rank::all()->pluck('code', 'id');
         $data_items = [
             "data" => $rankpoint,
-            "column_hidden" => $columnHidden,
-            // "column_labels" => $columnLabels,
+            "column_hidden" => $this->config_data->columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
             "optional_fields" => $this->config_data->optionalFields,
-            "bulk_insert" => $id,
+            "ranks" => $ranks,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -69,7 +69,7 @@ class RankpointsController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data = $request->all();
-        $rankpoint = Rankpoint::create($data);
+        Rankpoint::create($data);
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
@@ -94,17 +94,15 @@ class RankpointsController extends Controller
     public function edit(Rankpoint $rankpoint)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $columnHidden = array_merge($rankpoint->getDates(), ['id']);
-        // $columnLabels = [
-        //     'name'  => 'Rank Name',
-        // ];   
-
+        $columnHidden = array_merge($rankpoint->getDates(), ['id']);   
+        $ranks = Rank::all()->pluck('code', 'id')   ;
         $data_items = [
             "data" => $rankpoint,
             "column_hidden" => $columnHidden,
-            // "column_labels" => $columnLabels,
+            "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "edit",
             "optional_fields" => $this->config_data->optionalFields,
+            "ranks" => $ranks,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -134,7 +132,7 @@ class RankpointsController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'name', 'created_at'];
+        $columns = ['id', 'rank_id', 'name', 'points', 'created_at', 'updated_at'];
 
         // Pagination values from DataTables
         $start  = $request->input('start', 0);
@@ -175,6 +173,7 @@ class RankpointsController extends Controller
         $data = $query->orderBy($orderColumn, $orderDir)
                       ->skip($start)
                       ->take($length)
+                      ->with('ranks')
                       ->get();
 
         // Return JSON in DataTables format

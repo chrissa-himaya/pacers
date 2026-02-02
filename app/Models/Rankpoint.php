@@ -15,7 +15,13 @@ class Rankpoint extends Model implements Auditable
     use AuditableTrait;
     public $table = 'rankpoints';
     protected $fillable = [
+        'rank_id',
         'name',
         'points',
     ];
+
+    public function ranks()
+    {
+        return $this->belongsTo(Rank::class, 'rank_id', 'id');
+    }
 }

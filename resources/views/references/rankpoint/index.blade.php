@@ -14,8 +14,13 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Name</th>
-                    <th>Points</th>
+                    <th>Rank</th>
+                    <th>
+                        <div class="d-flex justify-content-between align-items-center">
+                        <span>Type</span>
+                        <span>Points</span>
+                        </div>
+                    </th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -28,9 +33,9 @@
 @section('scripts')
     <script>
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Rank::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rank::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rank::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Rankpoint::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rankpoint::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rankpoint::class));
     let url_route = "{{ $config_data->module_route }}";
 
         $('#dataTable').DataTable({
@@ -48,8 +53,19 @@
                     orderable: false,
                     searchable: false
                 },
-                { data: 'name' },
-                { data: 'points' },
+                { data: 'ranks.code' },
+                {
+                    data: null,
+                    name: 'name',
+                    render: function (data, type, row) {
+                        return `
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold">${row.name ?? ''}</span>
+                                <span class="badge bg-primary">${row.points ?? ''}</span>
+                            </div>
+                        `;
+                    }
+                },
                 {
                     data: 'id',
                     render: function (data) {

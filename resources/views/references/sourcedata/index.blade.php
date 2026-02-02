@@ -16,8 +16,10 @@
                     <th>ID</th>
                     <th>Assignment</th>
                     <th>Rank</th>
-                    <th>Min/Max</th>
-                    <th>Points</th>
+                    <th>Min month</th>
+                    <th>Min points</th>
+                    <th>Max month</th>
+                    <th>Max points</th>
                     <th>Action</th>
                 </tr>
             </thead>

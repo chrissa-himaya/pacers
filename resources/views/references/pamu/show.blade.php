@@ -17,9 +17,9 @@
     </div>
 
     <div class="card-body">
-         <form action="{{ $data_items['operation_type'] === 'create'
-    ? route("$config_data->module_route.store")
-    : route("$config_data->module_route.update", [$data_items['data']->id]) }}" method="POST"
+        <form action="{{ $data_items['operation_type'] === 'create'
+        ? route("$config_data->module_route.store")
+        : route("$config_data->module_route.update", [$data_items['data']->id]) }}" method="POST"
         enctype="multipart/form-data">
         @csrf
         @if($data_items["operation_type"] == "edit")
