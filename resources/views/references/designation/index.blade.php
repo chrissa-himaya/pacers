@@ -14,11 +14,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Designation</th>
-                    <th>Unit</th>
-                    <th>PAMU</th>
-                    <th>PA (or equivalent)</th>
-                    <th>Geography</th>
+                    <th>Name</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -31,9 +27,9 @@
 @section('scripts')
     <script>
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\DesigUnit::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\DesigUnit::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\DesigUnit::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Designation::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Designation::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Designation::class));
     let url_route = "{{ $config_data->module_route }}";
 
         $('#dataTable').DataTable({
@@ -51,11 +47,7 @@
                     orderable: false,
                     searchable: false
                 },
-                { data: 'designation' },
-                { data: 'unit' },
-                { data: 'pamu' },
-                { data: 'pa_equivalent' },
-                { data: 'geography' },
+                { data: 'name' },
                 {
                     data: 'id',
                     render: function (data) {

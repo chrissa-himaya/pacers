@@ -99,7 +99,7 @@
                 @endcan
 
                 @can('reference_access')
-                    <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }} {{ request()->is('schoolingunits*') ? 'menu-open' : '' }} {{ request()->is('schoolingentries*') ? 'menu-open' : '' }} {{ request()->is('awards*') ? 'menu-open' : '' }} {{ request()->is('pfts*') ? 'menu-open' : '' }} {{ request()->is('desigUnits*') ? 'menu-open' : '' }}">
+                    <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }} {{ request()->is('schoolingunits*') ? 'menu-open' : '' }} {{ request()->is('schoolingentries*') ? 'menu-open' : '' }} {{ request()->is('awards*') ? 'menu-open' : '' }} {{ request()->is('pfts*') ? 'menu-open' : '' }} {{ request()->is('designations*') ? 'menu-open' : '' }}">
                         <a class="nav-link nav-dropdown-toggle" href="#">
                             <i class="fa-fw fas fa-users">
 
@@ -173,8 +173,8 @@
                                 </a>
                                 @endcan
 
-                                @can('desig_unit_access')
-                                <a href="{{ route("desigUnits.index") }}" class="nav-link {{ request()->is('desigUnits') || request()->is('desigUnits/*') ? 'active' : '' }}">
+                                @can('designation_access')
+                                <a href="{{ route("designations.index") }}" class="nav-link {{ request()->is('designations') || request()->is('designations/*') ? 'active' : '' }}">
                                     <i class="fa-fw fas fa-list">
                                     </i>
                                     <p>

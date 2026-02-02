@@ -9,15 +9,11 @@ use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 
-class DesigUnit extends Model implements Auditable
+class Designation extends Model implements Auditable
 {
     use AuditableTrait;
-    public $table = 'designation_units';
+    public $table = 'designations';
     protected $fillable = [
-        'designation',
-        'unit',
-        'pamu',
-        'pa_equivalent',
-        'geography',
+        'name',
     ];
 }
