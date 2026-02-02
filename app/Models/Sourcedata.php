@@ -17,8 +17,10 @@ class Sourcedata extends Model implements Auditable
     public $table = 'sourcedatas';
     protected $fillable = [
         'assignment_id',
-        'rank_id',
-        'rankpoint_id',
+        'min_month_rankpoint_id',
+        'min_point_rankpoint_id',
+        'max_month_rankpoint_id',
+        'max_point_rankpoint_id',
     ];
 
     public function assignments()
@@ -31,13 +33,28 @@ class Sourcedata extends Model implements Auditable
         return $this->belongsTo(Type::class, 'type_id', 'id');
     }
 
-    public function ranks()
+    public function getRankCodeAttribute(): ?string
     {
-        return $this->belongsTo(Rank::class, 'rank_id', 'id');
+        return optional(optional($this->minMonthRankpoint)->ranks)->code
+            ?? optional(optional($this->minPointRankpoint)->ranks)->code
+            ?? optional(optional($this->maxMonthRankpoint)->ranks)->code
+            ?? optional(optional($this->maxPointRankpoint)->ranks)->code;
     }
 
-    public function rankpoints()
+    public function minMonthRankpoint()
     {
-        return $this->belongsTo(Rankpoint::class, 'rankpoint_id', 'id');
+        return $this->belongsTo(Rankpoint::class, 'min_month_rankpoint_id', 'id');
+    }
+    public function minPointRankpoint()
+    {
+        return $this->belongsTo(Rankpoint::class, 'min_point_rankpoint_id', 'id');
+    }
+    public function maxMonthRankpoint()
+    {
+        return $this->belongsTo(Rankpoint::class, 'max_month_rankpoint_id', 'id');
+    }
+    public function maxPointRankpoint()
+    {
+        return $this->belongsTo(Rankpoint::class, 'max_point_rankpoint_id', 'id');
     }
 }

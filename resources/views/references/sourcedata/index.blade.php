@@ -13,8 +13,9 @@
         <table id="dataTable" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Assignment</th>
+                    <th>Nr</th>
+                    <th>Duty</th>
+                    <th>Type</th>
                     <th>Rank</th>
                     <th>Min month</th>
                     <th>Min points</th>
@@ -26,7 +27,6 @@
             <tbody>
             </tbody>
         </table>
-
     </div>
 </div>
 @endsection
@@ -34,9 +34,9 @@
     <script>
 
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\User::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\User::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\User::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Sourcedata::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Sourcedata::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Sourcedata::class));
     let url_route = "{{ $config_data->module_route }}";
 
         $('#dataTable').DataTable({
@@ -55,9 +55,24 @@
                     searchable: false
                 },
                 { data: 'assignments.name' },
-                { data: 'ranks.name' },
-                { data: 'rankpoints.name' },
-                { data: 'rankpoints.points' },
+                { data: 'assignments.types.name' },
+                { data: 'min_month_rankpoint.ranks.code' },
+                {
+                    data: 'min_month_rankpoint.points',
+                    render: function(val){ return `min_month - ${val ?? ''}`; }
+                },
+                {
+                    data: 'min_point_rankpoint.points',
+                    render: function(val){ return `min_point - ${val ?? ''}`; }
+                },
+                {
+                    data: 'max_month_rankpoint.points',
+                    render: function(val){ return `max_month - ${val ?? ''}`; }
+                },
+                {
+                    data: 'max_point_rankpoint.points',
+                    render: function(val){ return `max_point - ${val ?? ''}`; }
+                },
                 {
                     data: 'id',
                     render: function (data) {
