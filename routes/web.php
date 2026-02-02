@@ -26,6 +26,8 @@ use App\Http\Controllers\PftController;
 use App\Http\Controllers\AwardHistoryController;
 use App\Http\Controllers\PftHistoryController;
 
+use App\Http\Controllers\ClassNameController;
+
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect('/dashboard');
@@ -156,6 +158,15 @@ Route::middleware('auth')->group(function () {
         ->name('dateranks.massDestroy');
     Route::resource('dateranks', DateRankController::class);
     Route::get('/dateranks-list', [DateRankController::class, 'list'])->name('dateranks.list'); // AJAX
+
+
+
+
+
+    Route::delete('classnames/destroy', [ClassNameController::class, 'massDestroy'])
+        ->name('classnames.massDestroy');
+    Route::resource('classnames', ClassNameController::class);
+    Route::get('/classnames-list', [ClassNameController::class, 'list'])->name('classnames.list'); // AJAX
 
 });
 
