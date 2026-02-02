@@ -94,7 +94,7 @@
                     <div class="float-right d-none d-sm-block">
                         <b>Version</b> 1.0.0-alpha
                     </div>
-                    <strong> &copy;</strong> LIGTAS 2026
+                    <strong> &copy;</strong> PACERS 2026
                 </footer>
                 <form id="logoutform" action="{{ route('logout') }}" method="POST" style="display: none;">
                     {{ csrf_field() }}
