@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AssignmentHistoryController;
 use App\Http\Controllers\DesignationController;
+use App\Http\Controllers\PamuController;
 use App\Http\Controllers\SchoolingsController;
 use App\Http\Controllers\SourcedatasController;
 use App\Http\Controllers\UnitController;
@@ -126,6 +127,11 @@ Route::middleware('auth')->group(function () {
         ->name('units.massDestroy');
     Route::resource('units', UnitController::class);
     Route::get('/units-list', [UnitController::class, 'list'])->name('units.list'); // AJAX
+
+    Route::delete('pamus/destroy', [PamuController::class, 'massDestroy'])
+        ->name('pamus.massDestroy');
+    Route::resource('pamus', PamuController::class);
+    Route::get('/pamus-list', [PamuController::class, 'list'])->name('pamus.list'); // AJAX
 
 });
 
