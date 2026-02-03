@@ -68,8 +68,14 @@ class SchoolingUnitsController extends Controller
     public function store(Request $request)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $data = $request->all();
-        $schoolingunit = SchoolingUnit::create($data);
+
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'location' => ['required', 'in:local,foreign'],
+        ]);
+
+        SchoolingUnit::create($validated);
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
@@ -116,9 +122,14 @@ class SchoolingUnitsController extends Controller
     public function update(Request $request, SchoolingUnit $schoolingunit)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $data = $request->all();
-        $schoolingunit->update($data);
-        return redirect()->route($this->config_data->module_route . '.index', $schoolingunit->id);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'location' => ['required', 'in:local,foreign'],
+        ]);
+
+        $schoolingunit->update($validated);
+        return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
