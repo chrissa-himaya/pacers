@@ -15,7 +15,7 @@
                 <tr>
                     <th>ID</th>
                     <th>PMCode</th>
-                    <th>Schooling Entry</th>
+                    <th>Entry</th>
                     <th>School/Unit</th>
                     <th>Assignments</th>
                     <th>Date Completed</th>
@@ -26,6 +26,7 @@
                     <th>2LT</th>
                     <th>1LT</th>
                     <th>CPT</th>
+                    <th>MAJ</th>
                     <th>LTC</th>
                     <th>COL</th>
                     <th>Action</th>
@@ -61,7 +62,14 @@
                     searchable: false
                 },
                 { data: 'pm_code' },
-                { data: 'schoolingentries.name' },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        let school = row.schoolingnames?.name ?? '';
+                        let className = row.classnames?.year ?? '';
+                        return `${school} ${className}`;
+                    }
+                },
                 { data: 'schoolingunits.name' },
                 { data: 'assignments.name' },
                 { data: 'date_completed' },
@@ -72,6 +80,7 @@
                 { data: '2lt' },
                 { data: '1lt' },
                 { data: 'cpt' },
+                { data: 'maj' },
                 { data: 'ltc' },
                 { data: 'col' },
                 {

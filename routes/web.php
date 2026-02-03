@@ -175,6 +175,13 @@ Route::get('/', function () {
     Route::resource('schoolingnames', SchoolingNameController::class);
     Route::get('/schoolingnames-list', [SchoolingNameController::class, 'list'])->name('schoolingnames.list'); // AJAX
 
+    Route::get('schoolings/ajax/rank-during-completion', [SchoolingsController::class, 'rankDuringCompletion'])
+    ->name('schoolings.rankDuringCompletion');
+
+
+    Route::resource('schoolings', SchoolingsController::class)
+        ->whereNumber('schooling');
+
 });
 
 Auth::routes();

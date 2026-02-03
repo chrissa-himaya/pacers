@@ -19,7 +19,8 @@ class Schooling extends Model implements Auditable
     public $table = 'schoolings';
     protected $fillable = [
         'pm_code',
-        'schooling_entries_id',
+        'schoolingname_id',
+        'classname_id',
         'schooling_unit_id',
         'assignment_id',
         'date_completed',
@@ -30,6 +31,7 @@ class Schooling extends Model implements Auditable
         '2lt',
         '1lt',
         'cpt',
+        'maj',
         'ltc',
         'col',
     ];
@@ -39,9 +41,14 @@ class Schooling extends Model implements Auditable
         return $this->belongsTo(Officer::class, 'pm_code', 'PM_CODE');
     }
 
-    public function schoolingentries()
+    public function schoolingnames()
     {
-        return $this->belongsTo(SchoolingEntry::class, 'schooling_entries_id', 'id');
+        return $this->belongsTo(SchoolingName::class, 'schoolingname_id', 'id');
+    }
+
+    public function classnames()
+    {
+        return $this->belongsTo(ClassName::class, 'classname_id', 'id');
     }
 
     public function schoolingunits()

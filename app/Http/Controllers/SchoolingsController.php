@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassName;
 use App\Models\Schooling;
 use App\Models\Assignment;
 use App\Models\SchoolingEntry;
+use App\Models\SchoolingName;
 use App\Models\SchoolingUnit;
 use App\Models\Officer;
+use App\Models\DateRank;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,25 +49,28 @@ class SchoolingsController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create($id = "0")
+    public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        // session()->forget([
-        //     'rank',
-        //     'name',
-        // ]);
 
         $schooling = Schooling::find(1);
         $schooling->fill([
             'pm_code' => null,
-            'schooling_entries_id' => null,
+            'schoolingname_id' => null,
+            'classname_id' => null,
             'schooling_unit_id' => null,
             'assignment_id' => null,
         ]);
 
-        $schoolingentries = SchoolingEntry::with('schoolingunits')->get()->keyBy('id');
-        $assignments = Assignment::all()->pluck('name', 'id');
-        $schoolingUnits = SchoolingUnit::all()->pluck('name', 'id');
+        $schoolingnames = SchoolingName::all()->pluck('name', 'id');
+        $classnames = ClassName::all()->pluck('year', 'id');
+        $assignments = Assignment::where('type_id', 5)
+            ->orderBy('name')
+            ->pluck('name', 'id');
+        $schoolingUnits = SchoolingUnit::query()
+            ->select('id', 'name', 'location')
+            ->orderBy('name')
+            ->get();
 
         $pmcodes = Officer::query()
             ->select('pm_code')
@@ -80,11 +86,11 @@ class SchoolingsController extends Controller
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
             "optional_fields" => $this->config_data->optionalFields,
-            "bulk_insert" => $id,
-            "assignments" => $assignments,
-            "schoolingentries" => $schoolingentries,
             "pm_codes" => $pmcodes,
-            "schoolingUnits" => $schoolingUnits
+            "schoolingnames" => $schoolingnames,
+            "classnames" => $classnames,
+            "schoolingUnits" => $schoolingUnits,
+            "assignments" => $assignments,
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -119,42 +125,32 @@ class SchoolingsController extends Controller
                     'unit' => $schooling->UNIT,
                 ]);
 
-        } elseif ($action === 'Show info') {
+        } elseif ($action == 'Save') {
 
-            $request->validate([
-                'schooling_entries_id' => ['required', 'integer', 'exists:schooling_entries,id'],
+        // Validate what you actually need for saving
+            $data = $request->validate([
+                'pm_code' => ['required', 'string'],
+                'schooling_entries_id' => ['nullable', 'integer'],
+                'schoolingname_id' => ['nullable', 'integer'],
+                'classname_id' => ['nullable', 'integer'],
+                'schooling_unit_id' => ['nullable', 'integer'],
+                'assignment_id' => ['nullable', 'integer'],
+                'date_completed' => ['nullable', 'date'],
+                'rating' => ['nullable', 'numeric'],
+                'standing' => ['nullable', 'numeric'],
+                'total_student' => ['nullable', 'numeric'],
+                '2lt' => ['nullable', 'numeric'],
+                '1lt' => ['nullable', 'numeric'],
+                'cpt' => ['nullable', 'numeric'],
+                'ltc' => ['nullable', 'numeric'],
+                'col' => ['nullable', 'numeric'],
             ]);
 
-            $entryId = (int) $request->input('schooling_entries_id');
-
-            $schoolingentries = SchoolingEntry::with(['schoolingunits', 'assignments'])->findOrFail($entryId);
-            // return $request->all();
-
-            return back()
-                ->withInput($request->all())
-                ->with([
-                    'schooling_unit_id' => $schoolingentries->schoolingunits->id,
-                    'schooling_unit_location' => $schoolingentries->schoolingunits->location,
-                    'assignment_id' => $schoolingentries->assignments->id,
-
-                    'rank' => $schooling->RANK,
-                    'name' => $schooling->NAME,
-                    'afpsn' => $schooling->AFPSN,
-                    'afpos' => $schooling->AFPOS,
-                    'sex' => $schooling->SEX,
-                    'dob' => $schooling->DOB,
-                    'date_ret' => $schooling->RET,
-                    'soc' => $schooling->SOC,
-                    'type' => $schooling->TYPE,
-                    'otd' => $schooling->OTD,
-                    'dor' => $schooling->DOR,
-                    'sig' => $schooling->SIG,
-                    'designation' => $schooling->DESIGNATION,
-                    'unit' => $schooling->UNIT,
-                ]);
-
-        } elseif ($action == 'Save') {
-            $data = $request->all();
+            // Override / compute on server
+            $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
+            $data['pm_code'] ?? null,
+            $data['date_completed'] ?? null
+            ) ?? '';
             Schooling::create($data);
             return redirect()->route($this->config_data->module_route . '.index');
         }
@@ -166,49 +162,49 @@ class SchoolingsController extends Controller
      */
     public function show(Schooling $schooling)
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // Load relationships for the schooling record
-    $schooling->load(['schoolingentries','schoolingunits', 'assignments']);
-    // If the schooling record has a PM code, look up the officer.
-    // Use the same column name you use in your store() method ('PMCODE').
-    if ($schooling->pm_code) {
-        $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
+        $schooling->load(['schoolingnames', 'classnames', 'schoolingunits', 'assignments']);
+        // If the schooling record has a PM code, look up the officer.
+        // Use the same column name you use in your store() method ('PMCODE').
+        if ($schooling->pm_code) {
+            $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
 
-        if ($officerData) {
-            // Set session values using the officer's attributes (use uppercase names)
-            // session([
-            //     'rank'        => $officer->RANK,
-            //     'name'        => $officer->NAME,
-            //     'afpsn'       => $officer->AFPSN,
-            //     'afpos'       => $officer->AFPOS,
-            //     'sex'         => $officer->SEX,
-            //     'dob'         => $officer->DOB,
-            //     'date_ret'    => $officer->RET,
-            //     'soc'         => $officer->SOC,
-            //     'type'        => $officer->TYPE,
-            //     'otd'         => $officer->OTD,
-            //     'dor'         => $officer->DOR,
-            //     'sig'         => $officer->SIG,
-            //     'designation' => $officer->DESIGNATION,
-            //     'unit'        => $officer->UNIT,
-            // ]);
+            if ($officerData) {
+                // Set session values using the officer's attributes (use uppercase names)
+                // session([
+                //     'rank'        => $officer->RANK,
+                //     'name'        => $officer->NAME,
+                //     'afpsn'       => $officer->AFPSN,
+                //     'afpos'       => $officer->AFPOS,
+                //     'sex'         => $officer->SEX,
+                //     'dob'         => $officer->DOB,
+                //     'date_ret'    => $officer->RET,
+                //     'soc'         => $officer->SOC,
+                //     'type'        => $officer->TYPE,
+                //     'otd'         => $officer->OTD,
+                //     'dor'         => $officer->DOR,
+                //     'sig'         => $officer->SIG,
+                //     'designation' => $officer->DESIGNATION,
+                //     'unit'        => $officer->UNIT,
+                // ]);
+            }
         }
-    }
 
 
-    // Build the data array with the additional collections you need (as before)
-    $columnHidden = array_merge($schooling->getDates(), ['id']);
-    $data_items = [
-        'data'           => $schooling,
-        'column_hidden'  => $columnHidden,
-        'column_labels'  => $this->config_data->columnLabels,
-        'operation_type' => 'show',
-        'schooling'      => $schooling,
-        'officerData' => $officerData 
-    ];
+        // Build the data array with the additional collections you need (as before)
+        $columnHidden = array_merge($schooling->getDates(), ['id']);
+        $data_items = [
+            'data' => $schooling,
+            'column_hidden' => $columnHidden,
+            'column_labels' => $this->config_data->columnLabels,
+            'operation_type' => 'show',
+            'schooling' => $schooling,
+            'officerData' => $officerData
+        ];
 
-        return view($this->config_data->module_view_folder.'.show', compact('data_items'));
-                        
+        return view($this->config_data->module_view_folder . '.show', compact('data_items'));
+
     }
 
     /**
@@ -224,7 +220,23 @@ class SchoolingsController extends Controller
      */
     public function update(Request $request, Schooling $schooling)
     {
-        //
+        $data = $request->validate([
+            'pm_code' => ['required', 'string'],
+            'date_completed' => ['nullable', 'date'],
+            'rating' => ['nullable', 'numeric'],
+            'standing' => ['nullable', 'numeric'],
+            'total_student' => ['nullable', 'numeric'],
+            // ... add the rest of your fields
+        ]);
+
+            $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
+            $data['pm_code'] ?? null,
+            $data['date_completed'] ?? null
+            ) ?? '';
+
+            $schooling->update($data);
+
+            return redirect()->route($this->config_data->module_route . '.index');
     }
 
     /**
@@ -239,7 +251,7 @@ class SchoolingsController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'pm_code', 'schooling_entries_id', 'schooling_unit_id', 'assignment_id', 'rating', 'standing', 'total_student', 'rank_during_completion', '2lt', '1lt', 'cpt', 'ltc', 'col', 'created_at', 'updated_at'];
+        $columns = ['id', 'pm_code', 'schoolingname_id','classname_id','schooling_unit_id','assignment_id','date_completed','rating','standing','total_student','rank_during_completion','2lt','1lt','cpt','maj','ltc','col', 'created_at', 'updated_at'];
 
         // Pagination values from DataTables
         $start = $request->input('start', 0);
@@ -281,8 +293,8 @@ class SchoolingsController extends Controller
         $data = $query->orderBy($orderColumn, $orderDir)
             ->skip($start)
             ->take($length)
-            ->get()
-            ->loadMissing(['schoolingentries', 'schoolingunits', 'assignments']);
+            ->with(['schoolingnames', 'classnames', 'schoolingunits', 'assignments'])
+            ->get();
 
         // Return JSON in DataTables format
         return response()->json([
@@ -291,5 +303,32 @@ class SchoolingsController extends Controller
             'recordsFiltered' => $filteredData,
             'data' => $data,
         ]);
+    }
+
+    private function resolveRankDuringCompletion(?string $pmCode, ?string $dateCompleted): ?string
+    {
+        if (blank($pmCode) || blank($dateCompleted)) {
+            return null;
+        }
+
+        // Find the most recent rank record on/before dateCompleted for that pm_code
+        $dr = DateRank::query()
+            ->with('ranks:id,code,name')   // IMPORTANT: ranks (plural)
+            ->where('pm_code', trim($pmCode))
+            ->whereDate('date', '<=', $dateCompleted)
+            ->orderBy('date', 'desc')
+            ->first();
+
+        return $dr?->ranks?->code;
+    }
+
+    public function rankDuringCompletion(Request $request)
+    {
+        $pmCode = $request->string('pm_code')->toString();
+        $dateCompleted = $request->input('date_completed');
+
+        return response()->json([
+        'rank' => $this->resolveRankDuringCompletion($pmCode, $dateCompleted) ?? ''
+    ]);
     }
 }
