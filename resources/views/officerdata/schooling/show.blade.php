@@ -243,7 +243,7 @@
 
           <div class="row mt-3 row-cols-7">
             <div class="col">
-              <label>Rank during completion</label>
+              <label>Rank</label>
               <input type="text" id="rank_during_completion" name="rank_during_completion" class="form-control"
                 value="{{ old('rank_during_completion', $data_items['data']->rank_during_completion ?? '') }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : 'readonly' }}>
