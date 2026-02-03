@@ -98,11 +98,28 @@
                 @endcan
 
                 @can('reference_access')
-                    <li class="nav-item has-treeview {{ request()->is('assignments*') ? 'menu-open' : '' }} {{ request()->is('types*') ? 'menu-open' : '' }} {{ request()->is('ranks*') ? 'menu-open' : '' }} {{ request()->is('rankpoints*') ? 'menu-open' : '' }} {{ request()->is('sourcedatas*') ? 'menu-open' : '' }} {{ request()->is('schoolingunits*') ? 'menu-open' : '' }} {{ request()->is('schoolingentries*') ? 'menu-open' : '' }} {{ request()->is('awards*') ? 'menu-open' : '' }} {{ request()->is('pfts*') ? 'menu-open' : '' }} {{ request()->is('designations*') ? 'menu-open' : '' }}">
-                        <a class="nav-link nav-dropdown-toggle" href="#">
-                            <i class="fa-fw fas fa-users">
+                    @php
+                        $referencesOpen = request()->is(
+                            'assignments*',
+                            'types*',
+                            'ranks*',
+                            'dateranks',
+                            'rankpoints*',
+                            'sourcedatas*',
+                            'classnames',
+                            'schoolingunits*',
+                            'schoolingentries*',
+                            'awards*',
+                            'pfts*',
+                            'designations*',
+                            'units*',
+                            'pamus*'
+                        );
+                    @endphp
 
-                            </i>
+                    <li class="nav-item has-treeview {{ $referencesOpen ? 'menu-open' : '' }}">
+                        <a class="nav-link {{ $referencesOpen ? 'active' : '' }}" href="#">
+                            <i class="fa-fw fas fa-users"></i>
                             <p>
                                 <span>References</span>
                                 <i class="right fa fa-fw fa-angle-left"></i>
@@ -137,6 +154,16 @@
                                     </i>
                                     <p>
                                         <span>Ranks</span>
+                                    </p>
+                                </a>
+                                @endcan
+                                @can('daterank_access')
+                                <a href="{{ route("dateranks.index") }}" class="nav-link {{ request()->is('dateranks') || request()->is('dateranks/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-user">
+
+                                    </i>
+                                    <p>
+                                        <span>Date of Rank</span>
                                     </p>
                                 </a>
                                 @endcan
@@ -177,10 +204,54 @@
                                     <i class="fa-fw fas fa-list">
                                     </i>
                                     <p>
-                                        <span>Designation/Unit</span>
+                                        <span>Designation</span>
                                     </p>
                                 </a>
                                 @endcan
+
+                                @can('unit_access')
+                                <a href="{{ route("units.index") }}"  class="nav-link {{ request()->is('units') || request()->is('units/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-unlock-alt">
+
+                                    </i>
+                                    <p>
+                                        <span>Units</span>
+                                    </p>
+                                </a>
+                                @endcan
+
+                                @can('pamu_access')
+                                <a href="{{ route("pamus.index") }}" class="nav-link {{ request()->is('pamus') || request()->is('pamus/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+                                    </i>
+                                    <p>
+                                        <span>PAMU / GUA</span>
+                                    </p>
+                                </a>
+                                @endcan
+
+                                @can('schoolingname_access')
+                                <a href="{{ route("schoolingnames.index") }}" class="nav-link {{ request()->is('schoolingnames') || request()->is('schoolingnames/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+
+                                    </i>
+                                    <p>
+                                        <span>Type of Schooling</span>
+                                    </p>
+                                </a>
+                                @endcan
+
+                                @can('classname_access')
+                                <a href="{{ route("classnames.index") }}" class="nav-link {{ request()->is('classnames') || request()->is('classnames/*') ? 'active' : '' }}">
+                                    <i class="fa-fw fas fa-list">
+
+                                    </i>
+                                    <p>
+                                        <span>Class Years</span>
+                                    </p>
+                                </a>
+                                @endcan
+
                                 @can('schoolingunit_access')
                                 <a href="{{ route("schoolingunits.index") }}" class="nav-link {{ request()->is('schoolingunits') || request()->is('schoolingunits/*') ? 'active' : '' }}">
                                     <i class="fa-fw fas fa-list">

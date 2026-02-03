@@ -37,7 +37,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware('auth')->group(function () {
+    Route::middleware('auth')->group(function () {
     Route::delete('users/destroy', [UsersController::class, 'massDestroy'])
         ->name('users.massDestroy');
     Route::resource('users', UsersController::class);
