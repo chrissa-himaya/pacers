@@ -133,44 +133,45 @@ class SchoolingsController extends Controller
 
         } elseif ($action == 'Save') {
 
-        // Validate what you actually need for saving
             $data = $request->validate([
                 'pm_code' => ['required', 'string'],
-                'schoolingname_id' => ['nullable', 'integer'],
-                'classname_id' => ['nullable', 'integer'],
-                'schooling_unit_id' => ['nullable', 'integer'],
-                'assignment_id' => ['nullable', 'integer'],
+                'schoolingname_id' => ['nullable', 'string'],
+                'classname_id' => ['nullable', 'string'],
+                'schooling_unit_id' => ['nullable', 'string'],
+                'assignment_id' => ['nullable', 'string'],
                 'date_completed' => ['nullable', 'date'],
-                'rating' => ['nullable', 'numeric'],
-                'standing' => ['nullable', 'numeric'],
-                'total_student' => ['nullable', 'numeric'],
-                '2lt' => ['nullable', 'numeric'],
-                '1lt' => ['nullable', 'numeric'],
-                'cpt' => ['nullable', 'numeric'],
-                'maj' => ['nullable', 'numeric'],
-                'ltc' => ['nullable', 'numeric'],
-                'col' => ['nullable', 'numeric'],
+                'rating' => ['nullable', 'string'],
+                'standing' => ['nullable', 'string'],
+                'total_student' => ['nullable', 'string'],
+                'rank_during_completion' => ['nullable', 'string'],
+                'seclt' => ['nullable', 'string'],
+                'firstlt' => ['nullable', 'string'],
+                'cpt' => ['nullable', 'string'],
+                'maj' => ['nullable', 'string'],
+                'ltc' => ['nullable', 'string'],
+                'col' => ['nullable', 'string'],
             ]);
 
-            $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
-    $data['pm_code'] ?? null,
+                    $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
+            $data['pm_code'] ?? null,
     $data['date_completed'] ?? null
             ) ?? '';
 
-            // ---- compute points on server (same as AJAX) ----
-            $points = app(SchoolingPointsService::class)->compute([
-                'assignment_id' => $data['assignment_id'] ?? null,
+            $svcInput = [
+                'assignment_id'   => $data['assignment_id'] ?? null,
                 'school_location' => $request->input('school_location'),
-                'rating' => $data['rating'] ?? null,
-                'standing' => $data['standing'] ?? null,
-                'total_students' => $data['total_student'] ?? null,
-            ]);
+                'rating'          => $data['rating'] ?? null,
+                'standing'        => $data['standing'] ?? null,
+                'total_students'  => $data['total_student'] ?? null,
+            ];
 
-            // ---- push points into the correct rank column ----
-            $this->applyPointsToRankColumns($data, $points);
+            $svc = app(SchoolingPointsService::class);
+
+            foreach ([1=>'seclt', 2=>'firstlt', 3=>'cpt', 4=>'maj', 5=>'ltc', 6=>'col'] as $rankId => $col) {
+                $data[$col] = $svc->computeForRank($svcInput, $rankId);
+            }
 
             Schooling::create($data);
-
             return redirect()->route($this->config_data->module_route . '.index');
         }
 
@@ -254,7 +255,7 @@ class SchoolingsController extends Controller
             ) ?? '';
 
             // ---- recompute points ----
-            $points = app(\App\Services\SchoolingPointsService::class)->compute([
+            $points = app(SchoolingPointsService::class)->compute([
                 'assignment_id' => $data['assignment_id'] ?? $schooling->assignment_id,
                 'school_location' => $request->input('school_location'),
                 'rating' => $data['rating'] ?? $schooling->rating,
@@ -282,7 +283,7 @@ class SchoolingsController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'pm_code', 'schoolingname_id','classname_id','schooling_unit_id','assignment_id','date_completed','rating','standing','total_student','rank_during_completion','2lt','1lt','cpt','maj','ltc','col', 'created_at', 'updated_at'];
+        $columns = ['id', 'pm_code', 'schoolingname_id','classname_id','schooling_unit_id','assignment_id','date_completed','rating','standing','total_student','rank_during_completion','seclt','firstlt','cpt','maj','ltc','col', 'created_at', 'updated_at'];
 
         // Pagination values from DataTables
         $start = $request->input('start', 0);
@@ -365,22 +366,26 @@ class SchoolingsController extends Controller
 
     public function computePoints(Request $request, SchoolingPointsService $svc)
     {
-        $points = $svc->compute([
-        'assignment_id' => $request->input('assignment_id'),
-        'school_location' => $request->input('school_location'),
-        'rating' => $request->input('rating'),
-        'standing' => $request->input('standing'),
-        'total_students' => $request->input('total_students'),
-        ]);
+        $svcInput = [
+            'assignment_id'   => $request->input('assignment_id'),
+            'school_location' => $request->input('school_location'),
+            'rating'          => $request->input('rating'),
+            'standing'        => $request->input('standing'),
+            'total_students'  => $request->input('total_students'),
+        ];
 
+        $out = [];
+        foreach ([1=>'seclt', 2=>'firstlt', 3=>'cpt', 4=>'maj', 5=>'ltc', 6=>'col'] as $rankId => $field) {
+            $out[$field] = $svc->computeForRank($svcInput, $rankId);
+        }
 
-        return response()->json(['points' => $points]);
+        return response()->json($out);
     }
 
     private function applyPointsToRankColumns(array &$data, float $points): void
     {
         // Reset all rank columns
-        foreach (['2lt','1lt','cpt','maj','ltc','col'] as $col) {
+        foreach (['seclt','firstlt','cpt','maj','ltc','col'] as $col) {
             $data[$col] = 0;
         }
 
@@ -388,8 +393,8 @@ class SchoolingsController extends Controller
 
         // Map rank code -> column name
         $map = [
-            '2LT' => '2lt',
-            '1LT' => '1lt',
+            '2LT' => 'seclt',
+            '1LT' => 'firstlt',
             'CPT' => 'cpt',
             'MAJ' => 'maj',
             'LTC' => 'ltc',

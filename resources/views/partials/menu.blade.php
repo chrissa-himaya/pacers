@@ -262,16 +262,6 @@
                                     </p>
                                 </a>
                                 @endcan
-                                @can('schoolingentry_access')
-                                <a href="{{ route("schoolingentries.index") }}" class="nav-link {{ request()->is('schoolingentries') || request()->is('schoolingentries/*') ? 'active' : '' }}">
-                                    <i class="fa-fw fas fa-list">
-
-                                    </i>
-                                    <p>
-                                        <span>Schooling entries</span>
-                                    </p>
-                                </a>
-                                @endcan
                                 @can('sourcedata_access')
                                 <a href="{{ route("sourcedatas.index") }}" class="nav-link {{ request()->is('sourcedatas') || request()->is('sourcedatas/*') ? 'active' : '' }}">
                                     <i class="fa-fw fas fa-list">

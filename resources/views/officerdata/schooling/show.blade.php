@@ -146,7 +146,6 @@
                     </option>
                   @endforeach
                 </select>
-                <input type="hidden" name="schoolingname_id" value="{{ session('schoolingname_id') }}">
               @else
                 <input type="text" class="form-control" value="{{ $data_items['data']->schoolingnames->name }}" disabled>
               @endif
@@ -163,7 +162,6 @@
                     </option>
                   @endforeach
                 </select>
-                <input type="hidden" name="classname_id" value="{{ session('classname_id') }}">
               @else
                 <input type="text" class="form-control" value="{{ $data_items['data']->classnames->year }}" disabled>
               @endif
@@ -174,15 +172,12 @@
               @if($data_items['operation_type'] == 'create')
                 <select name="schooling_unit_id" id="schooling_unit_id" class="form-control select2">
                   <option value="">-</option>
-
-
                   @foreach($data_items['schoolingUnits'] as $su)
                     <option value="{{ $su->id }}" data-location="{{ $su->location }}" @selected(old('schooling_unit_id', session('schooling_unit_id')) == $su->id)>
                       {{ $su->name }}
                     </option>
                   @endforeach
                 </select>
-                
               @else
                 <input type="text" class="form-control" value="{{ $data_items['data']->schoolingunits->name ?? '' }}"
                   disabled>
@@ -207,7 +202,6 @@
                     </option>
                   @endforeach
                 </select>
-                <input type="hidden" name="assignment_id" value="{{ session('assignment_id') }}">
               @else
                 <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name }}" disabled>
               @endif
@@ -221,18 +215,21 @@
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->date_completed : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
             </div>
+
             <div class="col-md-3">
               <label>Rating</label>
               <input type="number" name="rating" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->rating : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
             </div>
+
             <div class="col-md-3">
               <label>Standing</label>
               <input type="number" name="standing" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->standing : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
             </div>
+
             <div class="col-md-3">
               <label>Total Students</label>
               <input type="number" name="total_student" class="form-control"
@@ -243,10 +240,9 @@
 
           <div class="row mt-3">
             <div class="col-md-3">
-              <label>Computed Points</label>
               <input type="number" step="0.0001" id="computed_points" class="form-control"
               value="{{ old('computed_points', $data_items['data']->computed_points ?? '') }}"
-              readonly>
+              hidden>
             </div>
           </div>
 
@@ -257,41 +253,47 @@
                 value="{{ old('rank_during_completion', $data_items['data']->rank_during_completion ?? '') }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : 'readonly' }}>
             </div>
+
             <div class="col">
               <label>2LT</label>
               <input type="number" name="seclt" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->seclt : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
+
             <div class="col">
               <label>1LT</label>
               <input type="number" name="firstlt" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->firstlt : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
+
             <div class="col">
               <label>CPT</label>
               <input type="number" name="cpt" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->cpt : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
+
             <div class="col">
               <label>MAJ</label>
               <input type="number" name="maj" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->maj : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
+
             <div class="col">
               <label>LTC</label>
               <input type="number" name="ltc" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->ltc : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
+            
             <div class="col">
               <label>COL</label>
               <input type="number" name="col" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->col : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
+                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
           </div>
 
@@ -359,6 +361,7 @@
           const data = await res.json();
           console.log('fetchRank response:', data);
           rankEl.value = data.rank ?? '';
+          scheduleFetchPoints();
         } catch (e) {
           console.error('fetchRank error:', e);
           rankEl.value = '';
@@ -387,79 +390,100 @@
 
 
       // ---------- compute schooling points (Excel logic) ----------
-      const computedEl = document.getElementById('computed_points');
-      if (OP !== 'show' && computedEl) {
-      const ratingEl = document.querySelector('input[name="rating"]');
-      const standingEl = document.querySelector('input[name="standing"]');
-      const totalEl = document.querySelector('input[name="total_student"]');
-      const assignmentEl = document.querySelector('select[name="assignment_id"]');
-      const locationEl = document.querySelector('input[name="school_location"]');
+        const computedEl = document.getElementById('computed_points');
 
+        // define it early so fetchRank can safely call it
+        let scheduleFetchPoints = function(){};
 
-      async function fetchPoints() {
-      const rating = ratingEl?.value ?? '';
-      const standing = standingEl?.value ?? '';
-      const totalStudents = totalEl?.value ?? '';
-      const assignmentId = assignmentEl?.value ?? '';
-      const schoolLocation = locationEl?.value ?? '';
+        if (OP !== 'show' && computedEl) {
+          const ratingEl = document.querySelector('input[name="rating"]');
+          const standingEl = document.querySelector('input[name="standing"]');
+          const totalEl = document.querySelector('input[name="total_student"]');
+          const assignmentEl = document.querySelector('select[name="assignment_id"]');
+          const locationEl = document.querySelector('input[name="school_location"]');
 
+          const clearRankFields = () => {
+            ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
+              const el = document.querySelector(`input[name="${n}"]`);
+              if (el) el.value = '';
+            });
+          };
 
-      // require all
-      if (!rating || !standing || !totalStudents || !assignmentId || !schoolLocation) {
-      computedEl.value = '';
-      return;
-      }
+          async function fetchPoints() {
+            const rating = ratingEl?.value ?? '';
+            const standing = standingEl?.value ?? '';
+            const totalStudents = totalEl?.value ?? '';
+            const assignmentId = assignmentEl?.value ?? '';
+            const schoolLocation = locationEl?.value ?? '';
 
+            // require all
+            if (!rating || !standing || !totalStudents || !assignmentId || !schoolLocation) {
+              computedEl.value = '';
+              clearRankFields();
+              return;
+            }
 
-      const params = new URLSearchParams({
-      rating,
-      standing,
-      total_students: totalStudents,
-      assignment_id: assignmentId,
-      school_location: schoolLocation,
-      });
+            const params = new URLSearchParams({
+              rating,
+              standing,
+              total_students: totalStudents, // must match controller
+              assignment_id: assignmentId,
+              school_location: schoolLocation,
+            });
 
+            try {
+              const res = await fetch(`{{ route('schoolings.computePoints') }}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+              });
+              const json = await res.json();
+              console.log('computePoints json:', json);
 
-      try {
-      const res = await fetch(`{{ route('schoolings.computePoints') }}?${params.toString()}`, {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      const json = await res.json();
-      computedEl.value = json.points ?? 0;
-      } catch (e) {
-      console.error('fetchPoints error:', e);
-      computedEl.value = '';
-      }
-      }
+              const set = (name, val) => {
+                const el = document.querySelector(`input[name="${name}"]`);
+                if (el) el.value = (val ?? '');
+              };
 
+              set('seclt', json.seclt);
+              set('firstlt', json.firstlt);
+              set('cpt', json.cpt);
+              set('maj', json.maj);
+              set('ltc', json.ltc);
+              set('col', json.col);
 
-      let pTimer = null;
-      function scheduleFetchPoints() {
-      clearTimeout(pTimer);
-      pTimer = setTimeout(fetchPoints, 250);
-      }
+              // show current rank's points in computed_points (optional)
+              const currentRank = (rankEl?.value || '').toUpperCase().trim();
+              const map = { '2LT':'seclt', '1LT':'firstlt', 'CPT':'cpt', 'MAJ':'maj', 'LTC':'ltc', 'COL':'col' };
+              computedEl.value = (map[currentRank] ? (json[map[currentRank]] ?? '') : '');
 
+            } catch (e) {
+              console.error('fetchPoints error:', e);
+              computedEl.value = '';
+              clearRankFields();
+            }
+          }
 
-      [ratingEl, standingEl, totalEl, assignmentEl, locationEl].forEach(el => {
-      if (!el) return;
-      el.addEventListener('input', scheduleFetchPoints);
-      el.addEventListener('change', scheduleFetchPoints);
-      });
+          let pTimer = null;
+          scheduleFetchPoints = function () {
+            clearTimeout(pTimer);
+            pTimer = setTimeout(fetchPoints, 250);
+          };
 
+          [ratingEl, standingEl, totalEl, assignmentEl, locationEl].forEach(el => {
+            if (!el) return;
+            el.addEventListener('input', scheduleFetchPoints);
+            el.addEventListener('change', scheduleFetchPoints);
+          });
 
-      // when Schooling Unit changes, your existing syncLocation() updates locationEl
-      // call scheduleFetchPoints after that:
-      if (select && locInput) {
-      select.addEventListener('change', () => {
-      // syncLocation already ran; now compute
-      scheduleFetchPoints();
-      });
-      if (window.jQuery) jQuery(select).on('change', scheduleFetchPoints);
-      }
+          // when Schooling Unit changes, syncLocation updates locationEl; now recompute
+          if (select && locInput) {
+            select.addEventListener('change', scheduleFetchPoints);
+            if (window.jQuery) jQuery(select).on('change', scheduleFetchPoints);
+          }
 
+          // initial run
+          scheduleFetchPoints();
+        }
 
-      scheduleFetchPoints();
-      }
 
     });
   </script>

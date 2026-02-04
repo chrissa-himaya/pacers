@@ -106,11 +106,6 @@ Route::get('/', function () {
     Route::resource('schoolingunits', SchoolingUnitsController::class);
     Route::get('/schoolingunits-list', [SchoolingUnitsController::class, 'list'])->name('schoolingunits.list'); // AJAX
 
-    Route::delete('schoolingentries/destroy', [SchoolingEntrysController::class, 'massDestroy'])
-        ->name('schoolingentries.massDestroy');
-    Route::resource('schoolingentries', SchoolingEntrysController::class);
-    Route::get('/schoolingentries-list', [SchoolingEntrysController::class, 'list'])->name('schoolingentries.list'); // AJAX
-
     Route::delete('awards/destroy', [AwardController::class, 'massDestroy'])
         ->name('awards.massDestroy');
     Route::resource('awards', AwardController::class);
