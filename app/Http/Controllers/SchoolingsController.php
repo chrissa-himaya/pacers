@@ -191,23 +191,6 @@ class SchoolingsController extends Controller
             $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
 
             if ($officerData) {
-                // Set session values using the officer's attributes (use uppercase names)
-                // session([
-                //     'rank'        => $officer->RANK,
-                //     'name'        => $officer->NAME,
-                //     'afpsn'       => $officer->AFPSN,
-                //     'afpos'       => $officer->AFPOS,
-                //     'sex'         => $officer->SEX,
-                //     'dob'         => $officer->DOB,
-                //     'date_ret'    => $officer->RET,
-                //     'soc'         => $officer->SOC,
-                //     'type'        => $officer->TYPE,
-                //     'otd'         => $officer->OTD,
-                //     'dor'         => $officer->DOR,
-                //     'sig'         => $officer->SIG,
-                //     'designation' => $officer->DESIGNATION,
-                //     'unit'        => $officer->UNIT,
-                // ]);
             }
         }
 
@@ -232,51 +215,119 @@ class SchoolingsController extends Controller
      */
     public function edit(Schooling $schooling)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $columnHidden = array_merge($schooling->getDates(), ['id']);
+        $schooling->load(['schoolingnames', 'classnames', 'schoolingunits', 'assignments']);
+        
+        // dropdown sources (same as create)
+        $schoolingnames = SchoolingName::all()->pluck('name', 'id');
+        $classnames = ClassName::all()->pluck('year', 'id');
+
+        $assignments = Assignment::where('type_id', 5)
+            ->orderBy('name')
+            ->pluck('name', 'id');
+
+        $schoolingUnits = SchoolingUnit::query()
+            ->select('id', 'name', 'location')
+            ->orderBy('name')
+            ->get();
+
+        $pmcodes = Officer::query()
+            ->select('pm_code')
+            ->whereNotNull('pm_code')
+            ->where('pm_code', '!=', '')
+            ->distinct()
+            ->orderBy('pm_code')
+            ->pluck('pm_code');
+
+        // officer panel on top
+        $officerData = null;
+        if ($schooling->pm_code) {
+            $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
+        }
+        
+        $data_items = [
+            "data" => $schooling,
+            "column_hidden" => $this->config_data->columnHidden,
+            "column_labels" => $this->config_data->columnLabels,
+            "operation_type" => "edit",
+
+            "optional_fields" => $this->config_data->optionalFields,
+            "pm_codes" => $pmcodes,
+            "schoolingnames" => $schoolingnames,
+            "classnames" => $classnames,
+            "schoolingUnits" => $schoolingUnits,
+            "assignments" => $assignments,
+
+            "officerData" => $officerData,
+        ];
+
+        // return $data_items["data"];
+        return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Schooling $schooling)
     {
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $data = $request->validate([
             'pm_code' => ['required', 'string'],
+
+            'schoolingname_id' => ['nullable', 'string'],
+            'classname_id' => ['nullable', 'string'],
+            'schooling_unit_id' => ['nullable', 'string'],
+            'assignment_id' => ['nullable', 'string'],
+
             'date_completed' => ['nullable', 'date'],
             'rating' => ['nullable', 'numeric'],
             'standing' => ['nullable', 'numeric'],
             'total_student' => ['nullable', 'numeric'],
-            // ... add the rest of your fields
+
+            // rank columns will be overwritten anyway; keep nullable
+            'rank_during_completion' => ['nullable', 'string'],
+            'seclt' => ['nullable', 'numeric'],
+            'firstlt' => ['nullable', 'numeric'],
+            'cpt' => ['nullable', 'numeric'],
+            'maj' => ['nullable', 'numeric'],
+            'ltc' => ['nullable', 'numeric'],
+            'col' => ['nullable', 'numeric'],
         ]);
 
-            $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
-    $data['pm_code'] ?? null,
-    $data['date_completed'] ?? null
-            ) ?? '';
+        // always resolve rank during completion based on pm_code + date_completed
+        $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
+            $data['pm_code'] ?? null,
+            $data['date_completed'] ?? null
+        ) ?? '';
 
-            // ---- recompute points ----
-            $points = app(SchoolingPointsService::class)->compute([
-                'assignment_id' => $data['assignment_id'] ?? $schooling->assignment_id,
-                'school_location' => $request->input('school_location'),
-                'rating' => $data['rating'] ?? $schooling->rating,
-                'standing' => $data['standing'] ?? $schooling->standing,
-                'total_students' => $data['total_student'] ?? $schooling->total_student,
-            ]);
+        // recompute points per rank (same logic as store)
+        $svcInput = [
+            'assignment_id'   => $data['assignment_id'] ?? $schooling->assignment_id,
+            'school_location' => $request->input('school_location'), // comes from readonly input
+            'rating'          => $data['rating'] ?? $schooling->rating,
+            'standing'        => $data['standing'] ?? $schooling->standing,
+            'total_students'  => $data['total_student'] ?? $schooling->total_student,
+        ];
 
-            $this->applyPointsToRankColumns($data, $points);
+        $svc = app(SchoolingPointsService::class);
 
-            $schooling->update($data);
+        foreach ([1=>'seclt', 2=>'firstlt', 3=>'cpt', 4=>'maj', 5=>'ltc', 6=>'col'] as $rankId => $col) {
+            $data[$col] = $svc->computeForRank($svcInput, $rankId);
+        }
 
+        $schooling->update($data);
 
-            return redirect()->route($this->config_data->module_route . '.index');
+        return redirect()->route($this->config_data->module_route . '.index');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Schooling $schooling)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name.'_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $schooling->delete();
+        return back();
     }
 
     public function list(Request $request)

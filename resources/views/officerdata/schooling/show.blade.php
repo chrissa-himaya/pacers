@@ -133,109 +133,120 @@
         </div>
         <hr>
         <!-- CAREER ADVISER INPUTS -->
-        @if((session('name') && $data_items['operation_type'] == 'create') || (isset($data_items['officerData']->NAME) && $data_items['operation_type'] == 'show'))
+         @php
+            $op = $data_items['operation_type'] ?? '';
+            $hasOfficer = isset($data_items['officerData']) && !empty($data_items['officerData']?->NAME);
+            $hasSessionOfficer = session('name');
+          @endphp
+
+          @if(
+            ($op === 'create' && $hasSessionOfficer)
+            || ($op === 'edit' && $hasOfficer)
+            || ($op === 'show' && $hasOfficer)
+          )
           <div class="row mt-3">
             <div class="col-md-3">
               <label>Entry</label>
-              @if($data_items["operation_type"] == "create")
-                <select name="schoolingname_id" class="form-control select2">
-                  <option value="">-</option>
-                  @foreach($data_items['schoolingnames'] as $id => $entry)
-                    <option value="{{ $id }}" {{ session('schoolingname_id') == $id ? 'selected' : '' }}>
-                      {{ $entry }}
-                    </option>
-                  @endforeach
-                </select>
+              @if(in_array($op, ['create','edit']))
+              <select name="schoolingname_id" class="form-control select2">
+              <option value="">-</option>
+              @foreach($data_items['schoolingnames'] as $id => $entry)
+              <option value="{{ $id }}" @selected(old('schoolingname_id', $data_items['data']->schoolingname_id ?? session('schoolingname_id')) == $id)>
+              {{ $entry }}
+              </option>
+              @endforeach
+              </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->schoolingnames->name }}" disabled>
+              <input type="text" class="form-control" value="{{ $data_items['data']->schoolingnames->name ?? '' }}" disabled>
               @endif
             </div>
 
             <div class="col-md-3" style="max-width: 12%; flex: 0 0 12%;">
               <label>Class</label>
-              @if($data_items["operation_type"] == "create")
-                <select name="classname_id" class="form-control select2">
-                  <option value="">-</option>
-                  @foreach($data_items['classnames'] as $id => $entry)
-                    <option value="{{ $id }}" {{ session('classname_id') == $id ? 'selected' : '' }}>
-                      {{ $entry }}
-                    </option>
-                  @endforeach
-                </select>
+              @if(in_array($op, ['create','edit']))
+              <select name="classname_id" class="form-control select2">
+              <option value="">-</option>
+              @foreach($data_items['classnames'] as $id => $entry)
+              <option value="{{ $id }}" @selected(old('classname_id', $data_items['data']->classname_id ?? session('classname_id')) == $id)>
+              {{ $entry }}
+              </option>
+              @endforeach
+              </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->classnames->year }}" disabled>
+              <input type="text" class="form-control" value="{{ $data_items['data']->classnames->year ?? '' }}" disabled>
               @endif
             </div>
 
             <div class="col-md-3">
               <label>Schooling Unit</label>
-              @if($data_items['operation_type'] == 'create')
-                <select name="schooling_unit_id" id="schooling_unit_id" class="form-control select2">
-                  <option value="">-</option>
-                  @foreach($data_items['schoolingUnits'] as $su)
-                    <option value="{{ $su->id }}" data-location="{{ $su->location }}" @selected(old('schooling_unit_id', session('schooling_unit_id')) == $su->id)>
-                      {{ $su->name }}
-                    </option>
-                  @endforeach
-                </select>
+              @if(in_array($op, ['create','edit']))
+              <select name="schooling_unit_id" id="schooling_unit_id" class="form-control select2">
+              <option value="">-</option>
+              @foreach($data_items['schoolingUnits'] as $su)
+              <option value="{{ $su->id }}" data-location="{{ $su->location }}"
+              @selected(old('schooling_unit_id', $data_items['data']->schooling_unit_id ?? session('schooling_unit_id')) == $su->id)>
+              {{ $su->name }}
+              </option>
+              @endforeach
+              </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->schoolingunits->name ?? '' }}"
-                  disabled>
+              <input type="text" class="form-control" value="{{ $data_items['data']->schoolingunits->name ?? '' }}" disabled>
               @endif
             </div>
 
             <div class="col-md-3" style="max-width: 12%; flex: 0 0 12%;">
               <label>Local/Foreign</label>
               <input type="text" id="schooling_unit_location" name="school_location" class="form-control"
-                value="{{ old('schooling_unit_location', session('schooling_unit_location', $data_items['data']->schoolingunits->location ?? '')) }}"
-                readonly>
+              value="{{ old('school_location', session('school_location', $data_items['data']->schoolingunits->location ?? '')) }}"
+              readonly>
             </div>
 
             <div class="col-md-3">
               <label>Assignment</label>
-              @if($data_items["operation_type"] == "create")
-                <select name="assignment_id" class="form-control select2">
-                  <option value="">-</option>
-                  @foreach($data_items['assignments'] as $id => $entry)
-                    <option value="{{ $id }}" {{ session('assignment_id') == $id ? 'selected' : '' }}>
-                      {{ $entry }}
-                    </option>
-                  @endforeach
-                </select>
+              @if(in_array($op, ['create','edit']))
+              <select name="assignment_id" class="form-control select2">
+              <option value="">-</option>
+              @foreach($data_items['assignments'] as $id => $entry)
+              <option value="{{ $id }}" @selected(old('assignment_id', $data_items['data']->assignment_id ?? session('assignment_id')) == $id)>
+              {{ $entry }}
+              </option>
+              @endforeach
+              </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name }}" disabled>
+              <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name ?? '' }}" disabled>
               @endif
             </div>
           </div>
 
           <div class="row mt-3">
             <div class="col-md-3">
-              <label>Date completed</label>
-              <input type="date" id="date_completed" name="date_completed" class="form-control"
-                value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->date_completed : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-            </div>
+<label>Date completed</label>
+<input type="date" id="date_completed" name="date_completed" class="form-control"
+value="{{ old('date_completed', $op === 'create' ? '' : ($data_items['data']->date_completed ?? '')) }}"
+{{ $op === 'show' ? 'disabled' : '' }}>
+</div>
 
             <div class="col-md-3">
-              <label>Rating</label>
-              <input type="number" name="rating" class="form-control"
-                value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->rating : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-            </div>
+<label>Rating</label>
+<input type="number" name="rating" class="form-control"
+value="{{ old('rating', $op === 'create' ? '' : $data_items['data']->rating ?? '') }}"
+{{ $op === 'show' ? 'disabled' : '' }}>
+</div>
 
             <div class="col-md-3">
-              <label>Standing</label>
-              <input type="number" name="standing" class="form-control"
-                value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->standing : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-            </div>
+<label>Standing</label>
+<input type="number" name="standing" class="form-control"
+value="{{ old('standing', $op === 'create' ? '' : $data_items['data']->standing ?? '') }}"
+{{ $op === 'show' ? 'disabled' : '' }}>
+</div>
 
-            <div class="col-md-3">
-              <label>Total Students</label>
-              <input type="number" name="total_student" class="form-control"
-                value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? $data_items["data"]->total_student : '' }}"
-                {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }}>
-            </div>
+
+<div class="col-md-3">
+<label>Total Students</label>
+<input type="number" name="total_student" class="form-control"
+value="{{ old('total_student', $op === 'create' ? '' : $data_items['data']->total_student ?? '') }}"
+{{ $op === 'show' ? 'disabled' : '' }}>
+</div>
           </div>
 
           <div class="row mt-3">
@@ -298,9 +309,10 @@
           </div>
 
           <div class="mt-4 text-right">
-            @if($data_items['operation_type'] === 'create')
-              <input type="submit" class="btn btn-primary" name="action" value="Save">
-            @endif
+            <div class="mt-4 text-right">
+@if(in_array($op, ['create','edit']))
+<button type="submit" class="btn btn-primary" name="action" value="Save">Save</button>
+@endif
         @endif
           <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary">
             Back
