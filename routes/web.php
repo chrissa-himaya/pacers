@@ -182,6 +182,10 @@ Route::get('/', function () {
     Route::resource('schoolings', SchoolingsController::class)
         ->whereNumber('schooling');
 
+
+    Route::get('/schoolings/compute-points', [SchoolingsController::class, 'computePoints'])
+    ->name('schoolings.computePoints');
+
 });
 
 Auth::routes();

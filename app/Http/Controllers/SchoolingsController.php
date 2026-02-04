@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\ClassName;
 use App\Models\Schooling;
 use App\Models\Assignment;
-use App\Models\SchoolingEntry;
 use App\Models\SchoolingName;
 use App\Models\SchoolingUnit;
 use App\Models\Officer;
 use App\Models\DateRank;
+use App\Services\SchoolingPointsService;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -91,6 +91,12 @@ class SchoolingsController extends Controller
             "classnames" => $classnames,
             "schoolingUnits" => $schoolingUnits,
             "assignments" => $assignments,
+            "seclt" => 0,
+            "firstlt" => 0,
+            "cpt" => 0,
+            "maj" => 0,
+            "ltc" => 0,
+            "col" => 0,
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -130,7 +136,6 @@ class SchoolingsController extends Controller
         // Validate what you actually need for saving
             $data = $request->validate([
                 'pm_code' => ['required', 'string'],
-                'schooling_entries_id' => ['nullable', 'integer'],
                 'schoolingname_id' => ['nullable', 'integer'],
                 'classname_id' => ['nullable', 'integer'],
                 'schooling_unit_id' => ['nullable', 'integer'],
@@ -142,16 +147,30 @@ class SchoolingsController extends Controller
                 '2lt' => ['nullable', 'numeric'],
                 '1lt' => ['nullable', 'numeric'],
                 'cpt' => ['nullable', 'numeric'],
+                'maj' => ['nullable', 'numeric'],
                 'ltc' => ['nullable', 'numeric'],
                 'col' => ['nullable', 'numeric'],
             ]);
 
-            // Override / compute on server
             $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
-            $data['pm_code'] ?? null,
-            $data['date_completed'] ?? null
+    $data['pm_code'] ?? null,
+    $data['date_completed'] ?? null
             ) ?? '';
+
+            // ---- compute points on server (same as AJAX) ----
+            $points = app(SchoolingPointsService::class)->compute([
+                'assignment_id' => $data['assignment_id'] ?? null,
+                'school_location' => $request->input('school_location'),
+                'rating' => $data['rating'] ?? null,
+                'standing' => $data['standing'] ?? null,
+                'total_students' => $data['total_student'] ?? null,
+            ]);
+
+            // ---- push points into the correct rank column ----
+            $this->applyPointsToRankColumns($data, $points);
+
             Schooling::create($data);
+
             return redirect()->route($this->config_data->module_route . '.index');
         }
 
@@ -230,11 +249,23 @@ class SchoolingsController extends Controller
         ]);
 
             $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
-            $data['pm_code'] ?? null,
-            $data['date_completed'] ?? null
+    $data['pm_code'] ?? null,
+    $data['date_completed'] ?? null
             ) ?? '';
 
+            // ---- recompute points ----
+            $points = app(\App\Services\SchoolingPointsService::class)->compute([
+                'assignment_id' => $data['assignment_id'] ?? $schooling->assignment_id,
+                'school_location' => $request->input('school_location'),
+                'rating' => $data['rating'] ?? $schooling->rating,
+                'standing' => $data['standing'] ?? $schooling->standing,
+                'total_students' => $data['total_student'] ?? $schooling->total_student,
+            ]);
+
+            $this->applyPointsToRankColumns($data, $points);
+
             $schooling->update($data);
+
 
             return redirect()->route($this->config_data->module_route . '.index');
     }
@@ -331,4 +362,43 @@ class SchoolingsController extends Controller
         'rank' => $this->resolveRankDuringCompletion($pmCode, $dateCompleted) ?? ''
     ]);
     }
+
+    public function computePoints(Request $request, SchoolingPointsService $svc)
+    {
+        $points = $svc->compute([
+        'assignment_id' => $request->input('assignment_id'),
+        'school_location' => $request->input('school_location'),
+        'rating' => $request->input('rating'),
+        'standing' => $request->input('standing'),
+        'total_students' => $request->input('total_students'),
+        ]);
+
+
+        return response()->json(['points' => $points]);
+    }
+
+    private function applyPointsToRankColumns(array &$data, float $points): void
+    {
+        // Reset all rank columns
+        foreach (['2lt','1lt','cpt','maj','ltc','col'] as $col) {
+            $data[$col] = 0;
+        }
+
+        $rank = strtoupper(trim($data['rank_during_completion'] ?? ''));
+
+        // Map rank code -> column name
+        $map = [
+            '2LT' => '2lt',
+            '1LT' => '1lt',
+            'CPT' => 'cpt',
+            'MAJ' => 'maj',
+            'LTC' => 'ltc',
+            'COL' => 'col',
+        ];
+
+        if (isset($map[$rank])) {
+            $data[$map[$rank]] = round($points, 4);
+        }
+    }
+
 }
