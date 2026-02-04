@@ -17,6 +17,7 @@ class Sourcedata extends Model implements Auditable
     public $table = 'sourcedatas';
     protected $fillable = [
         'assignment_id',
+        'rank_id',
         'min_month_rankpoint_id',
         'min_point_rankpoint_id',
         'max_month_rankpoint_id',
@@ -28,9 +29,9 @@ class Sourcedata extends Model implements Auditable
         return $this->belongsTo(Assignment::class, 'assignment_id', 'id');
     }
 
-    public function types()
+    public function ranks()
     {
-        return $this->belongsTo(Type::class, 'type_id', 'id');
+        return $this->belongsTo(Rank::class, 'rank_id', 'id');
     }
 
     public function getRankCodeAttribute(): ?string

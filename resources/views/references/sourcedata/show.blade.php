@@ -46,6 +46,25 @@
                             </td>
                         </tr>
 
+                        <tr>
+                            <th style="width:150px;">Rank</th>
+                            <td>
+                                <select name="rank_id" id="rank_id" class="form-control select2"
+                                    @disabled($data_items["operation_type"] === "show")>
+                                    <option value="">-- Select Rank --</option>
+                                    @foreach($data_items['ranks'] as $id => $rank)
+                                        <option value="{{ $id }}" {{ old('rank_id', $data_items['data']->rank_id ?? '') == $id ? 'selected' : '' }}>
+                                            {{ $rank }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('rank_id')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </td>
+                        </tr>
+
                         {{-- Min month --}}
                         <tr>
                             <th id="lbl-min-month">Min month</th>
@@ -181,21 +200,16 @@
             const form = document.querySelector('form');
             if (!form) return;
 
-
             const assignmentSel = form.querySelector('#assignment_id');
-
-
             const thMinMonth = document.getElementById('lbl-min-month');
             const thMinPoint = document.getElementById('lbl-min-point');
             const thMaxMonth = document.getElementById('lbl-max-month');
             const thMaxPoint = document.getElementById('lbl-max-point');
 
-
             const selMinMonth = form.querySelector('select[name="min_month_rankpoint_id"]');
             const selMinPoint = form.querySelector('select[name="min_point_rankpoint_id"]');
             const selMaxMonth = form.querySelector('select[name="max_month_rankpoint_id"]');
             const selMaxPoint = form.querySelector('select[name="max_point_rankpoint_id"]');
-
 
             function getSelectedTypeId() {
                 if (!assignmentSel || !assignmentSel.value) return null;
@@ -204,28 +218,22 @@
                 return v ? String(v) : null;
             }
 
-
             function rebuildSelect(selectEl, allowedRpNames) {
                 if (!selectEl) return;
-
 
                 // cache original options once
                 if (!selectEl._allOptions) {
                     selectEl._allOptions = Array.from(selectEl.options).map(o => o.cloneNode(true));
                 }
 
-
                 const currentValue = selectEl.value;
-
 
                 // build a fresh list of options
                 selectEl.innerHTML = '';
 
-
                 // always keep placeholder (option with empty value)
                 const placeholder = selectEl._allOptions.find(o => !o.value);
                 if (placeholder) selectEl.appendChild(placeholder.cloneNode(true));
-
 
                 // append only allowed rp-name options
                 selectEl._allOptions.forEach(o => {
@@ -236,14 +244,12 @@
                     }
                 });
 
-
                 // restore selection if still valid
                 if (currentValue && selectEl.querySelector(`option[value="${CSS.escape(currentValue)}"]`)) {
                     selectEl.value = currentValue;
                 } else {
                     selectEl.value = '';
                 }
-
 
                 // refresh select2 reliably
                 if (window.jQuery) {
@@ -253,7 +259,6 @@
                     $el.trigger('change.select2');
                 }
             }
-
 
             function applyTypeMode() {
                 const typeId = getSelectedTypeId();
@@ -266,7 +271,6 @@
                     if (thMaxMonth) thMaxMonth.textContent = 'Max PT';
                     if (thMaxPoint) thMaxPoint.textContent = 'Foreign PT';
 
-
                     rebuildSelect(selMinMonth, ['factor1']);
                     rebuildSelect(selMinPoint, ['factor2']);
                     rebuildSelect(selMaxMonth, ['maxpt']);
@@ -277,13 +281,11 @@
                     if (thMaxMonth) thMaxMonth.textContent = 'Max month';
                     if (thMaxPoint) thMaxPoint.textContent = 'Max points';
 
-
                     rebuildSelect(selMinMonth, ['min_month']);
                     rebuildSelect(selMinPoint, ['min_point']);
                     rebuildSelect(selMaxMonth, ['max_month']);
                     rebuildSelect(selMaxPoint, ['max_point']);
                 }
-
 
                 [selMinMonth, selMinPoint, selMaxMonth, selMaxPoint].forEach(s => s?.dispatchEvent(new Event('change')));
             }
@@ -294,89 +296,134 @@
             applyTypeMode();
         })();
     </script>
+
     <script>
         (function () {
-        const form = document.querySelector('form');
-        if (!form) return;
+            const form = document.querySelector('form');
+            if (!form) return;
 
-        const alertBox = document.getElementById('rank-mismatch-alert');
-        const submitBtn = form.querySelector('button[type="submit"]');
+            const alertBox = document.getElementById('rank-mismatch-alert');
+            const submitBtn = form.querySelector('button[type="submit"]');
 
-        const selects = [
-            form.querySelector('select[name="min_month_rankpoint_id"]'),
-            form.querySelector('select[name="min_point_rankpoint_id"]'),
-            form.querySelector('select[name="max_month_rankpoint_id"]'),
-            form.querySelector('select[name="max_point_rankpoint_id"]'),
-        ].filter(Boolean);
+            const rankSel = form.querySelector('#rank_id');
 
-        function setError(msg) {
-            if (alertBox) {
-            alertBox.textContent = msg;
-            alertBox.classList.remove('d-none');
-            }
-            if (submitBtn) submitBtn.disabled = true;
-        }
+            const rpSelects = [
+                form.querySelector('select[name="min_month_rankpoint_id"]'),
+                form.querySelector('select[name="min_point_rankpoint_id"]'),
+                form.querySelector('select[name="max_month_rankpoint_id"]'),
+                form.querySelector('select[name="max_point_rankpoint_id"]'),
+            ].filter(Boolean);
 
-        function clearError() {
-            if (alertBox) {
-            alertBox.textContent = '';
-            alertBox.classList.add('d-none');
-            }
-            if (submitBtn) submitBtn.disabled = false;
-        }
-
-        function selectedRank(sel) {
-            if (!sel || !sel.value) return null;
-            const opt = sel.options[sel.selectedIndex];
-            return {
-            rankId: opt?.dataset?.rankId || null,
-            rankCode: opt?.dataset?.rankCode || '',
-            };
-        }
-
-        function validateSameRank() {
-            const info = selects.map(selectedRank).filter(Boolean);
-
-            // if some are not selected yet, let HTML "required" handle it
-            if (info.length < 2) {
-            clearError();
-            return true;
+            function setError(msg) {
+                if (alertBox) {
+                    alertBox.textContent = msg;
+                    alertBox.classList.remove('d-none');
+                }
+                if (submitBtn) submitBtn.disabled = true;
             }
 
-            // If rankId is missing, you forgot to add data-rank-id
-            if (info.some(i => !i.rankId)) {
-            setError('Form config error: missing data-rank-id on rankpoint options.');
-            return false;
+            function clearError() {
+                if (alertBox) {
+                    alertBox.textContent = '';
+                    alertBox.classList.add('d-none');
+                }
+                if (submitBtn) submitBtn.disabled = false;
             }
 
-            const first = info[0].rankId;
-            const ok = info.every(i => i.rankId === first);
-
-            if (!ok) {
-            const codes = [...new Set(info.map(i => i.rankCode).filter(Boolean))];
-            const suffix = codes.length ? ` (selected ranks: ${codes.join(', ')})` : '';
-            setError('Invalid selection: Min/Max month and points must have the SAME rank.' + suffix);
-            return false;
+            function getSelectedRankFromRankpointSelect(sel) {
+                if (!sel || !sel.value) return null;
+                const opt = sel.options[sel.selectedIndex];
+                return {
+                    rankId: opt?.dataset?.rankId ? String(opt.dataset.rankId) : null,
+                    rankCode: opt?.dataset?.rankCode || '',
+                };
             }
 
-            clearError();
-            return true;
-        }
 
-        // validate on change
-        selects.forEach(sel => sel.addEventListener('change', validateSameRank));
-
-        // validate on submit
-        form.addEventListener('submit', function (e) {
-            if (!validateSameRank()) {
-            e.preventDefault();
-            e.stopPropagation();
-            alertBox?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            function getSelectedRankIdFromRankSelect() {
+                if (!rankSel || !rankSel.value) return null;
+                return String(rankSel.value);
             }
-        });
 
-        // initial run (edit page)
-        validateSameRank();
+            function validateSameRank() {
+                const chosen = rpSelects.map(getSelectedRankFromRankpointSelect).filter(Boolean);
+
+                // if some are not selected yet, let HTML "required" handle it
+                if (chosen.length < 2) {
+                    clearError();
+                    return true;
+                }
+
+                // Guard: you must have data-rank-id on ALL rp options
+                if (chosen.some(x => !x.rankId)) {
+                    setError('Form config error: missing data-rank-id on rankpoint options.');
+                    return false;
+                }
+
+                // Condition #1: all 4 rankpoint selects must be the same rank
+                const firstRpRankId = chosen[0].rankId;
+                const allRpSame = chosen.every(x => x.rankId === firstRpRankId);
+
+                if (!allRpSame) {
+                    const codes = [...new Set(chosen.map(x => x.rankCode).filter(Boolean))];
+                    const suffix = codes.length ? ` (selected ranks: ${codes.join(', ')})` : '';
+                    setError('Invalid selection: Min/Max month and points must have the SAME rank.' + suffix);
+                    return false;
+                }
+
+                // Condition #2: rank_id must match the rankpoints’ rank
+                const selectedRankId = getSelectedRankIdFromRankSelect();
+                // If rank_id not selected yet, don’t block typing; required will block submit
+                if (selectedRankId) {
+                    if (selectedRankId !== firstRpRankId) {
+                        const rpCode = chosen.find(x => x.rankCode)?.rankCode || '';
+                        setError(
+                            'Invalid selection: The selected Rank must match the Rank of the selected rankpoints.' +
+                            (rpCode ? ` (rankpoints rank: ${rpCode})` : '')
+                        );
+                        return false;
+                    }
+                }
+
+                clearError();
+                return true;
+            }
+
+            // --- Bind events ---
+            // Native change
+            rpSelects.forEach(sel => sel.addEventListener('change', validateRanks));
+            rankSel?.addEventListener('change', validateRanks);
+
+            // Select2 triggers (more reliable than plain change in some cases)
+            if (window.jQuery) {
+                const $doc = jQuery(document);
+
+                // rankpoints
+                $doc.on('select2:select select2:clear change', 'select[name="min_month_rankpoint_id"],select[name="min_point_rankpoint_id"],select[name="max_month_rankpoint_id"],select[name="max_point_rankpoint_id"]', validateRanks);
+
+                // rank
+                $doc.on('select2:select select2:clear change', '#rank_id', validateRanks);
+
+                // when assignment type changes, your applyTypeMode() rebuilds the options + re-inits select2
+                // so we validate AFTER it runs.
+                $doc.on('change', '#assignment_id', function () {
+                    // let applyTypeMode finish first
+                    setTimeout(validateRanks, 0);
+                });
+            }
+
+            // Validate on submit
+            form.addEventListener('submit', function (e) {
+                if (!validateRanks()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alertBox?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+            // Initial run (edit page loads with pre-selected values)
+            validateRanks();
         })();
-</script>
+    
+    </script>
 @endsection
