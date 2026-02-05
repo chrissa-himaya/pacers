@@ -158,7 +158,7 @@
                   @endforeach
                 </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->schoolingnames->name ?? '' }}"
+                <input type="text" class="form-control" value="{{ $data_items['data']->designations->name ?? '' }}"
                   disabled>
               @endif
             </div>
@@ -172,14 +172,13 @@
                       value="{{ $unit->id }}"
                       data-pamu-id="{{ $unit->pamu_id ?? '' }}"
                       data-pamu-name="{{ $unit->pamus->name ?? '' }}"
-                      @selected(old('unit_id', $data_items['data']->unit_id ?? '') == $unit->id)
-                    >
+                      @selected(old('unit_id', $data_items['data']->unit_id ?? '') == $unit->id)>
                       {{ $unit->name }}
                     </option>
                   @endforeach
                 </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->unit->name ?? '' }}" disabled>
+                <input type="text" class="form-control" value="{{ $data_items['data']->units->name ?? '' }}" disabled>
               @endif
             </div>
 
@@ -196,7 +195,7 @@
             <div class="col-md-3">
               <label>Category</label>
               @if(in_array($op, ['create', 'edit']))
-                <select name="assignment_id" class="form-control select2">
+                <select name="assignment_id" id="assignment_id" class="form-control select2">
                   <option value="">-</option>
                   @foreach($data_items['assignments'] as $id => $entry)
                     <option value="{{ $id }}" @selected(old('assignment_id', $data_items['data']->assignment_id ?? session('assignment_id')) == $id)>
@@ -271,6 +270,10 @@
               <input type="text" id="year_earned" name="year_earned" class="form-control"
                 value="{{ old('year_earned', $data_items['data']->year_earned ?? '') }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : 'readonly' }}>
+
+                <div class="text-danger small mt-1" id="year_earned_error">
+                  @error('year_earned') {{ $message }} @enderror
+                </div>
             </div>
           </div>
           <div class="mt-4 text-right">
@@ -321,6 +324,119 @@
         // initial fill
         fillPamu();
       })();
-</script>
+    </script>
 
+
+    <script>
+      (function () {
+        const form = document.querySelector('form');
+        if (!form) return;
+
+        const pmCodeEl     = document.getElementById('pm_code');
+        const startEl      = document.getElementById('start_date');
+        const endEl        = document.getElementById('end_date');
+        const priEl        = form.querySelector('[name="pri_sec_spec"]');
+
+        const rankOutEl    = document.getElementById('rank_during_completion');
+        const yearEarnedEl = document.getElementById('year_earned');
+        const yearErrEl    = document.getElementById('year_earned_error');
+
+        const op = @json($data_items['operation_type'] ?? '');
+        if (op === 'show') return;
+
+        if (!pmCodeEl || !startEl || !endEl || !rankOutEl || !yearEarnedEl) {
+          console.log('Auto compute: missing element(s)', { pmCodeEl, startEl, endEl, rankOutEl, yearEarnedEl });
+          return;
+        }
+
+        let timer = null;
+        let aborter = null;
+
+        function getPayload() {
+          return {
+            id: @json($data_items['data']->id ?? null),
+            pm_code: pmCodeEl.value || '',
+            start_date: startEl.value || '',
+            end_date: endEl.value || '',
+            pri_sec_spec: priEl?.value || '',
+          };
+        }
+
+        function hasRequired(p) {
+          return p.pm_code && p.start_date && p.end_date;
+        }
+
+        async function computeNow() {
+          const payload = getPayload();
+
+          if (!hasRequired(payload)) {
+            rankOutEl.value = '';
+            yearEarnedEl.value = '';
+            if (yearErrEl) yearErrEl.textContent = '';
+            return;
+          }
+
+          if (aborter) aborter.abort();
+          aborter = new AbortController();
+
+          try {
+            const res = await fetch(@json(route('assignmenthistories.computeYearEarned')), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': @json(csrf_token()),
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify(payload),
+              signal: aborter.signal,
+            });
+
+            // ❌ error response
+            if (!res.ok) {
+              if (res.status === 422) {
+                const err = await res.json().catch(() => null);
+
+                // if server includes rank_during_completion, keep it visible
+                rankOutEl.value = (err?.rank_during_completion ?? '').toString();
+
+                yearEarnedEl.value = '0';
+                if (yearErrEl) yearErrEl.textContent = err?.message || 'Dates overlap';
+                return;
+              }
+
+              rankOutEl.value = '';
+              yearEarnedEl.value = '';
+              if (yearErrEl) yearErrEl.textContent = '';
+              return;
+            }
+
+            // ✅ success
+            const json = await res.json();
+            rankOutEl.value = (json.rank_during_completion ?? '').toString();
+            yearEarnedEl.value = (json.year_earned ?? '').toString();
+            if (yearErrEl) yearErrEl.textContent = '';
+
+          } catch (e) {
+            if (e?.name !== 'AbortError') console.log('Compute error:', e);
+          }
+        }
+
+        function scheduleCompute() {
+          clearTimeout(timer);
+          timer = setTimeout(computeNow, 350);
+        }
+
+        [pmCodeEl, startEl, endEl, priEl].filter(Boolean).forEach(el => {
+          el.addEventListener('change', scheduleCompute);
+          el.addEventListener('input', scheduleCompute);
+        });
+
+        if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
+          jQuery(pmCodeEl).on('select2:select select2:clear', scheduleCompute);
+          if (priEl) jQuery(priEl).on('select2:select select2:clear', scheduleCompute);
+        }
+
+        scheduleCompute();
+      })();
+    </script>
 @endsection

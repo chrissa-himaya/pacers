@@ -181,6 +181,10 @@ Route::get('/', function () {
     Route::get('/schoolings/compute-points', [SchoolingsController::class, 'computePoints'])
     ->name('schoolings.computePoints');
 
+
+    Route::post('/assignmenthistories/compute-year-earned', [AssignmentHistoryController::class, 'computeYearEarned'])
+        ->name('assignmenthistories.computeYearEarned');
+
 });
 
 Auth::routes();
