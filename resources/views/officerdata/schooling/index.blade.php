@@ -16,6 +16,7 @@
                     <th>ID</th>
                     <th>PMCode</th>
                     <th>Entry</th>
+                    <th>Class</th>
                     <th>School/Unit</th>
                     <th>Assignments</th>
                     <th>Date Completed</th>
@@ -35,6 +36,7 @@
                     <th></th> <!-- Nr column usually no filter -->
                     <th><input type="text" placeholder="Search PM Code" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Entry" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Class" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search School/Unit" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Assignments" class="form-control form-control-sm" /></th>
                     <th><input type="date" placeholder="Search Date Completed" class="form-control form-control-sm" /></th>
@@ -84,6 +86,7 @@
                 },
                 { data: 'pm_code', searchable: true },
                 { data: 'schoolingnames.name', searchable: true},
+                { data: 'classnames.year', searchable: true},
                 { data: 'schoolingunits.name', searchable: true},
                 { data: 'assignments.name', searchable: true},
                 { data: 'date_completed', searchable: true },

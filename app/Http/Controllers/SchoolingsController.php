@@ -343,6 +343,7 @@ class SchoolingsController extends Controller
             null,
             'pm_code',
             'schoolingnames.name',
+            'classnames.year',
             'schoolingunits.name',              
             'assignments.name', 
             'date_completed',
@@ -362,6 +363,7 @@ class SchoolingsController extends Controller
         $globalSearchColumns = [
             'pm_code',
             'schoolingnames.name',
+            'classnames.year',
             'schoolingunits.name',              
             'assignments.name', 
             'date_completed',
