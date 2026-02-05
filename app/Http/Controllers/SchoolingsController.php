@@ -332,59 +332,110 @@ class SchoolingsController extends Controller
 
     public function list(Request $request)
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        // All columns in the table
-        $columns = ['id', 'pm_code', 'schoolingname_id','classname_id','schooling_unit_id','assignment_id','date_completed','rating','standing','total_student','rank_during_completion','seclt','firstlt','cpt','maj','ltc','col', 'created_at', 'updated_at'];
+        abort_if(
+            Gate::denies($this->config_data->module_perm_name.'_access'),
+            Response::HTTP_FORBIDDEN,
+            '403 Forbidden'
+        );
 
-        // Pagination values from DataTables
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
+        // DataTables column index mapping (Nr and Actions are null)
+        $dtColumns = [
+            null,
+            'pm_code',
+            'schoolingnames.name',
+            'schoolingunits.name',              
+            'assignments.name', 
+            'date_completed',
+            'rating',
+            'standing',
+            'total_student',
+            'rank_during_completion',
+            'seclt',
+            'firstlt',
+            'cpt',
+            'maj',
+            'ltc',
+            'col',
+            null,
+        ];
 
-        // Prevent invalid length (MariaDB requires LIMIT)
-        if ($length <= 0) {
-            $length = 10;
-        }
+        $globalSearchColumns = [
+            'pm_code',
+            'schoolingnames.name',
+            'schoolingunits.name',              
+            'assignments.name', 
+            'date_completed',
+            'rating',
+            'standing',
+            'total_student',
+            'rank_during_completion',
+            'seclt',
+            'firstlt',
+            'cpt',
+            'maj',
+            'ltc',
+            'col',
+        ];
 
-        // Ordering
-        $orderIndex = $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc');
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        if ($length <= 0) $length = 10;
 
-        // Validate order direction
-        if (!in_array($orderDir, ['asc', 'desc'])) {
-            $orderDir = 'asc';
-        }
-
-        $orderColumn = $columns[$orderIndex] ?? 'id';
-
-        // Base query
         $query = Schooling::query();
 
+        //for global search *DO NOT DELETE THIS*
+        $search = trim((string) $request->input('search.value', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search, $globalSearchColumns) {
+                foreach ($globalSearchColumns as $col) {
 
-        // Search filter
-        $search = $request->input('search.value');
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('pm_code', 'like', "%{$search}%");
+                    if (str_contains($col, '.')) {
+                        [$relation, $field] = explode('.', $col, 2);
+
+                        $q->orWhereHas($relation, function ($r) use ($field, $search) {
+                            $r->where($field, 'like', "%{$search}%");
+                        });
+
+                        continue;
+                    }
+                    $q->orWhere($col, 'like', "%{$search}%");
+                }
             });
         }
 
-        // Total records
-        $totalData = Schooling::count();
-        $filteredData = $query->count();
+        //for each column search *DO NOT DELETE THIS*
+        foreach ($dtColumns as $index => $column) {
+            if (!$column) continue;
 
-        // Apply ordering and pagination
-        $data = $query->orderBy($orderColumn, $orderDir)
-            ->skip($start)
-            ->take($length)
-            ->with(['schoolingnames', 'classnames', 'schoolingunits', 'assignments'])
-            ->get();
+            $colSearch = trim((string) $request->input("columns.$index.search.value", ''));
+            if ($colSearch === '') continue;
 
-        // Return JSON in DataTables format
+            if (str_contains($column, '.')) {
+                [$relation, $field] = explode('.', $column, 2);
+
+                $query->whereHas($relation, function ($r) use ($field, $colSearch) {
+                    $r->where($field, 'like', "%{$colSearch}%");
+                });
+            } else {
+                $query->where($column, 'like', "%{$colSearch}%");
+            }
+        }
+
+        $totalData    = Schooling::count();
+        $filteredData = (clone $query)->count();
+
+        $query->orderBy('id', 'asc');
+
+        $data = $query->skip($start)
+        ->take($length)
+        ->with(['schoolingnames:id,name', 'classnames:id,year', 'schoolingunits:id,name,location', 'assignments:id,name'])
+        ->get();
+
         return response()->json([
-            'draw' => intval($request->input('draw')),
-            'recordsTotal' => $totalData,
+            'draw'            => (int) $request->input('draw'),
+            'recordsTotal'    => $totalData,
             'recordsFiltered' => $filteredData,
-            'data' => $data,
+            'data'            => $data,
         ]);
     }
 
@@ -394,9 +445,8 @@ class SchoolingsController extends Controller
             return null;
         }
 
-        // Find the most recent rank record on/before dateCompleted for that pm_code
         $dr = DateRank::query()
-            ->with('ranks:id,code,name')   // IMPORTANT: ranks (plural)
+            ->with('ranks:id,code,name')
             ->where('pm_code', trim($pmCode))
             ->whereDate('date', '<=', $dateCompleted)
             ->orderBy('date', 'desc')
@@ -432,29 +482,4 @@ class SchoolingsController extends Controller
 
         return response()->json($out);
     }
-
-    private function applyPointsToRankColumns(array &$data, float $points): void
-    {
-        // Reset all rank columns
-        foreach (['seclt','firstlt','cpt','maj','ltc','col'] as $col) {
-            $data[$col] = 0;
-        }
-
-        $rank = strtoupper(trim($data['rank_during_completion'] ?? ''));
-
-        // Map rank code -> column name
-        $map = [
-            '2LT' => 'seclt',
-            '1LT' => 'firstlt',
-            'CPT' => 'cpt',
-            'MAJ' => 'maj',
-            'LTC' => 'ltc',
-            'COL' => 'col',
-        ];
-
-        if (isset($map[$rank])) {
-            $data[$map[$rank]] = round($points, 4);
-        }
-    }
-
 }

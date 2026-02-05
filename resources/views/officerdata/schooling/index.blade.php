@@ -31,6 +31,25 @@
                     <th>COL</th>
                     <th>Action</th>
                 </tr>
+                <tr class="filter-row">
+                    <th></th> <!-- Nr column usually no filter -->
+                    <th><input type="text" placeholder="Search PM Code" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Entry" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search School/Unit" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Assignments" class="form-control form-control-sm" /></th>
+                    <th><input type="date" placeholder="Search Date Completed" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Rating" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Standing" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Total Student" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Rank during completion" class="form-control form-control-sm" /></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
             </thead>
             <tbody>
             </tbody>
@@ -41,16 +60,18 @@
 @section('scripts')
     <script>
     let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Rank::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Rank::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Rank::class));
+    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Schooling::class));
+    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Schooling::class));
+    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Schooling::class));
     let url_route = "{{ $config_data->module_route }}";
 
-        $('#dataTable').DataTable({
+        const table = $('#dataTable').DataTable({
             processing: true,
             serverSide: true,
+            ordering: false,     // disable ordering UI
+            order: [],           // remove default order 
             ajax: "{{ route("$config_data->module_route.list") }}",
-            order: [[0, 'asc']], // default ordering
+            scrollX: true,
             columns: [
                 {
                     data: null,
@@ -61,22 +82,15 @@
                     orderable: false,
                     searchable: false
                 },
-                { data: 'pm_code' },
-                {
-                    data: null,
-                    render: function (data, type, row) {
-                        let school = row.schoolingnames?.name ?? '';
-                        let className = row.classnames?.year ?? '';
-                        return `${school} ${className}`;
-                    }
-                },
-                { data: 'schoolingunits.name' },
-                { data: 'assignments.name' },
-                { data: 'date_completed' },
-                { data: 'rating' },
-                { data: 'standing' },
-                { data: 'total_student' },
-                { data: 'rank_during_completion' },
+                { data: 'pm_code', searchable: true },
+                { data: 'schoolingnames.name', searchable: true},
+                { data: 'schoolingunits.name', searchable: true},
+                { data: 'assignments.name', searchable: true},
+                { data: 'date_completed', searchable: true },
+                { data: 'rating', searchable: true },
+                { data: 'standing', searchable: true },
+                { data: 'total_student', searchable: true },
+                { data: 'rank_during_completion', searchable: true },
                 { data: 'seclt' },
                 { data: 'firstlt' },
                 { data: 'cpt' },
@@ -85,6 +99,8 @@
                 { data: 'col' },
                 {
                     data: 'id',
+                    orderable: false, 
+                    searchable: false,
                     render: function (data) {
                         let buttons = '';
                         if(canView) {
@@ -122,6 +138,47 @@
                     
             ],
         });
+
+        $('#dataTable thead th').each(function (i) {
+
+            if (i === 0 || i === 10) return;
+            // put an input under the header text
+            $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
+        });
+
+       
+        table.columns().every(function (i) {
+
+            if (i === 0 || i === 10) return;
+
+            let timer = null;
+            const column = this;
+
+            // 👇 get column metadata from DataTables
+            const columnSettings = table.settings()[0].aoColumns[i];
+            const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
+            const columnTitle = $(column.header()).text().trim();
+
+            $('input', this.header()).on('input change clear', function () {
+                const value = this.value;
+
+                clearTimeout(timer);
+
+                timer = setTimeout(function () {
+
+                    console.log('Searching column ->',
+                        'index:', i,
+                        'data:', columnDataName,
+                        'title:', columnTitle,
+                        'value:', value
+                    );
+
+                    column.search(value).draw();
+
+                }, 500);
+            });
+        });
+
 
         $(document).on('click', '.deleteRecord', function () {
             let id = $(this).data('id');

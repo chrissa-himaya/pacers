@@ -159,7 +159,7 @@
         });
 
 
-        // ✅ Add per-column search inputs AFTER DataTable is created
+        // Add per-column search inputs AFTER DataTable is created
         $('#dataTable thead th').each(function (i) {
 
             // skip "Nr" (0) and "Actions" (last column)
@@ -169,26 +169,22 @@
             $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
         });
 
-        // ✅ Bind search event per column
-// ✅ Bind search event per column (DEBOUNCED)
-table.columns().every(function (i) {
-  if (i === 0 || i === 21) return;
+            table.columns().every(function (i) {
+            if (i === 0 || i === 21) return;
 
-  let timer = null;
-  const column = this;
+            let timer = null;
+            const column = this;
 
-  $('input', this.header()).on('input change clear', function () {
-    const value = this.value;
+            $('input', this.header()).on('input change clear', function () {
+                const value = this.value;
 
-    clearTimeout(timer);
+                clearTimeout(timer);
 
-    timer = setTimeout(function () {
-      column.search(value).draw();
-    }, 500); // ⏳ wait 500ms after user stops typing
-  });
-});
-
-
+                timer = setTimeout(function () {
+                column.search(value).draw();
+                }, 500);
+            });
+        });
 
 
         $(document).on('click', '.deleteRecord', function () {

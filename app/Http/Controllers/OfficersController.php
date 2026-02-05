@@ -121,8 +121,6 @@ public function list(Request $request)
         null,        // 19 Actions
     ];
 
-    // ✅ Only these will be used for the GLOBAL search box
-    // Example: search only in 4+ columns
     $globalSearchColumns = ['SRTY','PM_CODE','NAME','SUFFIX','RANK','AFPSN','AFPOS','TYPE','SIG','SEX','DOR','TACS','DOB','DOC','RET','HCC','SOC','REMARKS','DESIGNATION','UNIT',]; // change as you like
 
     $start  = (int) $request->input('start', 0);
@@ -131,7 +129,6 @@ public function list(Request $request)
 
     $query = Officer::query();
 
-    // ✅ GLOBAL SEARCH (only in selected columns)
     $search = trim((string) $request->input('search.value', ''));
     if ($search !== '') {
         $query->where(function ($q) use ($search, $globalSearchColumns) {
@@ -141,7 +138,6 @@ public function list(Request $request)
         });
     }
 
-    // ✅ PER-COLUMN SEARCH (inputs in each column)
     foreach ($dtColumns as $index => $column) {
         if (!$column) continue;
 
@@ -155,7 +151,6 @@ public function list(Request $request)
     $totalData    = Officer::count();
     $filteredData = (clone $query)->count();
 
-    // ✅ REMOVE SORTING: ignore incoming order completely
     // (optional) but you can still add a stable default if you want:
     $query->orderBy('id', 'asc');
 
