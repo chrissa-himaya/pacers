@@ -7,6 +7,8 @@ use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
+use App\Models\Designation;
+use App\Models\Unit;
 
 class Officer extends Model implements Auditable
 {
@@ -38,4 +40,14 @@ class Officer extends Model implements Auditable
         'DESIGNATION',
         'UNIT',
     ];
+
+    public function designations()
+    {
+        return $this->belongsTo(Designation::class, 'designation_id', 'id');
+    }
+
+    public function units()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id', 'id');
+    }
 }

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssignmentHistory;
+use App\Models\Designation;
 use App\Models\Officer;
+use App\Models\Unit;
+use App\Models\Assignment;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,9 +49,29 @@ class AssignmentHistoryController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $assignmenthistory = AssignmentHistory::find(1);
-        $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
+        $assignmenthistory->fill([
+            'pm_code' => null,
+            'designation_id' => null,
+            'unit_id' => null,
+            'pamu_id' => null,
+            'assignment_id' => null,
+            'pri_sec_spec' => null,
+            'assignment_type' => null,
+            'geography' => null,
+            'start_date' => null,
+            'end_date' => null,
+            'rank_during_completion' => null,
+            'year_earned' => null,
+        ]);
 
-        $pmcodes = Officer::query()
+        $designations = Designation::all()->pluck('name', 'id');
+        $units = Unit::with('pamus')->get()->keyBy('id');
+        $assignment_type3 = Assignment::where('type_id', 3)
+            ->orderBy('name')
+            ->pluck('name', 'id');
+        $assignments = Assignment::orderBy('name')->pluck('name', 'id');
+
+        $pmcodes = Officer::with('designations', 'units')
             ->select('pm_code')
             ->whereNotNull('pm_code')
             ->where('pm_code', '!=', '')
@@ -58,10 +81,15 @@ class AssignmentHistoryController extends Controller
         
         $data_items = [
             "data" => $assignmenthistory,
-            "column_hidden" => $columnHidden,
+            "column_hidden" => $this->config_data->columnHidden,
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
             "optional_fields" => $this->config_data->optionalFields,
+            "pm_codes" => $pmcodes,
+            "designations" => $designations,
+            "units" => $units,
+            "assignments" => $assignments,
+            "assignment_type3" => $assignment_type3,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -71,10 +99,61 @@ class AssignmentHistoryController extends Controller
      */
     public function store(Request $request)
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $data = $request->all();
-        AssignmentHistory::create($data);
-        return redirect()->route($this->config_data->module_route . '.index');
+        $action = $request->input('action');
+        $pm_code = $request->input('pm_code');
+
+        $assignmenthistory = Officer::where('PM_CODE', $pm_code)->first();
+        
+        if ($action == 'Fetch Data') {
+
+            $officer = Officer::with(['designations', 'units'])
+            ->where('PM_CODE', $pm_code)
+            ->first();
+
+            // return $officer;
+
+        if (!$officer) {
+            return back()->withInput($request->all())
+                ->withErrors(['pm_code' => 'PM Code not found.']);
+        }
+            return back()->withInput($request->all())
+                ->with([
+                    'rank' => $officer->RANK,
+                    'name' => $officer->NAME,
+                    'afpsn' => $officer->AFPSN,
+                    'afpos' => $officer->AFPOS,
+                    'sex' => $officer->SEX,
+                    'dob' => $officer->DOB,
+                    'date_ret' => $officer->RET,
+                    'soc' => $officer->SOC,
+                    'type' => $officer->TYPE,
+                    'otd' => $officer->OTD,
+                    'dor' => $officer->DOR,
+                    'sig' => $officer->SIG,
+                    'designation' => $officer->designations->name,
+                    'unit' => $officer->units?->name,
+            ]);
+            }elseif ($action == 'Save') {
+                $data = $request->validate([
+                'pm_code' => ['required', 'string'],
+                'designation_id' => ['nullable', 'string'],
+                'unit_id' => ['nullable', 'integer', 'exists:units,id'],
+                'pamu_id' => ['nullable', 'integer'],
+                'assignment_id' => ['nullable', 'string'],
+                'pri_sec_spec' => ['nullable', 'string'],
+                'assignment_type' => ['nullable', 'string'],
+                'geography' => ['nullable', 'string'],
+                'start_date' => ['nullable', 'date'],
+                'end_date' => ['nullable', 'date'],
+                'rank_during_completion' => ['nullable', 'string'],
+                'year_earned' => ['nullable', 'string'],
+            ]);
+
+            // return $data;
+            AssignmentHistory::create($data);
+            return redirect()->route($this->config_data->module_route . '.index');
+        }
+        
     }
 
     /**
@@ -129,57 +208,99 @@ class AssignmentHistoryController extends Controller
     public function list(Request $request)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        // All columns in the table
-        $columns = ['id', 'pm_code', 'created_at', 'updated_at'];
+        
+        $dtColumns = [
+            null,
+            'pm_code',
+            'designations.name',
+            'units.name',
+            'pamus.name',
+            'assignments.name',
+            'pri_sec_spec',
+            'assignments.name',
+            'geography',
+            'start_date',
+            'end_date',
+            'rank_during_completion',
+            'year_earned',
+            null,
+        ];
 
-        // Pagination values from DataTables
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
+        $globalSearchColumns = [
+            'pm_code',
+            'designations.name',
+            'units.name',
+            'pamus.name',
+            'assignments.name',
+            'pri_sec_spec',
+            'assignments.name',
+            'geography',
+            'start_date',
+            'end_date',
+            'rank_during_completion',
+            'year_earned',
+        ];
 
-        // Prevent invalid length (MariaDB requires LIMIT)
-        if ($length <= 0) {
-            $length = 10;
-        }
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        if ($length <= 0) $length = 10;
 
-        // Ordering
-        $orderIndex = $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc');
-
-        // Validate order direction
-        if (!in_array($orderDir, ['asc', 'desc'])) {
-            $orderDir = 'asc';
-        }
-
-        $orderColumn = $columns[$orderIndex] ?? 'id';
-
-        // Base query
         $query = AssignmentHistory::query();
 
+        //for global search *DO NOT DELETE THIS*
+        $search = trim((string) $request->input('search.value', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search, $globalSearchColumns) {
+                foreach ($globalSearchColumns as $col) {
 
-        // Search filter
-        $search = $request->input('search.value');
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('pm_code', 'like', "%{$search}%");
+                    if (str_contains($col, '.')) {
+                        [$relation, $field] = explode('.', $col, 2);
+
+                        $q->orWhereHas($relation, function ($r) use ($field, $search) {
+                            $r->where($field, 'like', "%{$search}%");
+                        });
+
+                        continue;
+                    }
+                    $q->orWhere($col, 'like', "%{$search}%");
+                }
             });
         }
 
-        // Total records
-        $totalData = AssignmentHistory::count();
-        $filteredData = $query->count();
+        //for each column search *DO NOT DELETE THIS*
+        foreach ($dtColumns as $index => $column) {
+            if (!$column) continue;
 
-        // Apply ordering and pagination
-        $data = $query->orderBy($orderColumn, $orderDir)
-            ->skip($start)
-            ->take($length)
-            ->get();
+            $colSearch = trim((string) $request->input("columns.$index.search.value", ''));
+            if ($colSearch === '') continue;
 
-        // Return JSON in DataTables format
+            if (str_contains($column, '.')) {
+                [$relation, $field] = explode('.', $column, 2);
+
+                $query->whereHas($relation, function ($r) use ($field, $colSearch) {
+                    $r->where($field, 'like', "%{$colSearch}%");
+                });
+            } else {
+                $query->where($column, 'like', "%{$colSearch}%");
+            }
+        }
+
+        $totalData    = AssignmentHistory::count();
+        $filteredData = (clone $query)->count();
+
+        $query->orderBy('id', 'asc');
+
+        $data = $query->skip($start)
+        ->take($length)
+        ->with(['designations:id,name', 'units:id,name', 'pamus:id,name', 'assignments:id,name,type_id', 'assignments.types:id,name',])
+        ->get();
+
         return response()->json([
-            'draw' => intval($request->input('draw')),
-            'recordsTotal' => $totalData,
+            'draw'            => (int) $request->input('draw'),
+            'recordsTotal'    => $totalData,
             'recordsFiltered' => $filteredData,
-            'data' => $data,
+            'data'            => $data,
         ]);
+        
     }
 }
