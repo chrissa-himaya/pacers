@@ -26,6 +26,7 @@
                     <th>end_date</th>
                     <th>rank_during_completion</th>
                     <th>year_earned</th>
+                    <th>computed_points</th>
                     <th>Action</th>
                 </tr>
                 <tr class="filter-row">
@@ -41,6 +42,7 @@
                     <th><input type="date" placeholder="Search start_date" class="form-control form-control-sm" /></th>
                     <th><input type="date" placeholder="Search end_date" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search rank_during_completion" class="form-control form-control-sm" /></th>
+                    <th></th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -65,6 +67,8 @@
             ordering: false,     // disable ordering UI
             order: [],           // remove default order 
             ajax: "{{ route("$config_data->module_route.list") }}",
+            pageLength: 50,                 // ⭐ default rows per page
+            lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
             scrollX: true,
             columns: [
                 {
@@ -110,6 +114,7 @@
                 { data: 'end_date', searchable: true },
                 { data: 'rank_during_completion', searchable: true },
                 { data: 'year_earned', searchable: true },
+                { data: 'computed_points', searchable: true },
                 {
                     data: 'id',
                     render: function (data) {
@@ -150,11 +155,12 @@
             ],
         });
 
-        $('#dataTable thead th').each(function (i) {
+        $('#dataTable thead tr.filter-row th').each(function (i) {
+            if (i === 0 || i === 14) return; // 0 = Nr, 14 = Action (adjust if needed)
 
-            if (i === 0 || i === 14) return;
-            // put an input under the header text
-            $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
+            $('input', this).on('input change', function () {
+                table.column(i).search(this.value).draw();
+            });
         });
 
        

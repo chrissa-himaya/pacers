@@ -43,6 +43,8 @@
             processing: true,
             serverSide: true,
             ajax: "{{ route("$config_data->module_route.list") }}",
+            pageLength: 50,                 // ⭐ default rows per page
+            lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
             order: [[0, 'asc']], // default ordering
             columns: [
                 {
