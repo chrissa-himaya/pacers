@@ -122,13 +122,13 @@
           <div class="col-md-3">
             <label>Current Designation</label>
             <input type="text" class="form-control"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']."test" : session('designation')}}" disabled>
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->designations->name : session('designation')}}"
+              disabled>
           </div>
-          
           <div class="col-md-3">
             <label>Current Unit</label>
             <input type="text" class="form-control"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->UNIT : session('unit')}}" disabled>
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->units->name : session('unit')}}" disabled>
           </div>
         </div>
         <hr>
@@ -207,41 +207,60 @@
                 <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name ?? '' }}" disabled>
               @endif
             </div>
+
             <div class="col-md-3">
-              <label>Primary/Secondary/Special</label>
-                <select name="pri_sec_spec" class="form-control select2">
-                  <option value="">-- Select Type --</option>
-                  <option value="primary" {{ old('pri_sec_spec', $data_items['data']->pri_sec_spec ?? '') == 'primary' ? 'selected' : '' }}>Primary</option>
-                  <option value="secondary" {{ old('pri_sec_spec', $data_items['data']->pri_sec_spec ?? '') == 'secondary' ? 'selected' : '' }}>Secondary</option>
-                  <option value="special" {{ old('pri_sec_spec', $data_items['data']->pri_sec_spec ?? '') == 'special' ? 'selected' : '' }}>Special</option>
-                </select>
-            </div>
+            <label>Primary/Secondary/Special</label>
+
+            @if(in_array($op, ['create','edit']))
+              <select name="pri_sec_spec" class="form-control select2">
+                <option value="">-- Select Type --</option>
+                <option value="primary"   @selected(old('pri_sec_spec', $data_items['data']->pri_sec_spec ?? '') == 'primary')>Primary</option>
+                <option value="secondary" @selected(old('pri_sec_spec', $data_items['data']->pri_sec_spec ?? '') == 'secondary')>Secondary</option>
+                <option value="special"   @selected(old('pri_sec_spec', $data_items['data']->pri_sec_spec ?? '') == 'special')>Special</option>
+              </select>
+            @else
+              <input type="text" class="form-control"
+                value="{{ ucfirst($data_items['data']->pri_sec_spec ?? '') }}" disabled>
+            @endif
+          </div>    
+            
             <div class="col-md-3">
               <label>Assignment Type</label>
+
+              @php
+                $selectedAssignmentType = old('assignment_type', $data_items['data']->assignment_type ?? '');
+              @endphp
+
               @if(in_array($op, ['create', 'edit']))
                 <select name="assignment_type" class="form-control select2">
                   <option value="">-</option>
                   @foreach($data_items['assignment_type3'] as $id => $entry)
-                    <option value="{{ $id }}" @selected(old('assignment_type3', $data_items['data']->assignment_type3 ?? session('assignment_type3')) == $id)>
+                    <option value="{{ $id }}" @selected((string)$selectedAssignmentType === (string)$id)>
                       {{ $entry }}
                     </option>
                   @endforeach
                 </select>
               @else
-                <input type="text" class="form-control" value="{{ $data_items['data']->assignments->name ?? '' }}" disabled>
+                <input type="text" class="form-control"
+                  value="{{ $data_items['data']->assignmentType->name ?? '' }}" disabled>
               @endif
             </div>
             
             <div class="col-md-3">
               <label>Geography</label>
+              @if(in_array($op, ['create','edit']))
                 <select name="geography" class="form-control select2">
                   <option value="">-- Select Geography --</option>
-                  <option value="ncr" {{ old('geography', $data_items['data']->geography ?? '') == 'ncr' ? 'selected' : '' }}>NCR</option>
-                  <option value="luzon" {{ old('geography', $data_items['data']->geography ?? '') == 'luzon' ? 'selected' : '' }}>Luzon</option>
-                  <option value="visayas" {{ old('geography', $data_items['data']->geography ?? '') == 'visayas' ? 'selected' : '' }}>Visayas</option>
-                  <option value="mindanao" {{ old('geography', $data_items['data']->geography ?? '') == 'mindanao' ? 'selected' : '' }}>Mindanao</option>
-                  <option value="foreign" {{ old('geography', $data_items['data']->geography ?? '') == 'foreign' ? 'selected' : '' }}>Foreign Duty</option>
+                  <option value="ncr"      @selected(old('geography', $data_items['data']->geography ?? '') == 'ncr')>NCR</option>
+                  <option value="luzon"    @selected(old('geography', $data_items['data']->geography ?? '') == 'luzon')>Luzon</option>
+                  <option value="visayas"  @selected(old('geography', $data_items['data']->geography ?? '') == 'visayas')>Visayas</option>
+                  <option value="mindanao" @selected(old('geography', $data_items['data']->geography ?? '') == 'mindanao')>Mindanao</option>
+                  <option value="foreign"  @selected(old('geography', $data_items['data']->geography ?? '') == 'foreign')>Foreign Duty</option>
                 </select>
+              @else
+                <input type="text" class="form-control"
+                  value="{{ ucfirst($data_items['data']->geography ?? '') }}" disabled>
+              @endif
             </div>
           </div>
 

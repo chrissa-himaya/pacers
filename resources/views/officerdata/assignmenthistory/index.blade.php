@@ -53,159 +53,161 @@
 @endsection
 @section('scripts')
     <script>
-    let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\AssignmentHistory::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\AssignmentHistory::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\AssignmentHistory::class));
-    let url_route = "{{ $config_data->module_route }}";
+        let perm_name = "{{ $config_data->module_perm_name }}";
+        let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\AssignmentHistory::class));
+        let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\AssignmentHistory::class));
+        let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\AssignmentHistory::class));
+        let url_route = "{{ $config_data->module_route }}";
 
-    const table = $('#dataTable').DataTable({
-            processing: true,
-            serverSide: true,
-            ordering: false,     // disable ordering UI
-            order: [],           // remove default order 
-            ajax: "{{ route("$config_data->module_route.list") }}",
-            scrollX: true,
-            columns: [
-                {
-                    data: null,
-                    title: 'Nr',
-                    render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+        const table = $('#dataTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ordering: false,     // disable ordering UI
+                order: [],           // remove default order 
+                ajax: "{{ route("$config_data->module_route.list") }}",
+                pageLength: 50,                 // default rows per page
+                lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
+                scrollX: true,
+                columns: [
+                    {
+                        data: null,
+                        // title: 'Nr',
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        },
+                        orderable: false,
+                        searchable: false
                     },
-                    orderable: false,
-                    searchable: false
-                },
-                { data: 'pm_code', searchable: true },
-                { data: 'designations.name', searchable: true },
-                { data: 'units.name', searchable: true },
-                { data: 'pamus.name', searchable: true },
-                { data: 'assignments.name', searchable: true },
-                {
-                    data: 'pri_sec_spec',
-                    render: function (data) {
-                        const map = {
-                            primary: 'Primary',
-                            secondary: 'Secondary',
-                            special: 'Special'
-                        };
-                        return map[data] ?? data ?? '';
-                    }, searchable: true
-                },
-                { data: 'assignments.types.name' },
-                {
-                    data: 'geography',
-                    render: function (data) {
-                        const map = {
-                            ncr: 'NCR',
-                            luzon: 'Luzon',
-                            visayas: 'Visayas',
-                            mindanao: 'Mindanao',
-                            foreign: 'Foreign Duty'
-                        };
-                        return map[data] ?? data ?? '';
-                    }, searchable: true
-                },
-                { data: 'start_date', searchable: true },
-                { data: 'end_date', searchable: true },
-                { data: 'rank_during_completion', searchable: true },
-                { data: 'year_earned', searchable: true },
-                {
-                    data: 'id',
-                    render: function (data) {
-                        let buttons = '';
-                        if(canView) {
-                            buttons += `
-                                <a href="/${url_route}/${data}" class="btn btn-sm btn-success">
-                                    View
-                                </a>
-                            `;
-                        }
-
-                        if(canUpdate) {
-                            buttons += `
-                                <a href="/${url_route}/${data}/edit" class="btn btn-sm btn-warning">
-                                    Edit
-                                </a>
-                            `;
-                        }
-
-                        if (canDelete) {
-                            buttons += `
-                            <form action="/${url_route}/${data}" method="POST" style="display:inline;">
-                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="_method" value="DELETE">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
-                                    Delete
-                                </button>
-                            </form>
-                            `;
-                        }                   
-                            return buttons;
+                    { data: 'pm_code', searchable: true },
+                    { data: 'designations.name', searchable: true },
+                    { data: 'units.name', searchable: true },
+                    { data: 'pamus.name', searchable: true },
+                    { data: 'assignments.name', searchable: true },
+                    {
+                        data: 'pri_sec_spec',
+                        render: function (data) {
+                            const map = {
+                                primary: 'Primary',
+                                secondary: 'Secondary',
+                                special: 'Special'
+                            };
+                            return map[data] ?? data ?? '';
+                        }, searchable: true
                     },
-                    orderable: false,
-                    searchable: false
-                }     
-                    
-            ],
-        });
+                    { data: 'assignment_type.name', searchable: true },
+                    {
+                        data: 'geography',
+                        render: function (data) {
+                            const map = {
+                                ncr: 'NCR',
+                                luzon: 'Luzon',
+                                visayas: 'Visayas',
+                                mindanao: 'Mindanao',
+                                foreign: 'Foreign Duty'
+                            };
+                            return map[data] ?? data ?? '';
+                        }, searchable: true
+                    },
+                    { data: 'start_date', searchable: true },
+                    { data: 'end_date', searchable: true },
+                    { data: 'rank_during_completion', searchable: true },
+                    { data: 'year_earned', searchable: true },
+                    {
+                        data: 'id',
+                        render: function (data) {
+                            let buttons = '';
+                            if(canView) {
+                                buttons += `
+                                    <a href="/${url_route}/${data}" class="btn btn-sm btn-success">
+                                        View
+                                    </a>
+                                `;
+                            }
 
-        $('#dataTable thead th').each(function (i) {
+                            if(canUpdate) {
+                                buttons += `
+                                    <a href="/${url_route}/${data}/edit" class="btn btn-sm btn-warning">
+                                        Edit
+                                    </a>
+                                `;
+                            }
 
-            if (i === 0 || i === 14) return;
-            // put an input under the header text
-            $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
-        });
-
-       
-        table.columns().every(function (i) {
-
-            if (i === 0 || i === 14) return;
-
-            let timer = null;
-            const column = this;
-
-            // 👇 get column metadata from DataTables
-            const columnSettings = table.settings()[0].aoColumns[i];
-            const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
-            const columnTitle = $(column.header()).text().trim();
-
-            $('input', this.header()).on('input change clear', function () {
-                const value = this.value;
-
-                clearTimeout(timer);
-
-                timer = setTimeout(function () {
-
-                    console.log('Searching column ->',
-                        'index:', i,
-                        'data:', columnDataName,
-                        'title:', columnTitle,
-                        'value:', value
-                    );
-
-                    column.search(value).draw();
-
-                }, 500);
+                            if (canDelete) {
+                                buttons += `
+                                <form action="/${url_route}/${data}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
+                                        Delete
+                                    </button>
+                                </form>
+                                `;
+                            }                   
+                                return buttons;
+                        },
+                        orderable: false,
+                        searchable: false
+                    }     
+                        
+                ],
             });
-        });
 
-        $(document).on('click', '.deleteRecord', function () {
-            let id = $(this).data('id');
+            $('#dataTable thead th').each(function (i) {
 
-            if (confirm('Are you sure you want to delete this record?')) {
-                $.ajax({
-                    url: `/users/${id}`,
-                    type: 'DELETE',
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function (response) {
-                        $('#dataTable').DataTable().ajax.reload();
-                    }
+                if (i === 0 || i === 14) return;
+                // put an input under the header text
+                $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
+            });
+
+        
+            table.columns().every(function (i) {
+
+                if (i === 0 || i === 14) return;
+
+                let timer = null;
+                const column = this;
+
+                // 👇 get column metadata from DataTables
+                const columnSettings = table.settings()[0].aoColumns[i];
+                const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
+                const columnTitle = $(column.header()).text().trim();
+
+                $('input', this.header()).on('input change clear', function () {
+                    const value = this.value;
+
+                    clearTimeout(timer);
+
+                    timer = setTimeout(function () {
+
+                        console.log('Searching column ->',
+                            'index:', i,
+                            'data:', columnDataName,
+                            'title:', columnTitle,
+                            'value:', value
+                        );
+
+                        column.search(value).draw();
+
+                    }, 500);
                 });
-            }
-        });        
+            });
+
+            $(document).on('click', '.deleteRecord', function () {
+                let id = $(this).data('id');
+
+                if (confirm('Are you sure you want to delete this record?')) {
+                    $.ajax({
+                        url: `/users/${id}`,
+                        type: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function (response) {
+                            $('#dataTable').DataTable().ajax.reload();
+                        }
+                    });
+                }
+            });        
 
     </script>
 @endsection

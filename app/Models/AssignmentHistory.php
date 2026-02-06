@@ -55,4 +55,10 @@ class AssignmentHistory extends Model implements Auditable
     {
         return $this->belongsTo(Assignment::class, 'assignment_id', 'id');
     }
+
+    public function assignmentType()
+    {
+        return $this->belongsTo(Assignment::class, 'assignment_type', 'id');
+    }
+
 }
