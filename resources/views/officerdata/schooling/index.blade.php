@@ -73,6 +73,8 @@
             ordering: false,     // disable ordering UI
             order: [],           // remove default order 
             ajax: "{{ route("$config_data->module_route.list") }}",
+            pageLength: 50,                 // ⭐ default rows per page
+            lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
             scrollX: true,
             columns: [
                 {
@@ -144,7 +146,7 @@
 
         $('#dataTable thead th').each(function (i) {
 
-            if (i === 0 || i === 10) return;
+            if (i === 0 || i === 17) return;
             // put an input under the header text
             $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
         });
@@ -152,12 +154,12 @@
        
         table.columns().every(function (i) {
 
-            if (i === 0 || i === 10) return;
+            if (i === 0 || i === 17) return;
 
             let timer = null;
             const column = this;
 
-            // 👇 get column metadata from DataTables
+            //get column metadata from DataTables
             const columnSettings = table.settings()[0].aoColumns[i];
             const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
             const columnTitle = $(column.header()).text().trim();

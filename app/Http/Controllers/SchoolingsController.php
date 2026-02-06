@@ -152,26 +152,43 @@ class SchoolingsController extends Controller
                 'col' => ['nullable', 'string'],
             ]);
 
-                    $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
-            $data['pm_code'] ?? null,
-    $data['date_completed'] ?? null
+            $data['rank_during_completion'] = $this->resolveRankDuringCompletion(
+                $data['pm_code'] ?? null,
+                $data['date_completed'] ?? null
             ) ?? '';
 
             $svcInput = [
-                'assignment_id'   => $data['assignment_id'] ?? null,
+                'assignment_id' => $data['assignment_id'] ?? null,
                 'school_location' => $request->input('school_location'),
-                'rating'          => $data['rating'] ?? null,
-                'standing'        => $data['standing'] ?? null,
-                'total_students'  => $data['total_student'] ?? null,
+                'rating' => $data['rating'] ?? null,
+                'standing' => $data['standing'] ?? null,
+                'total_students' => $data['total_student'] ?? null,
             ];
 
             $svc = app(SchoolingPointsService::class);
 
-            foreach ([1=>'seclt', 2=>'firstlt', 3=>'cpt', 4=>'maj', 5=>'ltc', 6=>'col'] as $rankId => $col) {
+            foreach ([1 => 'seclt', 2 => 'firstlt', 3 => 'cpt', 4 => 'maj', 5 => 'ltc', 6 => 'col'] as $rankId => $col) {
                 $data[$col] = $svc->computeForRank($svcInput, $rankId);
             }
 
-            Schooling::create($data);
+            // --- build the “duplicate key” (match fields) ---
+            $match = [
+                'pm_code' => $data['pm_code'],
+                'schoolingname_id' => $data['schoolingname_id'] ?? null,
+                'classname_id' => $data['classname_id'] ?? null,
+                'assignment_id' => $data['assignment_id'] ?? null,
+                'date_completed' => $data['date_completed'] ?? null,
+                'rank_during_completion' => $data['rank_during_completion'] ?? null,
+            ];
+
+            // --- update if exists, else create ---
+            $existing = Schooling::query()->where($match)->first();
+
+            if ($existing) {
+                $existing->update($data);
+            } else {
+                Schooling::create($data);
+            }
             return redirect()->route($this->config_data->module_route . '.index');
         }
 
@@ -218,7 +235,7 @@ class SchoolingsController extends Controller
         abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $columnHidden = array_merge($schooling->getDates(), ['id']);
         $schooling->load(['schoolingnames', 'classnames', 'schoolingunits', 'assignments']);
-        
+
         // dropdown sources (same as create)
         $schoolingnames = SchoolingName::all()->pluck('name', 'id');
         $classnames = ClassName::all()->pluck('year', 'id');
@@ -245,7 +262,7 @@ class SchoolingsController extends Controller
         if ($schooling->pm_code) {
             $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
         }
-        
+
         $data_items = [
             "data" => $schooling,
             "column_hidden" => $this->config_data->columnHidden,
@@ -301,16 +318,16 @@ class SchoolingsController extends Controller
 
         // recompute points per rank (same logic as store)
         $svcInput = [
-            'assignment_id'   => $data['assignment_id'] ?? $schooling->assignment_id,
+            'assignment_id' => $data['assignment_id'] ?? $schooling->assignment_id,
             'school_location' => $request->input('school_location'), // comes from readonly input
-            'rating'          => $data['rating'] ?? $schooling->rating,
-            'standing'        => $data['standing'] ?? $schooling->standing,
-            'total_students'  => $data['total_student'] ?? $schooling->total_student,
+            'rating' => $data['rating'] ?? $schooling->rating,
+            'standing' => $data['standing'] ?? $schooling->standing,
+            'total_students' => $data['total_student'] ?? $schooling->total_student,
         ];
 
         $svc = app(SchoolingPointsService::class);
 
-        foreach ([1=>'seclt', 2=>'firstlt', 3=>'cpt', 4=>'maj', 5=>'ltc', 6=>'col'] as $rankId => $col) {
+        foreach ([1 => 'seclt', 2 => 'firstlt', 3 => 'cpt', 4 => 'maj', 5 => 'ltc', 6 => 'col'] as $rankId => $col) {
             $data[$col] = $svc->computeForRank($svcInput, $rankId);
         }
 
@@ -325,7 +342,7 @@ class SchoolingsController extends Controller
      */
     public function destroy(Schooling $schooling)
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schooling->delete();
         return back();
     }
@@ -333,7 +350,7 @@ class SchoolingsController extends Controller
     public function list(Request $request)
     {
         abort_if(
-            Gate::denies($this->config_data->module_perm_name.'_access'),
+            Gate::denies($this->config_data->module_perm_name . '_access'),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -344,8 +361,8 @@ class SchoolingsController extends Controller
             'pm_code',
             'schoolingnames.name',
             'classnames.year',
-            'schoolingunits.name',              
-            'assignments.name', 
+            'schoolingunits.name',
+            'assignments.name',
             'date_completed',
             'rating',
             'standing',
@@ -364,8 +381,8 @@ class SchoolingsController extends Controller
             'pm_code',
             'schoolingnames.name',
             'classnames.year',
-            'schoolingunits.name',              
-            'assignments.name', 
+            'schoolingunits.name',
+            'assignments.name',
             'date_completed',
             'rating',
             'standing',
@@ -379,9 +396,10 @@ class SchoolingsController extends Controller
             'col',
         ];
 
-        $start  = (int) $request->input('start', 0);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
-        if ($length <= 0) $length = 10;
+        if ($length <= 0)
+            $length = 10;
 
         $query = Schooling::query();
 
@@ -407,10 +425,12 @@ class SchoolingsController extends Controller
 
         //for each column search *DO NOT DELETE THIS*
         foreach ($dtColumns as $index => $column) {
-            if (!$column) continue;
+            if (!$column)
+                continue;
 
             $colSearch = trim((string) $request->input("columns.$index.search.value", ''));
-            if ($colSearch === '') continue;
+            if ($colSearch === '')
+                continue;
 
             if (str_contains($column, '.')) {
                 [$relation, $field] = explode('.', $column, 2);
@@ -423,21 +443,21 @@ class SchoolingsController extends Controller
             }
         }
 
-        $totalData    = Schooling::count();
+        $totalData = Schooling::count();
         $filteredData = (clone $query)->count();
 
         $query->orderBy('id', 'asc');
 
         $data = $query->skip($start)
-        ->take($length)
-        ->with(['schoolingnames:id,name', 'classnames:id,year', 'schoolingunits:id,name,location', 'assignments:id,name'])
-        ->get();
+            ->take($length)
+            ->with(['schoolingnames:id,name', 'classnames:id,year', 'schoolingunits:id,name,location', 'assignments:id,name'])
+            ->get();
 
         return response()->json([
-            'draw'            => (int) $request->input('draw'),
-            'recordsTotal'    => $totalData,
+            'draw' => (int) $request->input('draw'),
+            'recordsTotal' => $totalData,
             'recordsFiltered' => $filteredData,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
@@ -463,22 +483,22 @@ class SchoolingsController extends Controller
         $dateCompleted = $request->input('date_completed');
 
         return response()->json([
-        'rank' => $this->resolveRankDuringCompletion($pmCode, $dateCompleted) ?? ''
-    ]);
+            'rank' => $this->resolveRankDuringCompletion($pmCode, $dateCompleted) ?? ''
+        ]);
     }
 
     public function computePoints(Request $request, SchoolingPointsService $svc)
     {
         $svcInput = [
-            'assignment_id'   => $request->input('assignment_id'),
+            'assignment_id' => $request->input('assignment_id'),
             'school_location' => $request->input('school_location'),
-            'rating'          => $request->input('rating'),
-            'standing'        => $request->input('standing'),
-            'total_students'  => $request->input('total_students'),
+            'rating' => $request->input('rating'),
+            'standing' => $request->input('standing'),
+            'total_students' => $request->input('total_students'),
         ];
 
         $out = [];
-        foreach ([1=>'seclt', 2=>'firstlt', 3=>'cpt', 4=>'maj', 5=>'ltc', 6=>'col'] as $rankId => $field) {
+        foreach ([1 => 'seclt', 2 => 'firstlt', 3 => 'cpt', 4 => 'maj', 5 => 'ltc', 6 => 'col'] as $rankId => $field) {
             $out[$field] = $svc->computeForRank($svcInput, $rankId);
         }
 
