@@ -220,33 +220,33 @@
 
           <div class="row mt-3">
             <div class="col-md-3">
-<label>Date completed</label>
-<input type="date" id="date_completed" name="date_completed" class="form-control"
-value="{{ old('date_completed', $op === 'create' ? '' : ($data_items['data']->date_completed ?? '')) }}"
-{{ $op === 'show' ? 'disabled' : '' }}>
-</div>
+              <label>Date completed</label>
+              <input type="date" id="date_completed" name="date_completed" class="form-control"
+              value="{{ old('date_completed', $op === 'create' ? '' : ($data_items['data']->date_completed ?? '')) }}"
+              {{ $op === 'show' ? 'disabled' : '' }}>
+            </div>
 
             <div class="col-md-3">
-<label>Rating</label>
-<input type="number" name="rating" class="form-control"
-value="{{ old('rating', $op === 'create' ? '' : $data_items['data']->rating ?? '') }}"
-{{ $op === 'show' ? 'disabled' : '' }}>
-</div>
+              <label>Rating</label>
+              <input type="number" name="rating" class="form-control"
+              value="{{ old('rating', $op === 'create' ? '' : $data_items['data']->rating ?? '') }}"
+              {{ $op === 'show' ? 'disabled' : '' }}>
+            </div>
 
             <div class="col-md-3">
-<label>Standing</label>
-<input type="number" name="standing" class="form-control"
-value="{{ old('standing', $op === 'create' ? '' : $data_items['data']->standing ?? '') }}"
-{{ $op === 'show' ? 'disabled' : '' }}>
-</div>
+              <label>Standing</label>
+              <input type="number" name="standing" class="form-control"
+              value="{{ old('standing', $op === 'create' ? '' : $data_items['data']->standing ?? '') }}"
+              {{ $op === 'show' ? 'disabled' : '' }}>
+            </div>
 
 
-<div class="col-md-3">
-<label>Total Students</label>
-<input type="number" name="total_student" class="form-control"
-value="{{ old('total_student', $op === 'create' ? '' : $data_items['data']->total_student ?? '') }}"
-{{ $op === 'show' ? 'disabled' : '' }}>
-</div>
+            <div class="col-md-3">
+              <label>Total Students</label>
+              <input type="number" name="total_student" class="form-control"
+              value="{{ old('total_student', $op === 'create' ? '' : $data_items['data']->total_student ?? '') }}"
+              {{ $op === 'show' ? 'disabled' : '' }}>
+            </div>
           </div>
 
           <div class="row mt-3">
