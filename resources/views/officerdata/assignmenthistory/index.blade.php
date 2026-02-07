@@ -167,9 +167,9 @@
                 let timer = null;
                 const column = this;
 
-                // 👇 get column metadata from DataTables
+                // get column metadata from DataTables
                 const columnSettings = table.settings()[0].aoColumns[i];
-                const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
+                const columnDataName = columnSettings.data;
                 const columnTitle = $(column.header()).text().trim();
 
                 $('input', this.header()).on('input change clear', function () {

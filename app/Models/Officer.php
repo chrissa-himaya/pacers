@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 use App\Models\Designation;
 use App\Models\Unit;
+use App\Models\Role;
 
 class Officer extends Model implements Auditable
 {
     use AuditableTrait;
 
-    protected $table = 'personnel_records';
+    public $table = 'personnel_records';
 
     protected $fillable = [
         'SRTY',
@@ -28,17 +29,16 @@ class Officer extends Model implements Auditable
         'SIG',
         'SEX',
         'DOR',
-        'TYPE',
         'TACS',
         'DOC',
         'DOB',
-        'DATE',
         'RET',
         'HCC',
         'SOC',
         'REMARKS',
-        'DESIGNATION',
-        'UNIT',
+        'designation_id',
+        'unit_id',
+        'role_id',
     ];
 
     public function designations()
@@ -49,5 +49,10 @@ class Officer extends Model implements Auditable
     public function units()
     {
         return $this->belongsTo(Unit::class, 'unit_id', 'id');
+    }
+
+    public function roles()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 }

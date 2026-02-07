@@ -20,7 +20,6 @@ use App\Http\Controllers\RankpointsController;
 use App\Http\Controllers\OfficersController;
 use App\Http\Controllers\QRSProfilesController;
 use App\Http\Controllers\SchoolingUnitsController;
-use App\Http\Controllers\SchoolingEntrysController;
 use App\Http\Controllers\AwardController;
 use App\Http\Controllers\PftController;
 use App\Http\Controllers\AwardHistoryController;
@@ -86,10 +85,10 @@ Route::get('/', function () {
     Route::resource('sourcedatas', SourcedatasController::class);
     Route::get('/sourcedatas-list', [SourcedatasController::class, 'list'])->name('sourcedatas.list'); // AJAX
 
-    Route::delete('officers/destroy', [OfficersController::class, 'massDestroy'])
-        ->name('officers.massDestroy');
-    Route::resource('officers', OfficersController::class);
-    Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list'); // AJAX
+    // Route::delete('officers/destroy', [OfficersController::class, 'massDestroy'])
+    //     ->name('officers.massDestroy');
+    // Route::resource('officers', OfficersController::class);
+    // Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list'); // AJAX
 
     Route::delete('qrsprofiles/destroy', [QRSProfilesController::class, 'massDestroy'])
         ->name('qrsprofiles.massDestroy');
@@ -184,6 +183,21 @@ Route::get('/', function () {
 
     Route::post('/assignmenthistories/compute-year-earned', [AssignmentHistoryController::class, 'computeYearEarned'])
         ->name('assignmenthistories.computeYearEarned');
+
+    
+    Route::get('officers/bulk/create', [OfficersController::class, 'bulkCreate'])
+    ->name('officers.bulkcreate');
+
+    Route::post('officers/bulk/store', [OfficersController::class, 'bulkStore'])
+        ->name('officers.bulkstore');
+
+    Route::delete('officers/destroy', [OfficersController::class, 'massDestroy'])
+        ->name('officers.massDestroy');
+
+    Route::get('officers/list', [OfficersController::class, 'list'])
+        ->name('officers.list');
+
+    Route::resource('officers', OfficersController::class);
 
 });
 

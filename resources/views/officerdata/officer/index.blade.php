@@ -1,94 +1,103 @@
 @extends('layouts.app')
 @section('content')
 
-<div class="card">
-    <div class="card-header">
-        <h4 class="d-inline">{{$config_data->module_name}}</h4>
-        <a href="{{ route("$config_data->module_route.create", "") }}" class="btn btn-primary float-end">
-            Create
-        </a>  
-    </div>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="d-inline">{{$config_data->module_name}}</h4>
 
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="dataTable" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Nr</th>
-                        <th>SRTY</th>
-                        <th>PM CODE</th>
-                        <th>NAME</th>
-                        <th>SUFFIX</th>                        
-                        <th>RANK</th>
-                        <th>AFPSN</th>
-                        <th>AFPOS</th>
-                        <th>TYPE</th>
-                        <th>SIG</th>
-                        <th>SEX</th>
-                        <th>DOR</th>
-                        <th>TACS</th>
-                        <th>DOB</th>
-                        <th>DOC</th>
-                        <th>RET</th>
-                        <th>HCC</th>
-                        <th>SOC</th>
-                        <th>REMARKS</th>
-                        <th>DESIGNATION</th>
-                        <th>UNIT</th>
-                        <th>Action</th>
-                    </tr>
-                    <tr class="filter-row">
-                        <th></th> <!-- Nr column usually no filter -->
-                        <th><input type="text" placeholder="Search SRTY" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search PM CODE" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search NAME" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search SUFFIX" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search RANK" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search AFPSN" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search AFPOS" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search TYPE" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search SIG" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search SEX" class="form-control form-control-sm" /></th>
-                        <th><input type="date" placeholder="Search DOR" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search TACS" class="form-control form-control-sm" /></th>
-                        <th><input type="date" placeholder="Search DOB" class="form-control form-control-sm" /></th>
-                        <th><input type="date" placeholder="Search DOC" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search RET" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search HCC" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search SOC" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search REMARKS" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search DESIGNATION" class="form-control form-control-sm" /></th>
-                        <th><input type="text" placeholder="Search UNIT" class="form-control form-control-sm" /></th>
-                        <th></th> <!-- Action column no filter -->
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <a href="{{ route($config_data->module_route.'.bulkcreate') }}" class="btn btn-info float-end me-2" style="margin-left: 15px;">
+                Bulk Upload
+            </a>
+
+            <a href="{{ route("$config_data->module_route.create", "") }}" class="btn btn-primary float-end">
+                Create
+            </a>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="dataTable" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nr</th>
+                            <th>SRTY</th>
+                            <th>PM CODE</th>
+                            <th>NAME</th>
+                            <th>SUFFIX</th>
+                            <th>RANK</th>
+                            <th>AFPSN</th>
+                            <th>AFPOS</th>
+                            <th>TYPE</th>
+                            <th>SIG</th>
+                            <th>SEX</th>
+                            <th>DOR</th>
+                            <th>TACS</th>
+                            <th>DOB</th>
+                            <th>DOC</th>
+                            <th>RET</th>
+                            <th>HCC</th>
+                            <th>SOC</th>
+                            <th>REMARKS</th>
+                            <th>DESIGNATION</th>
+                            <th>UNIT</th>
+                            <th>Roles</th>
+                            <th>Action</th>
+                        </tr>
+                        <tr class="filter-row">
+                            <th></th> <!-- Nr column usually no filter -->
+                            <th><input type="text" placeholder="Search SRTY" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search PM CODE" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search NAME" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search SUFFIX" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search RANK" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search AFPSN" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search AFPOS" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search TYPE" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search SIG" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search SEX" class="form-control form-control-sm" /></th>
+                            <th><input type="date" placeholder="Search DOR" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search TACS" class="form-control form-control-sm" /></th>
+                            <th><input type="date" placeholder="Search DOB" class="form-control form-control-sm" /></th>
+                            <th><input type="date" placeholder="Search DOC" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search RET" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search HCC" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search SOC" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search REMARKS" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search DESIGNATION" class="form-control form-control-sm" /></th>
+                            <th><input type="text" placeholder="Search UNIT" class="form-control form-control-sm" /></th>
+                            <th></th>
+                            <th></th> <!-- Action column no filter -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 @endsection
 @section('scripts')
     <script>
-    let perm_name = "{{ $config_data->module_perm_name }}";
-    let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Officer::class));
-    let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Officer::class));
-    let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Officer::class));
-    let url_route = "{{ $config_data->module_route }}";
-    
+        let perm_name = "{{ $config_data->module_perm_name }}";
+        let canView = @json(auth()->user()->can($config_data->module_perm_name . '_show', App\Models\Officer::class));
+        let canUpdate = @json(auth()->user()->can($config_data->module_perm_name . '_edit', App\Models\Officer::class));
+        let canDelete = @json(auth()->user()->can($config_data->module_perm_name . '_delete', App\Models\Officer::class));
+        let url_route = "{{ $config_data->module_route }}";
+
         const table = $('#dataTable').DataTable({
             processing: true,
             serverSide: true,
             ordering: false,     // disable ordering UI
             order: [],           // remove default order           
             ajax: "{{ route("$config_data->module_route.list") }}",
+            pageLength: 50,                 
+            lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
             scrollX: true,
             columns: [
                 {
                     data: null,
-                    title: 'Nr',
-                    orderable: false, 
+                    // title: 'Nr',
+                    orderable: false,
                     searchable: false,
                     render: function (data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
@@ -99,7 +108,7 @@
                 { data: 'SRTY', searchable: true },
                 { data: 'PM_CODE', searchable: true },
                 { data: 'NAME', searchable: true },
-                { data: 'SUFFIX', searchable: true},
+                { data: 'SUFFIX', searchable: true },
                 { data: 'RANK', searchable: true },
                 { data: 'AFPSN', searchable: true },
                 { data: 'AFPOS', searchable: true },
@@ -114,47 +123,48 @@
                 { data: 'HCC', searchable: true },
                 { data: 'SOC', searchable: true },
                 { data: 'REMARKS', searchable: true },
-                { data: 'DESIGNATION', searchable: true },
-                { data: 'UNIT', searchable: true },
+                { data: 'designations.name', searchable: true },
+                { data: 'units.name', searchable: true },
+                { data: 'roles.name', searchable: true },
                 {
                     data: 'id',
-                    orderable: false, 
+                    orderable: false,
                     searchable: false,
                     render: function (data) {
                         let buttons = '';
-                        if(canView) {
+                        if (canView) {
                             buttons += `
-                                <a href="/${url_route}/${data}" class="btn btn-sm btn-success">
-                                    View
-                                </a>
-                            `;
+                                    <a href="/${url_route}/${data}" class="btn btn-sm btn-success">
+                                        View
+                                    </a>
+                                `;
                         }
 
-                        if(canUpdate) {
+                        if (canUpdate) {
                             buttons += `
-                                <a href="/${url_route}/${data}/edit" class="btn btn-sm btn-warning">
-                                    Edit
-                                </a>
-                            `;
+                                    <a href="/${url_route}/${data}/edit" class="btn btn-sm btn-warning">
+                                        Edit
+                                    </a>
+                                `;
                         }
 
                         if (canDelete) {
                             buttons += `
-                            <form action="/${url_route}/${data}" method="POST" style="display:inline;">
-                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="_method" value="DELETE">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
-                                    Delete
-                                </button>
-                            </form>
-                            `;
-                        }                   
-                            return buttons;
+                                <form action="/${url_route}/${data}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
+                                        Delete
+                                    </button>
+                                </form>
+                                `;
+                        }
+                        return buttons;
                     },
                     orderable: false,
                     searchable: false
-                }     
-                    
+                }
+
             ],
         });
 
@@ -163,17 +173,21 @@
         $('#dataTable thead th').each(function (i) {
 
             // skip "Nr" (0) and "Actions" (last column)
-            if (i === 0 || i === 21) return;
+            if (i === 0 || i === 23) return;
 
             // put an input under the header text
             $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
         });
 
-            table.columns().every(function (i) {
-            if (i === 0 || i === 21) return;
+        table.columns().every(function (i) {
+            if (i === 0 || i === 23) return;
 
             let timer = null;
             const column = this;
+
+            const columnSettings = table.settings()[0].aoColumns[i];
+            const columnDataName = columnSettings.data;
+            const columnTitle = $(column.header()).text().trim();
 
             $('input', this.header()).on('input change clear', function () {
                 const value = this.value;
@@ -181,7 +195,13 @@
                 clearTimeout(timer);
 
                 timer = setTimeout(function () {
-                column.search(value).draw();
+                    console.log('Searching column ->',
+                            'index:', i,
+                            'data:', columnDataName,
+                            'title:', columnTitle,
+                            'value:', value
+                        );
+                    column.search(value).draw();
                 }, 500);
             });
         });
@@ -202,7 +222,7 @@
                     }
                 });
             }
-        });        
+        });
 
     </script>
 @endsection
