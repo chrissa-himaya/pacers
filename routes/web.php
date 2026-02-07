@@ -181,6 +181,11 @@ Route::get('/', function () {
     Route::get('/schoolings/compute-points', [SchoolingsController::class, 'computePoints'])
     ->name('schoolings.computePoints');
 
+
+    Route::get('awardhistories/date-rank-at-date', [AwardHistoryController::class, 'dateRankAtDate'])
+  ->name('awardhistories.dateRankAtDate');
+
+
 });
 
 Auth::routes();

@@ -12,11 +12,43 @@ class AwardHistory extends Model implements Auditable
     public $table = 'awardhistories';
     protected $fillable = [
         'pm_code',
-        'entry',
-        'type',
+        'award_id',
+        'award_type',
         'date',
         'go_number',
-        'rank',
+        'date_rank_id',
         'points',
     ];
+
+    public function officer()
+    {
+        return $this->belongsTo(Officer::class, 'pm_code', 'PM_CODE');
+    }
+
+    public function designations()
+    {
+        return $this->belongsTo(Designation::class, 'designation_id', 'id');
+    }
+
+    public function units()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id', 'id');
+    }
+
+    public function dateranks()
+    {
+        return $this->belongsTo(DateRank::class, 'date_rank_id', 'id');
+    }
+
+    public function awards()
+    {
+        return $this->belongsTo(Award::class, 'award_id', 'id');
+    }
+
+    public function awardType()
+    {
+        return $this->belongsTo(Award::class, 'award_type', 'id');
+    }
+
+
 }
