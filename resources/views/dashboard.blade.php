@@ -2,7 +2,7 @@
 @section('content')
 
 <style>
-    /* Compact 2x2 Grid Dashboard */
+    /* Professional Military Dashboard - Bright & Confident */
     .compact-card {
         margin-bottom: 0.5rem;
     }
@@ -12,11 +12,14 @@
     .compact-card h6 {
         font-size: 0.75rem;
         margin-bottom: 0.25rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .compact-card h4 {
         font-size: 1.2rem;
         margin-bottom: 0;
-        font-weight: 600;
+        font-weight: 700;
     }
     .chart-container {
         position: relative;
@@ -39,17 +42,57 @@
     }
     .card-header-compact {
         padding: 0.5rem 0.75rem;
+        font-weight: 600;
     }
     .card-body-compact {
         padding: 0.6rem;
     }
+
+    /* Bright Military Color Scheme - Professional but Confident */
+    .bg-army-green {
+        background-color: #4a7c59 !important; /* Army Green (Bright) */
+    }
+    .bg-air-force-blue {
+        background-color: #5d8aa8 !important; /* Air Force Blue */
+    }
+    .bg-marine-red {
+        background-color: #9b4f4f !important; /* Marine Corps Red */
+    }
+    .bg-navy-gold {
+        background-color: #d4a373 !important; /* Navy Gold/Khaki */
+    }
+    .bg-military-khaki {
+        background-color: #c3b091 !important; /* Military Khaki */
+    }
+    .bg-forest-green {
+        background-color: #3d7c47 !important; /* Forest Green */
+    }
+    .bg-steel-blue {
+        background-color: #4682b4 !important; /* Steel Blue */
+    }
+    .bg-bronze-brown {
+        background-color: #8b6f47 !important; /* Bronze/Brown */
+    }
+    .bg-ranger-green {
+        background-color: #5f7a61 !important; /* Ranger Green */
+    }
+
+    .badge-military {
+        background-color: #5d8aa8 !important;
+        color: #fff !important;
+    }
+
+    .table-dark {
+        background-color: #3d7c47 !important;
+        color: #fff !important;
+    }
 </style>
 
 <div class="container-fluid px-3">
-    <!-- Statistics Cards Row -->
+    <!-- Statistics Cards Row - Bright Military Colors -->
     <div class="row mb-2">
         <div class="col-md-2 col-sm-4 col-6 mb-1">
-            <div class="card text-white bg-primary compact-card">
+            <div class="card text-white bg-army-green compact-card">
                 <div class="card-body text-center">
                     <h6 class="card-title">Total Officers</h6>
                     <h4 class="mb-0">{{ number_format($stats['total_officers']) }}</h4>
@@ -57,7 +100,7 @@
             </div>
         </div>
         <div class="col-md-2 col-sm-4 col-6 mb-1">
-            <div class="card text-white bg-info compact-card">
+            <div class="card text-white bg-air-force-blue compact-card">
                 <div class="card-body text-center">
                     <h6 class="card-title">Male</h6>
                     <h4 class="mb-0">{{ number_format($stats['male_officers']) }}</h4>
@@ -65,7 +108,7 @@
             </div>
         </div>
         <div class="col-md-2 col-sm-4 col-6 mb-1">
-            <div class="card text-white bg-danger compact-card">
+            <div class="card text-white bg-marine-red compact-card">
                 <div class="card-body text-center">
                     <h6 class="card-title">Female</h6>
                     <h4 class="mb-0">{{ number_format($stats['female_officers']) }}</h4>
@@ -73,7 +116,7 @@
             </div>
         </div>
         <div class="col-md-3 col-sm-6 col-6 mb-1">
-            <div class="card text-white bg-success compact-card">
+            <div class="card text-white bg-bronze-brown compact-card">
                 <div class="card-body text-center">
                     <h6 class="card-title">Gender Ratio (M:F)</h6>
                     <h4 class="mb-0">
@@ -83,7 +126,7 @@
             </div>
         </div>
         <div class="col-md-3 col-sm-6 col-6 mb-1">
-            <div class="card text-white bg-warning compact-card">
+            <div class="card text-dark bg-military-khaki compact-card">
                 <div class="card-body text-center">
                     <h6 class="card-title">AFPOS</h6>
                     <h4 class="mb-0">{{ number_format($stats['total_afpos']) }}</h4>
@@ -92,13 +135,13 @@
         </div>
     </div>
 
-    <!-- Row 1: Christmas Tree + Gender Chart -->
+    <!-- Row 1: Christmas Tree + AFPOS Stacked Chart -->
     <div class="row mb-2">
         <!-- Christmas Tree Chart -->
         <div class="col-md-6 mb-2">
             <div class="card h-100">
-                <div class="card-header bg-primary text-white card-header-compact">
-                    <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Officers Distribution by Rank</h6>
+                <div class="card-header bg-forest-green text-white card-header-compact">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar"></i> OFFICERS DISTRIBUTION BY RANK</h6>
                 </div>
                 <div class="card-body card-body-compact">
                     <div class="chart-container">
@@ -108,28 +151,28 @@
             </div>
         </div>
 
-        <!-- Gender Distribution Chart -->
+        <!-- AFPOS Stacked Chart -->
         <div class="col-md-6 mb-2">
             <div class="card h-100">
-                <div class="card-header bg-info text-white card-header-compact">
-                    <h6 class="mb-0"><i class="fas fa-venus-mars"></i> Male vs Female Officers by Rank</h6>
+                <div class="card-header bg-bronze-brown text-white card-header-compact">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie"></i> AFPOS DISTRIBUTION BY RANK</h6>
                 </div>
                 <div class="card-body card-body-compact">
                     <div class="chart-container">
-                        <canvas id="genderChart"></canvas>
+                        <canvas id="afposChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Row 2: AFPOS Table + AFPOS Stacked Chart -->
+    <!-- Row 2: AFPOS Table + Gender Chart -->
     <div class="row">
         <!-- AFPOS Table -->
         <div class="col-md-6 mb-2">
             <div class="card h-100">
-                <div class="card-header bg-success text-white card-header-compact">
-                    <h6 class="mb-0"><i class="fas fa-list"></i> Officers per AFPOS by Rank</h6>
+                <div class="card-header bg-ranger-green text-white card-header-compact">
+                    <h6 class="mb-0"><i class="fas fa-list"></i> OFFICERS PER AFPOS BY RANK</h6>
                 </div>
                 <div class="card-body card-body-compact">
                     <div class="table-container">
@@ -152,7 +195,7 @@
                                         <td>
                                             @if($afposData->count() > 0)
                                                 @foreach($afposData as $afpos)
-                                                    <span class="badge badge-primary compact-badge mr-1 mb-1">
+                                                    <span class="badge badge-military compact-badge mr-1 mb-1">
                                                         {{ $afpos->AFPOS }}: {{ $afpos->count }}
                                                     </span>
                                                 @endforeach
@@ -170,15 +213,15 @@
             </div>
         </div>
 
-        <!-- AFPOS Stacked Chart -->
+        <!-- Gender Chart -->
         <div class="col-md-6 mb-2">
             <div class="card h-100">
-                <div class="card-header bg-warning text-dark card-header-compact">
-                    <h6 class="mb-0"><i class="fas fa-chart-pie"></i> AFPOS Distribution by Rank</h6>
+                <div class="card-header bg-steel-blue text-white card-header-compact">
+                    <h6 class="mb-0"><i class="fas fa-venus-mars"></i> MALE VS FEMALE OFFICERS BY RANK</h6>
                 </div>
                 <div class="card-body card-body-compact">
                     <div class="chart-container">
-                        <canvas id="afposChart"></canvas>
+                        <canvas id="genderChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -192,13 +235,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
     // Chart.js defaults
-    Chart.defaults.font.family = 'Arial, sans-serif';
+    Chart.defaults.font.family = "'Segoe UI', 'Roboto', 'Arial', sans-serif";
     Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#2d3748';
 
     // Data from Laravel
     const chartData = @json($chartData);
 
-    // 1. Christmas Tree Chart (Population Pyramid)
+    // Bright Military Color Palettes - Confident & Professional
+    const militaryPyramidColors = [
+        'rgba(61, 124, 71, 0.85)',    // Forest Green (Army dress)
+        'rgba(93, 138, 168, 0.85)',   // Air Force Blue
+        'rgba(139, 111, 71, 0.85)',   // Bronze/Khaki
+        'rgba(95, 122, 97, 0.85)',    // Ranger Green
+        'rgba(70, 130, 180, 0.85)',   // Steel Blue
+        'rgba(155, 79, 79, 0.85)',    // Marine Red
+        'rgba(107, 142, 35, 0.85)',   // Olive Green
+        'rgba(112, 128, 144, 0.85)',  // Slate Gray
+    ];
+
+    const militaryPyramidBorders = [
+        'rgba(61, 124, 71, 1)',
+        'rgba(93, 138, 168, 1)',
+        'rgba(139, 111, 71, 1)',
+        'rgba(95, 122, 97, 1)',
+        'rgba(70, 130, 180, 1)',
+        'rgba(155, 79, 79, 1)',
+        'rgba(107, 142, 35, 1)',
+        'rgba(112, 128, 144, 1)',
+    ];
+
+    // 1. Christmas Tree Chart (Population Pyramid) - BRIGHT MILITARY
     const pyramidCtx = document.getElementById('pyramidChart').getContext('2d');
     const pyramidChart = new Chart(pyramidCtx, {
         type: 'bar',
@@ -207,22 +274,8 @@
             datasets: [{
                 label: 'Total Officers',
                 data: chartData.total,
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(255, 159, 64, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 99, 132, 0.8)',
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 99, 132, 1)',
-                ],
+                backgroundColor: militaryPyramidColors,
+                borderColor: militaryPyramidBorders,
                 borderWidth: 2
             }]
         },
@@ -238,6 +291,11 @@
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(45, 55, 72, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#5d8aa8',
+                    borderWidth: 1,
                     callbacks: {
                         label: function(context) {
                             return context.dataset.label + ': ' + context.parsed.x + ' officers';
@@ -251,11 +309,16 @@
                     title: {
                         display: true,
                         text: 'Number of Officers',
-                        font: { size: 10 }
+                        font: { size: 10, weight: 'bold' },
+                        color: '#2d3748'
                     },
                     ticks: {
                         stepSize: 1,
-                        font: { size: 10 }
+                        font: { size: 10 },
+                        color: '#4a5568'
+                    },
+                    grid: {
+                        color: 'rgba(160, 174, 192, 0.3)'
                     }
                 },
                 y: {
@@ -263,14 +326,18 @@
                         display: false
                     },
                     ticks: {
-                        font: { size: 11 }
+                        font: { size: 11, weight: 'bold' },
+                        color: '#2d3748'
+                    },
+                    grid: {
+                        color: 'rgba(160, 174, 192, 0.2)'
                     }
                 }
             }
         }
     });
 
-    // 2. Gender Distribution Chart
+    // 2. Gender Distribution Chart - AIR FORCE BLUE & MARINE RED
     const genderCtx = document.getElementById('genderChart').getContext('2d');
     const genderChart = new Chart(genderCtx, {
         type: 'bar',
@@ -280,15 +347,15 @@
                 {
                     label: 'Male',
                     data: chartData.male,
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(70, 130, 180, 0.8)',  // Steel Blue (confident, not dark)
+                    borderColor: 'rgba(70, 130, 180, 1)',
                     borderWidth: 2
                 },
                 {
                     label: 'Female',
                     data: chartData.female,
-                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(155, 79, 79, 0.8)',  // Marine Red (strong, professional)
+                    borderColor: 'rgba(155, 79, 79, 1)',
                     borderWidth: 2
                 }
             ]
@@ -301,15 +368,21 @@
                     display: true,
                     position: 'top',
                     labels: {
-                        font: { size: 11 },
+                        font: { size: 11, weight: 'bold' },
                         padding: 8,
-                        boxWidth: 15
+                        boxWidth: 15,
+                        color: '#2d3748'
                     }
                 },
                 title: {
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(45, 55, 72, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#5d8aa8',
+                    borderWidth: 1,
                     callbacks: {
                         label: function(context) {
                             const label = context.dataset.label || '';
@@ -327,7 +400,11 @@
                         display: false
                     },
                     ticks: {
-                        font: { size: 10 }
+                        font: { size: 10 },
+                        color: '#4a5568'
+                    },
+                    grid: {
+                        color: 'rgba(160, 174, 192, 0.3)'
                     }
                 },
                 y: {
@@ -335,18 +412,23 @@
                     title: {
                         display: true,
                         text: 'Number of Officers',
-                        font: { size: 10 }
+                        font: { size: 10, weight: 'bold' },
+                        color: '#2d3748'
                     },
                     ticks: {
                         stepSize: 1,
-                        font: { size: 10 }
+                        font: { size: 10 },
+                        color: '#4a5568'
+                    },
+                    grid: {
+                        color: 'rgba(160, 174, 192, 0.3)'
                     }
                 }
             }
         }
     });
 
-    // 3. AFPOS Distribution Chart (Stacked Bar)
+    // 3. AFPOS Distribution Chart - BRIGHT MILITARY PALETTE
     const afposCtx = document.getElementById('afposChart').getContext('2d');
     
     // Collect all unique AFPOS across all ranks
@@ -357,24 +439,24 @@
         });
     });
 
-    // Generate colors for each AFPOS
+    // Bright Military Color Palette - Confident & Professional
     const afposColors = {};
-    const colorPalette = [
-        'rgba(255, 99, 132, 0.7)',
-        'rgba(54, 162, 235, 0.7)',
-        'rgba(255, 206, 86, 0.7)',
-        'rgba(75, 192, 192, 0.7)',
-        'rgba(153, 102, 255, 0.7)',
-        'rgba(255, 159, 64, 0.7)',
-        'rgba(199, 199, 199, 0.7)',
-        'rgba(83, 102, 255, 0.7)',
-        'rgba(255, 99, 255, 0.7)',
-        'rgba(99, 255, 132, 0.7)',
+    const militaryColorPalette = [
+        'rgba(61, 124, 71, 0.85)',    // Forest Green
+        'rgba(93, 138, 168, 0.85)',   // Air Force Blue
+        'rgba(139, 111, 71, 0.85)',   // Bronze/Khaki
+        'rgba(70, 130, 180, 0.85)',   // Steel Blue
+        'rgba(155, 79, 79, 0.85)',    // Marine Red
+        'rgba(107, 142, 35, 0.85)',   // Olive Green
+        'rgba(95, 122, 97, 0.85)',    // Ranger Green
+        'rgba(184, 134, 11, 0.85)',   // Dark Goldenrod
+        'rgba(112, 128, 144, 0.85)',  // Slate Gray
+        'rgba(188, 143, 143, 0.85)',  // Rosy Brown
     ];
     
     let colorIndex = 0;
     allAfpos.forEach(afpos => {
-        afposColors[afpos] = colorPalette[colorIndex % colorPalette.length];
+        afposColors[afpos] = militaryColorPalette[colorIndex % militaryColorPalette.length];
         colorIndex++;
     });
 
@@ -391,7 +473,7 @@
             label: afpos,
             data: data,
             backgroundColor: afposColors[afpos],
-            borderColor: afposColors[afpos].replace('0.7', '1'),
+            borderColor: afposColors[afpos].replace('0.85', '1'),
             borderWidth: 1
         });
     });
@@ -410,9 +492,10 @@
                     display: true,
                     position: 'top',
                     labels: {
-                        font: { size: 10 },
+                        font: { size: 10, weight: 'bold' },
                         padding: 6,
-                        boxWidth: 12
+                        boxWidth: 12,
+                        color: '#2d3748'
                     }
                 },
                 title: {
@@ -420,7 +503,12 @@
                 },
                 tooltip: {
                     mode: 'index',
-                    intersect: false
+                    intersect: false,
+                    backgroundColor: 'rgba(45, 55, 72, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#5d8aa8',
+                    borderWidth: 1
                 }
             },
             scales: {
@@ -429,10 +517,15 @@
                     title: {
                         display: true,
                         text: 'Rank',
-                        font: { size: 10 }
+                        font: { size: 10, weight: 'bold' },
+                        color: '#2d3748'
                     },
                     ticks: {
-                        font: { size: 10 }
+                        font: { size: 10 },
+                        color: '#4a5568'
+                    },
+                    grid: {
+                        color: 'rgba(160, 174, 192, 0.3)'
                     }
                 },
                 y: {
@@ -441,11 +534,16 @@
                     title: {
                         display: true,
                         text: 'Number of Officers',
-                        font: { size: 10 }
+                        font: { size: 10, weight: 'bold' },
+                        color: '#2d3748'
                     },
                     ticks: {
                         stepSize: 1,
-                        font: { size: 10 }
+                        font: { size: 10 },
+                        color: '#4a5568'
+                    },
+                    grid: {
+                        color: 'rgba(160, 174, 192, 0.3)'
                     }
                 }
             }
