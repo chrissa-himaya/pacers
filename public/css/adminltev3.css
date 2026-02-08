@@ -13503,12 +13503,12 @@ label:not(.form-check-label):not(.custom-file-label) {
 	outline: 0
 }
 
-.select2-container--default .select2-selection--single,
+/* .select2-container--default .select2-selection--single,
 .select2-selection .select2-selection--single {
 	border: 1px solid #d2d6de;
 	padding: 6px 12px;
 	height: auto !important
-}
+} */
 
 .select2-container--default.select2-container--open {
 	border-color: #007bff

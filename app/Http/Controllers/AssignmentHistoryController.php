@@ -95,6 +95,7 @@ class AssignmentHistoryController extends Controller
             "units" => $units,
             "assignments" => $assignments,
             "assignment_type3" => $assignment_type3,
+            "relatedHistories" => collect([]),
         ];
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
@@ -113,12 +114,16 @@ class AssignmentHistoryController extends Controller
                 ->where('PM_CODE', $pm_code)
                 ->first();
 
-            // return $officer;
-
             if (!$officer) {
                 return back()->withInput($request->all())
                     ->withErrors(['pm_code' => 'PM Code not found.']);
             }
+
+            $relatedHistories = AssignmentHistory::where('pm_code', $pm_code)
+                ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
+                ->orderBy('start_date', 'desc')
+                ->get();
+
             return back()->withInput($request->all())
                 ->with([
                     'rank' => $officer->RANK,
@@ -135,11 +140,13 @@ class AssignmentHistoryController extends Controller
                     'sig' => $officer->SIG,
                     'designation' => $officer->designations->name,
                     'unit' => $officer->units?->name,
+                    'relatedHistories' => $relatedHistories,
                 ]);
         } elseif ($action == 'Save') {
             $data = $request->validate([
                 'pm_code' => ['required', 'string'],
                 'designation_id' => ['nullable', 'string'],
+                'subunit' => ['nullable', 'string'],
                 'unit_id' => ['nullable', 'integer', 'exists:units,id'],
                 'pamu_id' => ['nullable', 'integer'],
                 'assignment_id' => ['nullable', 'string'],
@@ -168,15 +175,13 @@ class AssignmentHistoryController extends Controller
 
             $isPrimary = (($pri ?? '') === 'primary');
 
+            // FIXED: Allow save even if dates overlap, but set year_earned to 0
             if ($isPrimary && $this->overlapsExistingPrimary($data['pm_code'], $sd, $ed, null)) {
-                $data['year_earned'] = 0;
-                return back()->withErrors(['year_earned' => 'Dates overlap'])->withInput();
+                $data['year_earned'] = 0; // Set to 0 when overlapping
+            } else {
+                // No overlap => compute normally
+                $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
             }
-
-            // allowed => compute
-            $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
-
-            // after you compute $data['rank_during_completion'] and $data['year_earned']
 
             $match = [
                 'pm_code'                => $data['pm_code'],
@@ -190,12 +195,11 @@ class AssignmentHistoryController extends Controller
                 'rank_during_completion' => $data['rank_during_completion'] ?? null,
             ];
 
-            // update if exists else create
+            // Save the record (even if year_earned is 0)
             AssignmentHistory::updateOrCreate($match, $data);
 
             return redirect()->route($this->config_data->module_route . '.index');
         }
-
     }
 
     /**
@@ -227,6 +231,16 @@ class AssignmentHistoryController extends Controller
             ->orderBy('pm_code')
             ->pluck('pm_code');
 
+        // FIXED: Exclude the current record being shown
+        $relatedHistories = AssignmentHistory::query()
+            ->where('pm_code', $assignmenthistory->pm_code)
+            ->where('id', '!=', $assignmenthistory->id) // ← EXCLUDE current record
+            ->where('pm_code', '!=', '')
+            ->whereNotNull('pm_code')
+            ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
+            ->orderBy('start_date', 'desc')
+            ->get();
+
         $data_items = [
             'data' => $assignmenthistory,
             'column_hidden' => $this->config_data->columnHidden,
@@ -239,6 +253,7 @@ class AssignmentHistoryController extends Controller
             'assignments' => $assignments,
             'assignment_type3' => $assignment_type3,
             'officerData' => $officerData,
+            'relatedHistories' => $relatedHistories,
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -273,6 +288,16 @@ class AssignmentHistoryController extends Controller
             ->orderBy('pm_code')
             ->pluck('pm_code');
 
+        // FIXED: Exclude the current record being edited
+        $relatedHistories = AssignmentHistory::query()
+            ->where('pm_code', $assignmenthistory->pm_code)
+            ->where('id', '!=', $assignmenthistory->id) // ← EXCLUDE current record
+            ->where('pm_code', '!=', '')
+            ->whereNotNull('pm_code')
+            ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
+            ->orderBy('start_date', 'desc')
+            ->get();
+
         $data_items = [
             'data' => $assignmenthistory,
             'column_hidden' => $this->config_data->columnHidden,
@@ -285,6 +310,7 @@ class AssignmentHistoryController extends Controller
             'assignments' => $assignments,
             'assignment_type3' => $assignment_type3,
             'officerData' => $officerData,
+            'relatedHistories' => $relatedHistories,
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -298,6 +324,7 @@ class AssignmentHistoryController extends Controller
         $data = $request->validate([
             'pm_code' => ['required', 'string'],
             'designation_id' => ['nullable'],
+            'subunit' => ['nullable', 'string'],
             'unit_id' => ['nullable', 'integer'],
             'pamu_id' => ['nullable', 'integer'],
             'assignment_id' => ['nullable'],
@@ -324,13 +351,13 @@ class AssignmentHistoryController extends Controller
 
         $data['rank_during_completion'] = $rankResult['rank'];
 
-        // overlap check (IGNORE CURRENT RECORD 🔥)
+        // FIXED: Allow update even if dates overlap, but set year_earned to 0
         if ($pri === 'primary' && $this->overlapsExistingPrimary($data['pm_code'], $sd, $ed, $assignmentHistory->id)) {
-            return back()->withErrors(['year_earned' => 'Dates overlap'])->withInput();
+            $data['year_earned'] = 0; // Set to 0 when overlapping
+        } else {
+            // No overlap => compute normally
+            $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
         }
-
-        // compute year earned
-        $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
 
         $assignmentHistory->update($data);
 
@@ -353,6 +380,7 @@ class AssignmentHistoryController extends Controller
             null,
             'pm_code',
             'designations.name',
+            'subunit',
             'units.name',
             'pamus.name',
             'assignments.name',
@@ -369,6 +397,7 @@ class AssignmentHistoryController extends Controller
         $globalSearchColumns = [
             'pm_code',
             'designations.name',
+            'subunit',
             'units.name',
             'pamus.name',
             'assignments.name',
@@ -472,18 +501,19 @@ class AssignmentHistoryController extends Controller
 
     private function overlapsExistingPrimary(string $pmCode, Carbon $sd, Carbon $ed, ?int $ignoreId = null): bool
     {
+        $edMinus1 = $ed->copy()->subDay();
+        
         $q = AssignmentHistory::query()
             ->where('pm_code', $pmCode)
             ->where('pri_sec_spec', 'primary')
-            ->whereDate('start_date', '<=', $ed)
-            ->whereDate('end_date', '>=', $sd);
-
-
+            // Excel formula boundaries:
+            ->whereRaw('DATE(start_date) <= ?', [$edMinus1->toDateString()]) 
+            ->whereRaw('DATE(end_date) - INTERVAL 1 DAY >= ?', [$sd->toDateString()]);
+        
         if ($ignoreId) {
             $q->where('id', '!=', $ignoreId);
         }
-
-
+        
         return $q->exists();
     }
 
@@ -512,11 +542,7 @@ class AssignmentHistoryController extends Controller
         if (empty($sr) || empty($er)) {
             return ['ok' => false, 'rank' => '', 'message' => 'No rank'];
         }
-
-
         $isPrimary = ($priSecSpec === 'primary');
-
-
         // Excel: IF(prim, IF(sr=er, sr, "rank conflict"), sr)
         if ($isPrimary) {
             if ($sr === $er) {
@@ -524,8 +550,6 @@ class AssignmentHistoryController extends Controller
             }
             return ['ok' => false, 'rank' => '', 'message' => 'Dates overlap'];
         }
-
-
         return ['ok' => true, 'rank' => $sr, 'message' => null];
     }
 
@@ -567,16 +591,17 @@ class AssignmentHistoryController extends Controller
 
         $isPrimary = (($pri ?? '') === 'primary');
 
+        // FIXED: Allow save but set year_earned to 0 when overlapping
         if ($isPrimary && $this->overlapsExistingPrimary($pm, $sd, $ed, $data['id'] ?? null)) {
             return response()->json([
-                'ok' => false,
-                'year_earned' => 0,
+                'ok' => true, // ← Changed from false to true
+                'year_earned' => 0, // Set to 0 when overlapping
                 'rank_during_completion' => $rankResult['rank'],
-                'message' => 'Dates overlap',
-            ], 422);
+                'message' => 'Dates overlap - year earned is 0', // Informational message
+            ]);
         }
 
-
+        // No overlap - compute normally
         return response()->json([
             'ok' => true,
             'year_earned' => $this->yearfrac_us_30_360($sd, $ed),

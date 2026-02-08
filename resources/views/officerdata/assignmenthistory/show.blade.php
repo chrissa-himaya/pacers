@@ -14,120 +14,111 @@
 
     <div class="card-body">
       <form action="{{ $data_items['operation_type'] === 'create'
-    ? route("$config_data->module_route.store")
-    : route("$config_data->module_route.update", [$data_items['data']->id]) }}" method="POST"
+      ? route("$config_data->module_route.store")
+      : route("$config_data->module_route.update", [$data_items['data']->id]) }}" method="POST"
         enctype="multipart/form-data">
         @csrf
         @if($data_items["operation_type"] == "edit")
           @method('PUT')
         @endif
         <!-- OFFICER INFORMATION -->
-        <!-- <div class="form-section-title">Officer Information (Read-Only)</div> -->
         <div class="row">
-          <div class="col-md-3">
-            <label>PM Code</label>
-            <div class="input-group">
+          <div class="col-md-2">
+            <label class="small mb-1">PM Code</label>
+            <div class="input-group input-group-sm">
               @php
                 $key = 'pm_code';
                 $current = old('pm_code', $data_items['data']->pm_code ?? '');
               @endphp
 
               @if($data_items["operation_type"] !== "show")
-                <select name="pm_code" id="pm_code" class="form-control select2">
-                  <option value="">-- Select PM Code --</option>
-
+                <select name="pm_code" id="pm_code" class="form-control form-control-sm select2">
+                  <option value="">-- Select --</option>
                   @foreach(($data_items['pm_codes'] ?? []) as $pmcode)
                     <option value="{{ $pmcode }}" {{ $current == $pmcode ? 'selected' : '' }}>
                       {{ $pmcode }}
                     </option>
                   @endforeach
                 </select>
-
-                <button type="submit" class="btn btn-info" name="action" value="Fetch Data">
-                  Fetch Data
+                <button type="submit" class="btn btn-sm btn-info" name="action" value="Fetch Data">
+                  Fetch
                 </button>
               @else
-                <input type="text" class="form-control" value="{{ $current }}" disabled>
+                <input type="text" class="form-control form-control-sm" value="{{ $current }}" disabled>
               @endif
             </div>
           </div>
-          <div class="col-md-3">
-            <label>Rank</label>
-            <input type="text" class="form-control"
+          <div class="col-md-1">
+            <label class="small mb-1">Rank</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->RANK : session('rank')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>Name</label>
-            <input type="text" class="form-control"
+          <div class="col-md-2">
+            <label class="small mb-1">Name</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->NAME : session('name')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>AFPOS</label>
-            <input type="text" class="form-control"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPOS : session('afpos')}}"
-              disabled>
+          <div class="col-md-1">
+            <label class="small mb-1">AFPOS</label>
+            <input type="text" class="form-control form-control-sm"
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPOS : session('afpos')}}" disabled>
           </div>
-        </div>
-
-        <div class="row mt-3">
-          <div class="col-md-3">
-            <label>AFPSN</label>
-            <input type="text" class="form-control"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPSN : session('afpsn')}}"
-              disabled>
+          <div class="col-md-1">
+            <label class="small mb-1">AFPSN</label>
+            <input type="text" class="form-control form-control-sm"
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPSN : session('afpsn')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>Sex</label>
-            <input type="text" class="form-control"
+          <div class="col-md-1">
+            <label class="small mb-1">Sex</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->SEX : session('sex')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>DOB</label>
-            <input type="text" class="form-control"
+          <div class="col-md-1">
+            <label class="small mb-1">DOB</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOB : session('dob')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>Date Ret</label>
-            <input type="text" class="form-control"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->RET : session('date_ret')}}"
-              disabled>
+          <div class="col-md-1">
+            <label class="small mb-1">DOB</label>
+            <input type="text" class="form-control form-control-sm"
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOB : session('dob')}}" disabled>
+          </div>
+          <div class="col-md-1">
+            <label class="small mb-1">Date Ret</label>
+            <input type="text" class="form-control form-control-sm"
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->RET : session('date_ret')}}" disabled>
           </div>
         </div>
 
-        <div class="row mt-3">
-          <div class="col-md-3">
-            <label>DOR</label>
-            <input type="text" class="form-control"
+        <div class="row mt-2">
+          <div class="col-md-1">
+            <label class="small mb-1">DOR</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOR : session('dor')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>SOC</label>
-            <input type="text" class="form-control"
+          <div class="col-md-2">
+            <label class="small mb-1">SOC</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
           </div>
-          <div class="col-md-3">
-            <label>Type</label>
-            <input type="text" class="form-control"
+          <!-- <div class="col-md-2">
+            <label class="small mb-1">Type</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->TYPE : session('type')}}" disabled>
-          </div>
-
-          <div class="col-md-3">
-            <label>SIG</label>
-            <input type="text" class="form-control"
+          </div> -->
+          <div class="col-md-2">
+            <label class="small mb-1">SIG</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
           </div>
-        </div>
-
-        <div class="row mt-4">
           <div class="col-md-3">
-            <label>Current Designation</label>
-            <input type="text" class="form-control"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->designations->name : session('designation')}}"
-              disabled>
+            <label class="small mb-1">Current Designation</label>
+            <input type="text" class="form-control form-control-sm"
+              value="{{isset($data_items['officerData']) ? $data_items['officerData']->designations->name : session('designation')}}" disabled>
           </div>
           <div class="col-md-3">
-            <label>Current Unit</label>
-            <input type="text" class="form-control"
+            <label class="small mb-1">Current Unit</label>
+            <input type="text" class="form-control form-control-sm"
               value="{{isset($data_items['officerData']) ? $data_items['officerData']->units->name : session('unit')}}" disabled>
           </div>
         </div>
@@ -161,6 +152,12 @@
                 <input type="text" class="form-control" value="{{ $data_items['data']->designations->name ?? '' }}"
                   disabled>
               @endif
+            </div>
+            <div class="col-md-3">
+              <label>Sub unit</label>
+                <input type="text" id="subunit" name="subunit" class="form-control"
+                value="{{ old('subunit', $op === 'create' ? '' : ($data_items['data']->subunit ?? '')) }}"
+                {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
             <div class="col-md-3">
               <label>Unit</label>
@@ -306,156 +303,270 @@
         </div>
       </form>
     </div>
-
   </div>
+
+ {{-- Assignment History Records Table --}}
+    @php
+      if ($data_items['operation_type'] === 'create') {
+          $histories = session('relatedHistories', collect([]));
+          $currentPmCode = session('pm_code', old('pm_code', ''));
+      } else {
+          $histories = $data_items['relatedHistories'] ?? collect([]);
+          $currentPmCode = $data_items['data']->pm_code ?? '';
+      }
+    @endphp
+
+    @if($histories && $histories->count() > 0)
+    <div class="card mt-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0">Related Assignment History (PM Code: {{ $currentPmCode }})</h6>
+      </div>
+      <div class="card-body p-2">
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered table-striped table-hover datatable-AssignmentHistory">
+            <thead class="table-light">
+              <tr>
+                <!-- <th style="width: 30px;">ID</th> -->
+                <th style="width: 90px;">PM Code</th>
+                <th style="width: 90px;">Start</th>
+                <th style="width: 90px;">End</th>
+                <th>Designation</th>
+                <th>Sub unit</th>
+                <th>Unit</th>
+                <th>PAMU</th>
+                <th>Category</th>
+                <th style="width: 70px;">Type</th>
+                <th style="width: 100px;">Assign Type</th>
+                <th style="width: 80px;">Geography</th>
+                <th style="width: 60px;">Rank</th>
+                <th style="width: 80px;">Years</th>
+                <th style="width: 140px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($histories as $history)
+              <tr data-entry-id="{{ $history->id }}">
+                <!-- <td>{{ $history->id }}</td> -->
+                <td class="small">{{ $history->pm_code }}</td>
+                <td class="small">{{ $history->start_date }}</td>
+                <td class="small">{{ $history->end_date }}</td>
+                <td class="small">{{ $history->designations->name ?? '-' }}</td>
+                <td class="small">{{ $history->subunit ?? '-' }}</td>
+                <td class="small">{{ $history->units->name ?? '-' }}</td>
+                <td class="small">{{ $history->pamus->name ?? '-' }}</td>
+                <td class="small">{{ $history->assignments->name ?? '-' }}</td>
+                <td class="small">{{ ucfirst($history->pri_sec_spec ?? '-') }}</td>
+                <td class="small">{{ $history->assignmentType->name ?? '-' }}</td>
+                <td class="small">{{ ucfirst($history->geography ?? '-') }}</td>
+                <td class="small">{{ $history->rank_during_completion }}</td>
+                <td class="small">{{ number_format($history->year_earned, 6) }}</td>
+                <td style="white-space: nowrap;">
+                    @can($config_data->module_perm_name . '_show')
+                      <a class="btn btn-xs btn-primary py-0 px-1 small" href="{{ route('assignmenthistories.show', $history->id) }}">
+                        View
+                      </a>
+                    @endcan
+                    @can($config_data->module_perm_name . '_edit')
+                      <a class="btn btn-xs btn-info py-0 px-1 small" href="{{ route('assignmenthistories.edit', $history->id) }}">
+                        Edit
+                      </a>
+                    @endcan
+                    @can($config_data->module_perm_name . '_delete')
+                      <form action="{{ route('assignmenthistories.destroy', $history->id) }}" 
+                        method="POST" 
+                        onsubmit="return confirm('Delete?');"
+                        style="display: inline-block;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-xs btn-danger py-0 px-1" title="Delete">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    @endcan
+                  </td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    @endif
 @endsection
 @section('scripts')
-    <script>
-      (function () {
-        const unitSel  = document.getElementById('unit_id');
-        const pamuName = document.getElementById('pamu_name');
-        const pamuId   = document.getElementById('pamu_id');
+@parent
+{{-- DataTable initialization --}}
+      <script>
+        $(function () {
+          let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons)
 
-        if (!unitSel || !pamuName || !pamuId) {
-          console.log('PAMU autofill: missing elements', { unitSel, pamuName, pamuId });
-          return;
-        }
+          $.extend(true, $.fn.dataTable.defaults, {
+            order: [[ 2, 'desc' ]], // Order by start_date descending
+            pageLength: 10,
+          });
+          
+          $('.datatable-AssignmentHistory:not(.ajaxTable)').DataTable({ buttons: dtButtons })
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
+                $($.fn.dataTable.tables(true)).DataTable()
+                    .columns.adjust();
+            });
+        })
+      </script>
+      <script>
+        (function () {
+          const unitSel  = document.getElementById('unit_id');
+          const pamuName = document.getElementById('pamu_name');
+          const pamuId   = document.getElementById('pamu_id');
 
-        function fillPamu() {
-          const opt = unitSel.options[unitSel.selectedIndex];
-          const name = (opt && opt.getAttribute('data-pamu-name')) || '';
-          const id   = (opt && opt.getAttribute('data-pamu-id')) || '';
-
-          console.log('fillPamu()', { selectedIndex: unitSel.selectedIndex, name, id });
-
-          pamuName.value = name;
-          pamuId.value   = id;
-        }
-
-        // native select change
-        unitSel.addEventListener('change', fillPamu);
-
-        // if Select2 is active, also listen to its events (requires jQuery/select2)
-        if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
-          jQuery(unitSel).on('select2:select select2:clear', fillPamu);
-        }
-
-        // initial fill
-        fillPamu();
-      })();
-    </script>
-
-
-    <script>
-      (function () {
-        const form = document.querySelector('form');
-        if (!form) return;
-
-        const pmCodeEl     = document.getElementById('pm_code');
-        const startEl      = document.getElementById('start_date');
-        const endEl        = document.getElementById('end_date');
-        const priEl        = form.querySelector('[name="pri_sec_spec"]');
-
-        const rankOutEl    = document.getElementById('rank_during_completion');
-        const yearEarnedEl = document.getElementById('year_earned');
-        const yearErrEl    = document.getElementById('year_earned_error');
-
-        const op = @json($data_items['operation_type'] ?? '');
-        if (op === 'show') return;
-
-        if (!pmCodeEl || !startEl || !endEl || !rankOutEl || !yearEarnedEl) {
-          console.log('Auto compute: missing element(s)', { pmCodeEl, startEl, endEl, rankOutEl, yearEarnedEl });
-          return;
-        }
-
-        let timer = null;
-        let aborter = null;
-
-        function getPayload() {
-          return {
-            id: @json($data_items['data']->id ?? null),
-            pm_code: pmCodeEl.value || '',
-            start_date: startEl.value || '',
-            end_date: endEl.value || '',
-            pri_sec_spec: priEl?.value || '',
-          };
-        }
-
-        function hasRequired(p) {
-          return p.pm_code && p.start_date && p.end_date;
-        }
-
-        async function computeNow() {
-          const payload = getPayload();
-
-          if (!hasRequired(payload)) {
-            rankOutEl.value = '';
-            yearEarnedEl.value = '';
-            if (yearErrEl) yearErrEl.textContent = '';
+          if (!unitSel || !pamuName || !pamuId) {
+            console.log('PAMU autofill: missing elements', { unitSel, pamuName, pamuId });
             return;
           }
 
-          if (aborter) aborter.abort();
-          aborter = new AbortController();
+          function fillPamu() {
+            const opt = unitSel.options[unitSel.selectedIndex];
+            const name = (opt && opt.getAttribute('data-pamu-name')) || '';
+            const id   = (opt && opt.getAttribute('data-pamu-id')) || '';
 
-          try {
-            const res = await fetch(@json(route('assignmenthistories.computeYearEarned')), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': @json(csrf_token()),
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify(payload),
-              signal: aborter.signal,
-            });
+            console.log('fillPamu()', { selectedIndex: unitSel.selectedIndex, name, id });
 
-            // ❌ error response
-            if (!res.ok) {
-              if (res.status === 422) {
-                const err = await res.json().catch(() => null);
+            pamuName.value = name;
+            pamuId.value   = id;
+          }
 
-                // if server includes rank_during_completion, keep it visible
-                rankOutEl.value = (err?.rank_during_completion ?? '').toString();
+          // native select change
+          unitSel.addEventListener('change', fillPamu);
 
-                yearEarnedEl.value = '0';
-                if (yearErrEl) yearErrEl.textContent = err?.message || 'Dates overlap';
-                return;
-              }
+          // if Select2 is active, also listen to its events (requires jQuery/select2)
+          if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
+            jQuery(unitSel).on('select2:select select2:clear', fillPamu);
+          }
 
+          // initial fill
+          fillPamu();
+        })();
+      </script>
+
+
+      <script>
+        (function () {
+          const form = document.querySelector('form');
+          if (!form) return;
+
+          const pmCodeEl     = document.getElementById('pm_code');
+          const startEl      = document.getElementById('start_date');
+          const endEl        = document.getElementById('end_date');
+          const priEl        = form.querySelector('[name="pri_sec_spec"]');
+
+          const rankOutEl    = document.getElementById('rank_during_completion');
+          const yearEarnedEl = document.getElementById('year_earned');
+          const yearErrEl    = document.getElementById('year_earned_error');
+
+          const op = @json($data_items['operation_type'] ?? '');
+          if (op === 'show') return;
+
+          if (!pmCodeEl || !startEl || !endEl || !rankOutEl || !yearEarnedEl) {
+            console.log('Auto compute: missing element(s)', { pmCodeEl, startEl, endEl, rankOutEl, yearEarnedEl });
+            return;
+          }
+
+          let timer = null;
+          let aborter = null;
+
+          function getPayload() {
+            return {
+              id: @json($data_items['data']->id ?? null),
+              pm_code: pmCodeEl.value || '',
+              start_date: startEl.value || '',
+              end_date: endEl.value || '',
+              pri_sec_spec: priEl?.value || '',
+            };
+          }
+
+          function hasRequired(p) {
+            return p.pm_code && p.start_date && p.end_date;
+          }
+
+          async function computeNow() {
+            const payload = getPayload();
+
+            if (!hasRequired(payload)) {
               rankOutEl.value = '';
               yearEarnedEl.value = '';
               if (yearErrEl) yearErrEl.textContent = '';
               return;
             }
 
-            // ✅ success
-            const json = await res.json();
-            rankOutEl.value = (json.rank_during_completion ?? '').toString();
-            yearEarnedEl.value = (json.year_earned ?? '').toString();
-            if (yearErrEl) yearErrEl.textContent = '';
+            if (aborter) aborter.abort();
+            aborter = new AbortController();
 
-          } catch (e) {
-            if (e?.name !== 'AbortError') console.log('Compute error:', e);
+            try {
+              const res = await fetch(@json(route('assignmenthistories.computeYearEarned')), {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': @json(csrf_token()),
+                  'Accept': 'application/json',
+                },
+                body: JSON.stringify(payload),
+                signal: aborter.signal,
+              });
+
+              if (!res.ok) {
+                if (res.status === 422) {
+                  const err = await res.json().catch(() => null);
+
+                  // if server includes rank_during_completion, keep it visible
+                  rankOutEl.value = (err?.rank_during_completion ?? '').toString();
+
+                  yearEarnedEl.value = '0';
+                  if (yearErrEl) yearErrEl.textContent = err?.message || 'Error';
+                  return;
+                }
+
+                rankOutEl.value = '';
+                yearEarnedEl.value = '';
+                if (yearErrEl) yearErrEl.textContent = '';
+                return;
+              }
+
+              const json = await res.json();
+              rankOutEl.value = (json.rank_during_completion ?? '').toString();
+              yearEarnedEl.value = (json.year_earned ?? '').toString();
+              
+              // FIXED: Show warning message even on success if there's a message
+              if (yearErrEl) {
+                if (json.message && json.year_earned === 0) {
+
+                  yearErrEl.textContent = json.message;
+                  yearErrEl.className = 'text-danger small mt-1';
+                } else {
+                  yearErrEl.textContent = '';
+                  yearErrEl.className = 'text-danger small mt-1'; // Reset to default
+                }
+              }
+
+            } catch (e) {
+              if (e?.name !== 'AbortError') console.log('Compute error:', e);
+            }
           }
-        }
 
-        function scheduleCompute() {
-          clearTimeout(timer);
-          timer = setTimeout(computeNow, 350);
-        }
+          function scheduleCompute() {
+            clearTimeout(timer);
+            timer = setTimeout(computeNow, 350);
+          }
 
-        [pmCodeEl, startEl, endEl, priEl].filter(Boolean).forEach(el => {
-          el.addEventListener('change', scheduleCompute);
-          el.addEventListener('input', scheduleCompute);
-        });
+          [pmCodeEl, startEl, endEl, priEl].filter(Boolean).forEach(el => {
+            el.addEventListener('change', scheduleCompute);
+            el.addEventListener('input', scheduleCompute);
+          });
 
-        if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
-          jQuery(pmCodeEl).on('select2:select select2:clear', scheduleCompute);
-          if (priEl) jQuery(priEl).on('select2:select select2:clear', scheduleCompute);
-        }
+          if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
+            jQuery(pmCodeEl).on('select2:select select2:clear', scheduleCompute);
+            if (priEl) jQuery(priEl).on('select2:select select2:clear', scheduleCompute);
+          }
 
-        scheduleCompute();
-      })();
-    </script>
+          scheduleCompute();
+        })();
+      </script>
 @endsection

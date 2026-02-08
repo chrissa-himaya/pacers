@@ -16,6 +16,7 @@
                     <th>ID</th>
                     <th>PMCode</th>
                     <th>Entry</th>
+                    <th>SUb unit</th>
                     <th>Unit</th>
                     <th>PAMU</th>
                     <th>Category</th>
@@ -32,6 +33,7 @@
                     <th></th> <!-- Nr column usually no filter -->
                     <th><input type="text" placeholder="Search PM Code" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Entry" class="form-control form-control-sm" /></th>
+                    <th><input type="text" placeholder="Search Sub unit" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Unit" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search PAMU" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Category" class="form-control form-control-sm" /></th>
@@ -80,6 +82,7 @@
                     },
                     { data: 'pm_code', searchable: true },
                     { data: 'designations.name', searchable: true },
+                    { data: 'subunit', searchable: true },
                     { data: 'units.name', searchable: true },
                     { data: 'pamus.name', searchable: true },
                     { data: 'assignments.name', searchable: true },

@@ -21,6 +21,7 @@ class AssignmentHistory extends Model implements Auditable
         'pm_code',
         'designation_id',
         'unit_id',
+        'subunit',
         'pamu_id',
         'assignment_id',
         'pri_sec_spec',
