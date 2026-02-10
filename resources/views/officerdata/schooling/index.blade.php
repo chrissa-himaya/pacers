@@ -92,7 +92,23 @@
                 { data: 'classname', searchable: true},
                 { data: 'schoolingunits.name', searchable: true},
                 { data: 'assignments.name', searchable: true},
-                { data: 'date_completed', searchable: true },
+                // { data: 'date_completed', searchable: true },
+                { 
+                    data: 'date_completed',
+                    render: function(data, type, row) {
+                        if (!data) return '';
+                        
+                        // Format: 25-Mar-2013
+                        let date = new Date(data);
+                        let day = date.getDate();
+                        let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                        let month = monthNames[date.getMonth()];
+                        let year = date.getFullYear();
+                        
+                        return day + '-' + month + '-' + year;
+                    }
+                },
                 { data: 'rating', searchable: true },
                 { data: 'standing', searchable: true },
                 { data: 'total_student', searchable: true },

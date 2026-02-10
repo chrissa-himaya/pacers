@@ -204,8 +204,9 @@ Route::get('/', function () {
     Route::get('/schoolings/entries-by-assignment', [SchoolingsController::class, 'getEntriesByAssignment'])
         ->name('schoolings.getEntriesByAssignment');
 
+
     Route::get('schoolings/{schooling}/add-entry', [SchoolingsController::class, 'createFromExisting'])
-    ->name('schoolings.createFromExisting');
+    ->name('schoolings.add-entry');
 
 });
 

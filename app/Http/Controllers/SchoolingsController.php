@@ -112,12 +112,10 @@ class SchoolingsController extends Controller
     }
 
     /* ─── CREATE FROM EXISTING (prefill pm_code + officer info) ─── */
-
     public function createFromExisting(Schooling $schooling)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // Build a blank schooling but keep the pm_code
         $blank = Schooling::find(1);
         $blank->fill([
             'pm_code'          => $schooling->pm_code,
@@ -125,45 +123,75 @@ class SchoolingsController extends Controller
             'schooling_unit_id'=> null,
             'assignment_id'    => null,
         ]);
+        // $blank = new Schooling();
+        // $blank->pm_code = $schooling->pm_code;
 
-        $schoolingnames = SchoolingName::all()->pluck('name', 'id');
-        $assignments    = Assignment::where('type_id', 5)->orderBy('name')->pluck('name', 'id');
-        $schoolingUnits = SchoolingUnit::query()->select('id', 'name', 'location')->orderBy('name')->get();
+        $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
 
-        $pmcodes = Officer::query()
+        $this->storeOfficerInSession($schooling->pm_code, $officerData);
+
+        $data_items = $this->buildCreateDataItems($blank, $officerData, $schooling->pm_code);
+
+        return view($this->config_data->module_view_folder . '.show', compact('data_items'))
+            ->with('config_data', $this->config_data);
+    }
+
+    private function storeOfficerInSession(string $pmCode, ?Officer $officer): void
+    {
+        session([
+            'pm_code'    => $pmCode,
+            'name'       => $officer->NAME ?? '',
+            'rank'       => $officer->RANK ?? '',
+            'afpos'      => $officer->AFPOS ?? '',
+            'afpsn'      => $officer->AFPSN ?? '',
+            'sex'        => $officer->SEX ?? '',
+            'dob'        => $officer->DOB ?? '',
+            'date_ret'   => $officer->RET ?? '',
+            'dor'        => $officer->DOR ?? '',
+            'soc'        => $officer->SOC ?? '',
+            'sig'        => $officer->SIG ?? '',
+            'designation' => $officer->designations->name ?? '',
+            'unit'       => $officer->units->name ?? '',
+        ]);
+    }
+
+    private function buildCreateDataItems(Schooling $blank, ?Officer $officerData, string $pmCode): array
+    {
+        $relatedSchoolings = Schooling::where('pm_code', $pmCode)
+            ->with(['schoolingnames', 'schoolingunits', 'assignments'])
+            ->orderBy('date_completed', 'desc')
+            ->get();
+
+        session(['relatedSchoolings' => $relatedSchoolings]);
+
+        return [
+            'data'                            => $blank,
+            'column_hidden'                   => $this->config_data->columnHidden,
+            'column_labels'                   => $this->config_data->columnLabels,
+            'operation_type'                  => 'create',
+            'optional_fields'                 => $this->config_data->optionalFields,
+            'pm_codes'                        => $this->getPmCodes(),
+            'schoolingnames'                  => SchoolingName::all()->pluck('name', 'id'),
+            'schoolingnames_with_assignments' => SchoolingName::all()->map(fn($i) => [
+                'id' => $i->id, 'name' => $i->name, 'assignment_id' => $i->assignment_id,
+            ]),
+            'schoolingUnits'   => SchoolingUnit::select('id', 'name', 'location')->orderBy('name')->get(),
+            'assignments'      => Assignment::where('type_id', 5)->orderBy('name')->pluck('name', 'id'),
+            'officerData'      => $officerData,
+            'relatedSchoolings'=> $relatedSchoolings,
+            'relatedHistories' => collect([]),
+        ];
+    }
+
+    private function getPmCodes()
+    {
+        return Officer::query()
             ->select('pm_code')
             ->whereNotNull('pm_code')
             ->where('pm_code', '!=', '')
             ->distinct()
             ->orderBy('pm_code')
             ->pluck('pm_code');
-
-        // Officer panel data
-        $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
-
-        // Related schooling records
-        $relatedSchoolings = Schooling::where('pm_code', $schooling->pm_code)
-            ->with(['schoolingnames', 'schoolingunits', 'assignments'])
-            ->orderBy('date_completed', 'desc')
-            ->get();
-
-        $data_items = [
-            "data"                          => $blank,
-            "column_hidden"                 => $this->config_data->columnHidden,
-            "column_labels"                 => $this->config_data->columnLabels,
-            "operation_type"                => "create",
-            "optional_fields"               => $this->config_data->optionalFields,
-            "pm_codes"                      => $pmcodes,
-            "schoolingnames"                => $schoolingnames,
-            "schoolingnames_with_assignments"=> SchoolingName::all()->map(fn($i) => ['id'=>$i->id,'name'=>$i->name,'assignment_id'=>$i->assignment_id]),
-            "schoolingUnits"                => $schoolingUnits,
-            "assignments"                   => $assignments,
-            "officerData"                   => $officerData,
-            "relatedSchoolings"             => $relatedSchoolings,
-            "seclt" => 0, "firstlt" => 0, "cpt" => 0, "maj" => 0, "ltc" => 0, "col" => 0,
-        ];
-
-        return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
     //: AJAX endpoint to get entries by assignment

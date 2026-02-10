@@ -209,7 +209,7 @@
             </div>
 
             <div class="col-md-3" style="max-width: 12%; flex: 0 0 12%;">
-              <label>Local/Foreihaystack: haystack: haystack: gn</label>
+              <label>Local/Foreign</label>
               <input type="text" id="schooling_unit_location" name="school_location" class="form-control"
                 value="{{ old('school_location', session('school_location', $data_items['data']->schoolingunits->location ?? '')) }}"
                 readonly>
@@ -551,164 +551,179 @@
       const rankEl = document.getElementById('rank_during_completion');
       const computedEl = document.getElementById('computed_points');
 
-      if (assignmentSelect && entrySelect) {
-        async function loadEntriesByAssignment() {
-          const assignmentId = assignmentSelect.value;
+        if (assignmentSelect && entrySelect) {
+          async function loadEntriesByAssignment() {
+              const assignmentId = assignmentSelect.value;
 
-          // Always reset new-entry UI when reloading entries
-          if (newEntryContainer) newEntryContainer.style.display = 'none';
-          if (newEntryInput) {
-            newEntryInput.required = false;
-            newEntryInput.value = '';
+              // Always reset new-entry UI when reloading entries
+              if (newEntryContainer) newEntryContainer.style.display = 'none';
+              if (newEntryInput) {
+                  newEntryInput.required = false;
+                  newEntryInput.value = '';
+              }
+
+              if (!assignmentId) {
+                  entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
+                  entrySelect.disabled = true;
+                  if (window.jQuery && jQuery(entrySelect).data('select2')) {
+                      jQuery(entrySelect).trigger('change.select2');
+                  }
+                  return;
+              }
+
+              entrySelect.disabled = false;
+
+              try {
+                  const response = await fetch(`{{ route('schoolings.getEntriesByAssignment') }}?assignment_id=${assignmentId}`, {
+                      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                  });
+                  const entries = await response.json();
+
+                  const oldSelected = @json(old('schoolingname_id', $data_items['data']->schoolingname_id ?? ''));
+
+                  let options = '<option value="">-- Select Entry --</option>';
+                  entries.forEach(entry => {
+                      const selected = (String(oldSelected) === String(entry.id)) ? 'selected' : '';
+                      options += `<option value="${entry.id}" ${selected}>${entry.name}</option>`;
+                  });
+
+                  options += '<option value="new" style="font-weight:bold; color:#007bff; border-top:2px solid #ccc;">➕ Create New Entry</option>';
+
+                  entrySelect.innerHTML = options;
+
+                  // Re-initialize select2 properly after replacing options
+                  if (window.jQuery && jQuery(entrySelect).data('select2')) {
+                      jQuery(entrySelect).trigger('change.select2');
+                  }
+
+                  // If old value was pre-selected, trigger the entry change handler
+                  if (entrySelect.value) {
+                      handleEntryChange();
+                  }
+              } catch (error) {
+                  console.error('Error loading entries:', error);
+                  entrySelect.innerHTML = '<option value="">-- Error loading entries --</option>';
+              }
           }
 
-          if (!assignmentId) {
-            entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
-            entrySelect.disabled = true;
-            if (window.jQuery && jQuery(entrySelect).data('select2')) {
-              jQuery(entrySelect).trigger('change.select2');
-            }
-            return;
+          function handleEntryChange() {
+              if (entrySelect.value === 'new') {
+                  if (newEntryContainer) newEntryContainer.style.display = 'block';
+                  if (newEntryInput) {
+                      newEntryInput.required = true;
+                      newEntryInput.focus();
+                  }
+              } else {
+                  if (newEntryContainer) newEntryContainer.style.display = 'none';
+                  if (newEntryInput) {
+                      newEntryInput.required = false;
+                      newEntryInput.value = '';
+                  }
+              }
           }
 
-          entrySelect.disabled = false;
+          // Clears everything below Assignment Category
+          function clearDependentFieldsOnAssignmentChange() {
+              // ENTRY
+              entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
+              entrySelect.value = '';
+              entrySelect.disabled = true;
 
-          try {
-            const response = await fetch(`{{ route('schoolings.getEntriesByAssignment') }}?assignment_id=${assignmentId}`, {
-              headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const entries = await response.json();
+              if (window.jQuery && jQuery(entrySelect).data('select2')) {
+                  jQuery(entrySelect).trigger('change.select2');
+              }
 
-            const oldSelected = @json(old('schoolingname_id', $data_items['data']->schoolingname_id ?? ''));
+              // NEW ENTRY UI
+              if (newEntryContainer) newEntryContainer.style.display = 'none';
+              if (newEntryInput) {
+                  newEntryInput.required = false;
+                  newEntryInput.value = '';
+              }
 
-            let options = '<option value="">-- Select Entry --</option>';
-            entries.forEach(entry => {
-              const selected = (String(oldSelected) === String(entry.id)) ? 'selected' : '';
-              options += `<option value="${entry.id}" ${selected}>${entry.name}</option>`;
-            });
+              // CLASS
+              const classEl = document.getElementById('classname');
+              if (classEl) classEl.value = '';
 
-            options += '<option value="new" style="font-weight:bold; color:#007bff; border-top:2px solid #ccc;">➕ Create New Entry</option>';
+              // SCHOOLING UNIT
+              const suEl = document.getElementById('schooling_unit_id');
+              if (suEl) {
+                  suEl.value = '';
+                  if (window.jQuery && jQuery(suEl).data('select2')) {
+                      jQuery(suEl).trigger('change.select2');
+                  }
+              }
 
-            entrySelect.innerHTML = options;
+              // LOCAL/FOREIGN
+              const locEl = document.getElementById('schooling_unit_location');
+              if (locEl) locEl.value = '';
 
-            if (window.jQuery && jQuery(entrySelect).data('select2')) {
-              // Don’t destroy/recreate unless you have to; just notify select2
-              jQuery(entrySelect).trigger('change.select2');
-            }
-          } catch (error) {
-            console.error('Error loading entries:', error);
-            entrySelect.innerHTML = '<option value="">-- Error loading entries --</option>';
-          }
-        }
+              // DATE COMPLETED + RANK DURING COMPLETION
+              if (dateEl) dateEl.value = '';
+              if (rankEl) rankEl.value = '';
 
-        function handleEntryChange() {
-          if (entrySelect.value === 'new') {
-            if (newEntryContainer) newEntryContainer.style.display = 'block';
-            if (newEntryInput) {
-              newEntryInput.required = true;
-              newEntryInput.focus();
-            }
-          } else {
-            if (newEntryContainer) newEntryContainer.style.display = 'none';
-            if (newEntryInput) {
-              newEntryInput.required = false;
-              newEntryInput.value = '';
-            }
-          }
-        }
+              // INPUTS
+              const ratingEl = document.querySelector('input[name="rating"]');
+              const standingEl = document.querySelector('input[name="standing"]');
+              const totalEl = document.querySelector('input[name="total_student"]');
+              if (ratingEl) ratingEl.value = '';
+              if (standingEl) standingEl.value = '';
+              if (totalEl) totalEl.value = '';
 
-        // Clears everything below Assignment Category
-        function clearDependentFieldsOnAssignmentChange() {
-          // ENTRY
-          entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
-          entrySelect.value = '';
-          entrySelect.disabled = true;
+              // COMPUTED POINTS
+              if (computedEl) computedEl.value = '';
 
-          if (window.jQuery && jQuery(entrySelect).data('select2')) {
-            jQuery(entrySelect).trigger('change.select2');
-          } else {
-            entrySelect.dispatchEvent(new Event('change'));
-          }
+              // RANK POINTS
+              ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
+                  const el = document.querySelector(`input[name="${n}"]`);
+                  if (el) el.value = '';
+              });
 
-          // NEW ENTRY UI
-          if (newEntryContainer) newEntryContainer.style.display = 'none';
-          if (newEntryInput) {
-            newEntryInput.required = false;
-            newEntryInput.value = '';
+              syncLocation();
           }
 
-          // CLASS
-          const classEl = document.getElementById('classname');
-          if (classEl) classEl.value = '';
-
-          // SCHOOLING UNIT
-          const suEl = document.getElementById('schooling_unit_id');
-          if (suEl) {
-            suEl.value = '';
-            if (window.jQuery && jQuery(suEl).data('select2')) {
-              jQuery(suEl).trigger('change.select2');
-            } else {
-              suEl.dispatchEvent(new Event('change'));
-            }
-          }
-
-          // LOCAL/FOREIGN
-          const locEl = document.getElementById('schooling_unit_location');
-          if (locEl) locEl.value = '';
-
-          // DATE COMPLETED + RANK DURING COMPLETION
-          if (dateEl) dateEl.value = '';
-          if (rankEl) rankEl.value = '';
-
-          // INPUTS
-          const ratingEl = document.querySelector('input[name="rating"]');
-          const standingEl = document.querySelector('input[name="standing"]');
-          const totalEl = document.querySelector('input[name="total_student"]');
-          if (ratingEl) ratingEl.value = '';
-          if (standingEl) standingEl.value = '';
-          if (totalEl) totalEl.value = '';
-
-          // COMPUTED POINTS
-          if (computedEl) computedEl.value = '';
-
-          // RANK POINTS
-          ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
-            const el = document.querySelector(`input[name="${n}"]`);
-            if (el) el.value = '';
+          // Assignment change: clear first, then load new entries
+          assignmentSelect.addEventListener('change', function () {
+              clearDependentFieldsOnAssignmentChange();
+              loadEntriesByAssignment();
           });
 
-          // Also sync location display (in case schooling_unit reset didn’t fire)
-          syncLocation();
-        }
+          if (window.jQuery) {
+              jQuery(assignmentSelect).off('select2:select select2:clear');
+              jQuery(assignmentSelect).on('select2:select select2:clear', function () {
+                  clearDependentFieldsOnAssignmentChange();
+                  loadEntriesByAssignment();
+              });
+          }
 
-        // ✅ Assignment change: clear first, then load new entries
-        assignmentSelect.addEventListener('change', function () {
-          clearDependentFieldsOnAssignmentChange();
-          loadEntriesByAssignment();
-        });
+          // Entry change handler (native + select2)
+          entrySelect.addEventListener('change', handleEntryChange);
+          if (window.jQuery) {
+              jQuery(entrySelect).on('select2:select select2:clear', handleEntryChange);
+          }
 
-        if (window.jQuery) {
-          // Ensure no duplicate handlers, then attach the combined handler
-          jQuery(assignmentSelect).off('select2:select select2:clear');
-          jQuery(assignmentSelect).on('select2:select select2:clear', function () {
-            clearDependentFieldsOnAssignmentChange();
-            loadEntriesByAssignment();
-          });
-        }
-
-        // ✅ Keep entry change handler (native + select2)
-        entrySelect.addEventListener('change', handleEntryChange);
-        if (window.jQuery) jQuery(entrySelect).on('select2:select', handleEntryChange);
-
-        // Initial load (edit page / when old value exists)
-        if (assignmentSelect.value) {
-          loadEntriesByAssignment();
-        }
+          // Initial load (edit page / when old value exists)
+          if (assignmentSelect.value) {
+              loadEntriesByAssignment();
+          }
       }
+
+      // === Enable all disabled selects before form submit ===
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                // Enable entry select so its value gets submitted
+                if (entrySelect && entrySelect.disabled) {
+                    entrySelect.disabled = false;
+                }
+                // If new entry is hidden, ensure required is removed
+                if (newEntryInput && newEntryContainer && newEntryContainer.style.display === 'none') {
+                    newEntryInput.required = false;
+                }
+            });
+        }
 
       // ---------- rank during completion autofill ----------
       const pmCodeEl = document.getElementById('pm_code');
-      // dateEl + rankEl already declared above
 
       if (!pmCodeEl || !dateEl || !rankEl) return;
 
