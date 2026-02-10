@@ -36,7 +36,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-    Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::delete('users/destroy', [UsersController::class, 'massDestroy'])
         ->name('users.massDestroy');
     Route::resource('users', UsersController::class);
@@ -114,7 +114,7 @@ Route::get('/', function () {
         ->name('pfts.massDestroy');
     Route::resource('pfts', PftController::class);
     Route::get('/pfts-list', [PftController::class, 'list'])->name('pfts.list'); // AJAX
-    
+
     Route::delete('assignmenthistories/destroy', [AssignmentHistoryController::class, 'massDestroy'])
         ->name('assignmenthistories.massDestroy');
     Route::resource('assignmenthistories', AssignmentHistoryController::class);
@@ -144,7 +144,7 @@ Route::get('/', function () {
         ->name('pfthistories.massDestroy');
     Route::resource('pfthistories', PftHistoryController::class);
     Route::get('/pfthistories-list', [PftHistoryController::class, 'list'])->name('pfthistories.list');
-    
+
     Route::delete('careeradvising/destroy', [CareerAdvisingController::class, 'massDestroy'])
         ->name('careeradvising.massDestroy');
     Route::resource('careeradvising', CareerAdvisingController::class);
@@ -170,7 +170,7 @@ Route::get('/', function () {
     Route::get('/schoolingnames-list', [SchoolingNameController::class, 'list'])->name('schoolingnames.list'); // AJAX
 
     Route::get('schoolings/ajax/rank-during-completion', [SchoolingsController::class, 'rankDuringCompletion'])
-    ->name('schoolings.rankDuringCompletion');
+        ->name('schoolings.rankDuringCompletion');
 
 
     Route::resource('schoolings', SchoolingsController::class)
@@ -178,16 +178,15 @@ Route::get('/', function () {
 
 
     Route::get('/schoolings/compute-points', [SchoolingsController::class, 'computePoints'])
-    ->name('schoolings.computePoints');
+        ->name('schoolings.computePoints');
 
 
-<<<<<<< HEAD
     Route::post('/assignmenthistories/compute-year-earned', [AssignmentHistoryController::class, 'computeYearEarned'])
         ->name('assignmenthistories.computeYearEarned');
 
-    
+
     Route::get('officers/bulk/create', [OfficersController::class, 'bulkCreate'])
-    ->name('officers.bulkcreate');
+        ->name('officers.bulkcreate');
 
     Route::post('officers/bulk/store', [OfficersController::class, 'bulkStore'])
         ->name('officers.bulkstore');
@@ -207,16 +206,14 @@ Route::get('/', function () {
 
 
     Route::get('schoolings/{schooling}/add-entry', [SchoolingsController::class, 'createFromExisting'])
-    ->name('schoolings.add-entry');
+        ->name('schoolings.add-entry');
 
-=======
     Route::get('awardhistories/date-rank-at-date', [AwardHistoryController::class, 'dateRankAtDate'])
-  ->name('awardhistories.dateRankAtDate');
+        ->name('awardhistories.dateRankAtDate');
+
+    Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 
 
->>>>>>> dev-officer-award
 });
 
 Auth::routes();
-
-Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
