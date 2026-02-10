@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assignment;
 use App\Models\SchoolingName;
 use Illuminate\Http\Request;
 use Gate;
@@ -49,6 +50,14 @@ class SchoolingNameController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schoolingname = SchoolingName::find(1);
+        $schoolingname->fill([
+            'type_id' => null,
+        ]);
+
+        $assignments = Assignment::where('type_id', 5)
+            ->orderBy('name')
+            ->pluck('name', 'id');
+
         $columnHidden = array_merge($schoolingname->getDates(), ['id']);     
         
         $data_items = [
@@ -57,6 +66,7 @@ class SchoolingNameController extends Controller
             "column_labels" => $this->config_data->columnLabels,
             "operation_type" => "create",
             "optional_fields" => $this->config_data->optionalFields,
+            "assignments" => $assignments,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }

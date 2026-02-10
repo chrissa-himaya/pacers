@@ -15,5 +15,6 @@ class SchoolingName extends Model implements Auditable
     public $table = 'schoolingnames';
     protected $fillable = [
         'name',
+        'assignment_id',
     ];
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DateRank;
 use App\Models\Rank;
+use App\Models\Officer;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,9 +48,19 @@ class DateRankController extends Controller
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $daterank = DateRank::find(1);    
         $daterank->fill([
+            'pm_code' => null,
             'rank_id' => null,
+            'date' => null,
         ]);
         $ranks = Rank::all()->pluck('code', 'id');
+        $pmcodes = Officer::query()
+            ->select('pm_code')
+            ->whereNotNull('pm_code')
+            ->where('pm_code', '!=', '')
+            ->distinct()
+            ->orderBy('pm_code')
+            ->pluck('pm_code');
+
         $data_items = [
             "data" => $daterank,
             "column_hidden" => $this->config_data->columnHidden,
@@ -57,6 +68,7 @@ class DateRankController extends Controller
             "operation_type" => "create",
             "optional_fields" => $this->config_data->optionalFields,
             "ranks" => $ranks,
+            "pm_codes" => $pmcodes,
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -97,7 +109,16 @@ class DateRankController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $columnHidden = array_merge($daterank->getDates(), ['id']);   
-        $ranks = Rank::all()->pluck('code', 'id')   ;
+        $ranks = Rank::all()->pluck('code', 'id');
+        
+        $pmcodes = Officer::query()
+            ->select('pm_code')
+            ->whereNotNull('pm_code')
+            ->where('pm_code', '!=', '')
+            ->distinct()
+            ->orderBy('pm_code')
+            ->pluck('pm_code');
+
         $data_items = [
             "data" => $daterank,
             "column_hidden" => $columnHidden,
@@ -105,7 +126,9 @@ class DateRankController extends Controller
             "operation_type" => "edit",
             "optional_fields" => $this->config_data->optionalFields,
             "ranks" => $ranks,
+            "pm_codes" => $pmcodes,  // ADD THIS LINE
         ];
+        
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
@@ -149,36 +172,33 @@ class DateRankController extends Controller
         $orderIndex = $request->input('order.0.column', 0);
         $orderDir   = $request->input('order.0.dir', 'asc');
 
-        // Validate order direction
         if (!in_array($orderDir, ['asc', 'desc'])) {
             $orderDir = 'asc';
         }
 
         $orderColumn = $columns[$orderIndex] ?? 'id';
 
-        // Base query
         $query = DateRank::query();
 
-        // Search filter
         $search = $request->input('search.value');
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+                $q->where('pm_code', 'like', "%{$search}%")
+                  ->orWhereHas('ranks', function($r) use ($search) {
+                      $r->where('code', 'like', "%{$search}%");
+                  });
             });
         }
 
-        // Total records
         $totalData = DateRank::count();
         $filteredData = $query->count();
 
-        // Apply ordering and pagination
         $data = $query->orderBy($orderColumn, $orderDir)
                       ->skip($start)
                       ->take($length)
-                       ->with(relations: 'ranks') 
+                      ->with('ranks') 
                       ->get();
 
-        // Return JSON in DataTables format
         return response()->json([
             'draw'            => intval($request->input('draw')),
             'recordsTotal'    => $totalData,

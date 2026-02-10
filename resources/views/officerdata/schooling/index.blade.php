@@ -33,7 +33,7 @@
                     <th>Action</th>
                 </tr>
                 <tr class="filter-row">
-                    <th></th> <!-- Nr column usually no filter -->
+                    <th></th>
                     <th><input type="text" placeholder="Search PM Code" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Entry" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search Class" class="form-control form-control-sm" /></th>
@@ -65,16 +65,17 @@
     let canView = @json(auth()->user()->can($config_data->module_perm_name.'_show', App\Models\Schooling::class));
     let canUpdate = @json(auth()->user()->can($config_data->module_perm_name.'_edit', App\Models\Schooling::class));
     let canDelete = @json(auth()->user()->can($config_data->module_perm_name.'_delete', App\Models\Schooling::class));
+    let canCreate = @json(auth()->user()->can($config_data->module_perm_name.'_create', App\Models\Schooling::class));
     let url_route = "{{ $config_data->module_route }}";
 
         const table = $('#dataTable').DataTable({
             processing: true,
             serverSide: true,
-            ordering: false,     // disable ordering UI
-            order: [],           // remove default order 
+            ordering: false,
+            order: [],
             ajax: "{{ route("$config_data->module_route.list") }}",
-            pageLength: 50,                 // ⭐ default rows per page
-            lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
+            pageLength: 50,
+            lengthMenu: [ [10,25,50,100], [10,25,50,100] ],
             scrollX: true,
             columns: [
                 {
@@ -88,7 +89,7 @@
                 },
                 { data: 'pm_code', searchable: true },
                 { data: 'schoolingnames.name', searchable: true},
-                { data: 'classnames.year', searchable: true},
+                { data: 'classname', searchable: true},
                 { data: 'schoolingunits.name', searchable: true},
                 { data: 'assignments.name', searchable: true},
                 { data: 'date_completed', searchable: true },
@@ -134,6 +135,13 @@
                                 </button>
                             </form>
                             `;
+                        }
+                        if(canCreate) {
+                            buttons += `
+                                <a href="/${url_route}/${data}/add-entry" class="btn btn-sm btn-info" title="Add new entry for same officer">
+                                    <i class="fas fa-plus"></i> Add Entry
+                                </a>
+                            `;
                         }                   
                             return buttons;
                     },
@@ -147,7 +155,6 @@
         $('#dataTable thead th').each(function (i) {
 
             if (i === 0 || i === 17) return;
-            // put an input under the header text
             $(this).append('<br><input type="text" placeholder="Search" style="width: 100%;">');
         });
 
@@ -159,9 +166,8 @@
             let timer = null;
             const column = this;
 
-            //get column metadata from DataTables
             const columnSettings = table.settings()[0].aoColumns[i];
-            const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
+            const columnDataName = columnSettings.data;
             const columnTitle = $(column.header()).text().trim();
 
             $('input', this.header()).on('input change clear', function () {
