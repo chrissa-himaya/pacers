@@ -181,6 +181,7 @@ Route::get('/', function () {
     ->name('schoolings.computePoints');
 
 
+<<<<<<< HEAD
     Route::post('/assignmenthistories/compute-year-earned', [AssignmentHistoryController::class, 'computeYearEarned'])
         ->name('assignmenthistories.computeYearEarned');
 
@@ -208,6 +209,12 @@ Route::get('/', function () {
     Route::get('schoolings/{schooling}/add-entry', [SchoolingsController::class, 'createFromExisting'])
     ->name('schoolings.add-entry');
 
+=======
+    Route::get('awardhistories/date-rank-at-date', [AwardHistoryController::class, 'dateRankAtDate'])
+  ->name('awardhistories.dateRankAtDate');
+
+
+>>>>>>> dev-officer-award
 });
 
 Auth::routes();
