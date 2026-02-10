@@ -391,6 +391,7 @@ class AssignmentHistoryController extends Controller
             'end_date',
             'rank_during_completion',
             'year_earned',
+            'computed_points', 
             null,
         ];
 
@@ -408,6 +409,7 @@ class AssignmentHistoryController extends Controller
             'end_date',
             'rank_during_completion',
             'year_earned',
+            'computed_points', 
         ];
 
         $start = (int) $request->input('start', 0);
