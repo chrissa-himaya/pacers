@@ -4,12 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Assignment;
-use App\Models\SchoolingEntry;
-use App\Models\SchoolingUnit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
-
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 
 class AssignmentHistory extends Model implements Auditable
@@ -31,6 +27,9 @@ class AssignmentHistory extends Model implements Auditable
         'end_date',
         'rank_during_completion',
         'year_earned',
+        'computed_points',
+        'points_last_recomputed_at',
+
     ];
 
     public function officer()

@@ -391,30 +391,30 @@
 
             // --- Bind events ---
             // Native change
-            rpSelects.forEach(sel => sel.addEventListener('change', validateRanks));
-            rankSel?.addEventListener('change', validateRanks);
+            rpSelects.forEach(sel => sel.addEventListener('change', validateSameRank));
+            rankSel?.addEventListener('change', validateSameRank);
 
             // Select2 triggers (more reliable than plain change in some cases)
             if (window.jQuery) {
                 const $doc = jQuery(document);
 
                 // rankpoints
-                $doc.on('select2:select select2:clear change', 'select[name="min_month_rankpoint_id"],select[name="min_point_rankpoint_id"],select[name="max_month_rankpoint_id"],select[name="max_point_rankpoint_id"]', validateRanks);
+                $doc.on('select2:select select2:clear change', 'select[name="min_month_rankpoint_id"],select[name="min_point_rankpoint_id"],select[name="max_month_rankpoint_id"],select[name="max_point_rankpoint_id"]', validateSameRank);
 
                 // rank
-                $doc.on('select2:select select2:clear change', '#rank_id', validateRanks);
+                $doc.on('select2:select select2:clear change', '#rank_id', validateSameRank);
 
                 // when assignment type changes, your applyTypeMode() rebuilds the options + re-inits select2
                 // so we validate AFTER it runs.
                 $doc.on('change', '#assignment_id', function () {
                     // let applyTypeMode finish first
-                    setTimeout(validateRanks, 0);
+                    setTimeout(validateSameRank, 0);
                 });
             }
 
             // Validate on submit
             form.addEventListener('submit', function (e) {
-                if (!validateRanks()) {
+                if (!validateSameRank()) {
                     e.preventDefault();
                     e.stopPropagation();
                     alertBox?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -422,7 +422,7 @@
             });
 
             // Initial run (edit page loads with pre-selected values)
-            validateRanks();
+            validateSameRank();
         })();
     
     </script>

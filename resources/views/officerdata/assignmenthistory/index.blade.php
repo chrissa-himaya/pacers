@@ -27,6 +27,7 @@
                     <th>end_date</th>
                     <th>rank_during_completion</th>
                     <th>year_earned</th>
+                    <th>computed_points</th>
                     <th>Action</th>
                 </tr>
                 <tr class="filter-row">
@@ -43,6 +44,7 @@
                     <th><input type="date" placeholder="Search start_date" class="form-control form-control-sm" /></th>
                     <th><input type="date" placeholder="Search end_date" class="form-control form-control-sm" /></th>
                     <th><input type="text" placeholder="Search rank_during_completion" class="form-control form-control-sm" /></th>
+                    <th></th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -96,6 +98,92 @@
                             };
                             return map[data] ?? data ?? '';
                         }, searchable: true
+    const table = $('#dataTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ordering: false,     // disable ordering UI
+            order: [],           // remove default order 
+            ajax: "{{ route("$config_data->module_route.list") }}",
+            pageLength: 50,                 // ⭐ default rows per page
+            lengthMenu: [ [10,25,50,100], [10,25,50,100] ], // dropdown options
+            scrollX: true,
+            columns: [
+                {
+                    data: null,
+                    title: 'Nr',
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    },
+                    orderable: false,
+                    searchable: false
+                },
+                { data: 'pm_code', searchable: true },
+                { data: 'designations.name', searchable: true },
+                { data: 'units.name', searchable: true },
+                { data: 'pamus.name', searchable: true },
+                { data: 'assignments.name', searchable: true },
+                {
+                    data: 'pri_sec_spec',
+                    render: function (data) {
+                        const map = {
+                            primary: 'Primary',
+                            secondary: 'Secondary',
+                            special: 'Special'
+                        };
+                        return map[data] ?? data ?? '';
+                    }, searchable: true
+                },
+                { data: 'assignments.types.name' },
+                {
+                    data: 'geography',
+                    render: function (data) {
+                        const map = {
+                            ncr: 'NCR',
+                            luzon: 'Luzon',
+                            visayas: 'Visayas',
+                            mindanao: 'Mindanao',
+                            foreign: 'Foreign Duty'
+                        };
+                        return map[data] ?? data ?? '';
+                    }, searchable: true
+                },
+                { data: 'start_date', searchable: true },
+                { data: 'end_date', searchable: true },
+                { data: 'rank_during_completion', searchable: true },
+                { data: 'year_earned', searchable: true },
+                { data: 'computed_points', searchable: true },
+                {
+                    data: 'id',
+                    render: function (data) {
+                        let buttons = '';
+                        if(canView) {
+                            buttons += `
+                                <a href="/${url_route}/${data}" class="btn btn-sm btn-success">
+                                    View
+                                </a>
+                            `;
+                        }
+
+                        if(canUpdate) {
+                            buttons += `
+                                <a href="/${url_route}/${data}/edit" class="btn btn-sm btn-warning">
+                                    Edit
+                                </a>
+                            `;
+                        }
+
+                        if (canDelete) {
+                            buttons += `
+                            <form action="/${url_route}/${data}" method="POST" style="display:inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
+                                    Delete
+                                </button>
+                            </form>
+                            `;
+                        }                   
+                            return buttons;
                     },
                     { data: 'assignment_type.name', searchable: true },
                     {
@@ -153,6 +241,44 @@
                     }     
                         
                 ],
+        $('#dataTable thead tr.filter-row th').each(function (i) {
+            if (i === 0 || i === 14) return; // 0 = Nr, 14 = Action (adjust if needed)
+
+            $('input', this).on('input change', function () {
+                table.column(i).search(this.value).draw();
+            });
+        });
+
+       
+        table.columns().every(function (i) {
+
+            if (i === 0 || i === 14) return;
+
+            let timer = null;
+            const column = this;
+
+            // 👇 get column metadata from DataTables
+            const columnSettings = table.settings()[0].aoColumns[i];
+            const columnDataName = columnSettings.data;   // <-- THIS is what Laravel receives
+            const columnTitle = $(column.header()).text().trim();
+
+            $('input', this.header()).on('input change clear', function () {
+                const value = this.value;
+
+                clearTimeout(timer);
+
+                timer = setTimeout(function () {
+
+                    console.log('Searching column ->',
+                        'index:', i,
+                        'data:', columnDataName,
+                        'title:', columnTitle,
+                        'value:', value
+                    );
+
+                    column.search(value).draw();
+
+                }, 500);
             });
 
             $('#dataTable thead th').each(function (i) {
