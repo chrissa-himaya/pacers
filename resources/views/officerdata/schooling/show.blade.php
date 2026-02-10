@@ -1,18 +1,72 @@
 @extends('layouts.app')
 @section('content')
 
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  .sf{font-family:'DM Sans',sans-serif}.sf .card{border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}
+  .sf-hdr{background:linear-gradient(135deg,#1e3a5f,#2d5a8e);color:#fff;padding:10px 18px;display:flex;align-items:center;justify-content:space-between}
+  .sf-hdr h4{margin:0;font-weight:700;font-size:1.05rem;letter-spacing:.3px}
+  .sf-hdr .badge-op{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-left:8px}
+  .badge-op.view{background:rgba(255,255,255,.2)}.badge-op.edit{background:#f0ad4e;color:#3d2e00}.badge-op.create{background:#5cb85c;color:#fff}
+  .sf-legend{display:flex;gap:16px;padding:5px 18px;font-size:.68rem;font-weight:500;color:#777;border-bottom:1px solid #eee;background:#fcfcfd}
+  .sf-legend .li{display:flex;align-items:center;gap:4px}.sf-legend .sw{width:10px;height:10px;border-radius:2px;border:1px solid rgba(0,0,0,.08)}
+  .sw-ro{background:#a4a7ab}.sw-ed{background:#fff7d5}.sw-au{background:#daf2e0}
+  .sb{border-radius:7px;padding:8px 12px 6px;margin-bottom:6px;position:relative}
+  .sb::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:7px 0 0 7px}
+  .sb-ro{background:#f0f4f8;border:1px solid #d6e0eb}.sb-ro::before{background:#7b9bc0}
+  .sb-ed{background:#fffdf5;border:1px solid #efe5c7}.sb-ed::before{background:#d4a843}
+  .sb-au{background:#f2faf4;border:1px solid #c8e6ce}.sb-au::before{background:#5ba96e}
+  .sb-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+  .sb-lbl .dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+  .sb-ro .sb-lbl{color:#5a7a9b}.sb-ro .dot{background:#7b9bc0}
+  .sb-ed .sb-lbl{color:#9a7d2e}.sb-ed .dot{background:#d4a843}
+  .sb-au .sb-lbl{color:#3d7a4f}.sb-au .dot{background:#5ba96e}
+  .sf-steps{display:flex;margin-bottom:6px}
+  .sf-step{flex:1;text-align:center;padding:4px;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#aaa;background:#f0f0f0;border-bottom:2px solid #ddd}
+  .sf-step.on{color:#2d5a8e;background:#e8f0fa;border-bottom-color:#2d5a8e}
+  .sf-step .sn{display:inline-flex;width:14px;height:14px;border-radius:50%;background:#ccc;color:#fff;font-size:.55rem;align-items:center;justify-content:center;margin-right:2px}
+  .sf-step.on .sn{background:#2d5a8e}.sf-step:first-child{border-radius:5px 0 0 0}.sf-step:last-child{border-radius:0 5px 0 0}
+  .sf label{font-size:.7rem;font-weight:600;color:#444;margin-bottom:0;line-height:1.1}
+  .sf .form-control,.sf .form-control-sm{font-size:.76rem;border-radius:4px;padding:3px 6px;height:28px}
+  .sf .form-control:focus{border-color:#2d5a8e;box-shadow:0 0 0 2px rgba(45,90,142,.1)}
+  .sf .form-control[disabled],.sf .form-control[readonly]{background-color:#e9eef3;color:#555;border-color:#d0d8e0;cursor:default}
+  .sb-au .form-control[readonly]{background-color:#e3f2e7;border-color:#b0d9b8;color:#2d6e3f;font-family:'JetBrains Mono',monospace;font-size:.73rem}
+  .sf select.form-control{height:28px;padding:1px 6px}
+  .btn-fetch{background:linear-gradient(135deg,#2d5a8e,#3a7bd5);color:#fff;border:none;border-radius:4px;padding:3px 12px;font-size:.76rem;font-weight:600;height:28px;white-space:nowrap}
+  .btn-fetch:hover{box-shadow:0 3px 10px rgba(45,90,142,.3);color:#fff}
+  .sf-actions{display:flex;justify-content:flex-end;gap:8px;background:#dce0e5;border-top:1px solid #e9ecef;border-radius:0 0 10px 10px}
+  .btn-save{background:linear-gradient(135deg,#2d8a4e,#3db562);color:#fff;border:none;border-radius:5px;padding:5px 20px;font-weight:600;font-size:.8rem;height: 35px; margin-top: 4px;}.btn-save:hover{box-shadow:0 3px 10px rgba(45,138,78,.3);color:#fff}
+  .btn-update{background:linear-gradient(135deg,#c77c0a,#e6a21a);color:#fff;border:none;border-radius:5px;padding:5px 20px;font-weight:600;font-size:.8rem;height: 35px; margin-top: 4px;}.btn-update:hover{box-shadow:0 3px 10px rgba(199,124,10,.3);color:#fff}
+  .btn-back{background:#a9adb1;color:#0d0f11;border:none;border-radius:5px;padding:5px 16px;font-weight:600;font-size:.8rem;height: 35px; margin-top: 4px;}.btn-back:hover{background:#ffffff;color:#333}
+  .rc{border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}
+  .rc .card-header{background:linear-gradient(135deg,#3a3f47,#4a5568);color:#fff;padding:7px 14px;border:none}
+  .rc .card-header h6{font-weight:600;font-size:.78rem;margin:0}
+  .rc .table th{background:#f7f8fa;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#555;border-bottom:2px solid #e2e6ea;padding:4px 3px}
+  .rc .table td{font-size:.72rem;padding:3px;vertical-align:middle}.rc .table tbody tr:hover{background:#f0f7ff}
+  .select2-container--default .select2-selection--single{border-radius:4px!important;border-color:#ced4da!important;height:28px!important;min-height:28px!important}
+  .select2-container--default .select2-selection--single .select2-selection__rendered{line-height:26px!important;font-size:.76rem}
+  .select2-container--default .select2-selection--single .select2-selection__arrow{height:26px!important}
+  .gx{--bs-gutter-x:.35rem;--bs-gutter-y:.2rem}
+
+  .btn.btn-primary{border: none; border-radius: 5px; padding: 5px 16px; font-weight: 600; font-size: .8rem; height: 35px; margin-top: 4px;}.btn-primary:hover{background:#a0b9f1;}
+</style>
+
+  <div class="sf">
   <div class="card">
-    <div class="card-header">
-      @if($data_items['operation_type'] == "show")
-        <h4 class="d-inline">{{$config_data->module_name}} | VIEW</h4>
-      @elseif($data_items['operation_type'] == "edit")
-        <h4 class="d-inline">{{$config_data->module_name}} | EDIT</h4>
-      @elseif($data_items['operation_type'] == "create")
-        <h4 class="d-inline">{{$config_data->module_name}} | CREATE</h4>
-      @endif
+    <div class="sf-hdr">
+      <h4><i class="fas fa-graduation-cap me-1"></i>{{ $config_data->module_name }}
+        @if($data_items['operation_type'] == "show")<span class="badge-op view">View</span>
+        @elseif($data_items['operation_type'] == "edit")<span class="badge-op edit">Edit</span>
+        @elseif($data_items['operation_type'] == "create")<span class="badge-op create">New</span>@endif
+      </h4>
+    </div>
+    <div class="sf-legend">
+      <div class="li"><span class="sw sw-ro"></span> Read-only</div>
+      <div class="li"><span class="sw sw-ed"></span> Your inputs</div>
+      <div class="li"><span class="sw sw-au"></span> Auto-computed</div>
     </div>
 
-    <div class="card-body">
+    <div class="card-body py-1 px-2">
       <form action="{{ $data_items['operation_type'] === 'create'
     ? route("$config_data->module_route.store")
     : route("$config_data->module_route.update", [$data_items['data']->id]) }}" method="POST"
@@ -21,121 +75,134 @@
         @if($data_items["operation_type"] == "edit")
           @method('PUT')
         @endif
+
+        @php
+          $op = $data_items['operation_type'] ?? '';
+          $hasOfficer = isset($data_items['officerData']) && !empty($data_items['officerData']?->NAME);
+          $hasSessionOfficer = session('name');
+          $showInputs = ($op === 'create' && $hasSessionOfficer) || ($op === 'edit' && $hasOfficer) || ($op === 'show' && $hasOfficer);
+        @endphp
+
+        <div class="sf-steps">
+          <div class="sf-step on"><span class="sn">1</span>Officer</div>
+          <div class="sf-step {{ $showInputs ? 'on' : '' }}"><span class="sn">2</span>Info</div>
+          <div class="sf-step {{ $showInputs ? 'on' : '' }}"><span class="sn">3</span>Schooling</div>
+          <div class="sf-step {{ $showInputs ? 'on' : '' }}"><span class="sn">4</span>Points</div>
+        </div>
         
-        <!-- OFFICER INFORMATION -->
-        <div class="row">
-          <div class="col-md-3">
-            <label>PM Code</label>
-            <div class="input-group">
+        {{-- OFFICER SELECTION & INFORMATION --}}
+        <div class="sb sb-ro">
+          <div class="sb-lbl"><span class="dot"></span> Officer Selection &amp; Information</div>
+          <div class="row gx align-items-end">
+            <div class="col" style="min-width:170px;max-width:210px;">
+              <label>PM Code <span class="text-danger">*</span></label>
               @php
                 $key = 'pm_code';
                 $current = old('pm_code', $data_items['data']->pm_code ?? '');
               @endphp
 
               @if($data_items["operation_type"] !== "show")
-                <select name="pm_code" id="pm_code" class="form-control select2">
-                  <option value="">-- Select PM Code --</option>
+                <div class="d-flex gap-1">
+                  <select name="pm_code" id="pm_code" class="form-control select2" style="flex:1">
+                    <option value="">— PM Code —</option>
 
-                  @foreach(($data_items['pm_codes'] ?? []) as $pmcode)
-                    <option value="{{ $pmcode }}" {{ $current == $pmcode ? 'selected' : '' }}>
-                      {{ $pmcode }}
-                    </option>
-                  @endforeach
-                </select>
+                    @foreach(($data_items['pm_codes'] ?? []) as $pmcode)
+                      <option value="{{ $pmcode }}" {{ $current == $pmcode ? 'selected' : '' }}>
+                        {{ $pmcode }}
+                      </option>
+                    @endforeach
+                  </select>
 
-                <button type="submit" class="btn btn-info" name="action" value="Fetch Data">
-                  Fetch Data
-                </button>
+                  <button type="submit" class="btn btn-fetch" name="action" value="Fetch Data">
+                    <i class="fas fa-download"></i> Fetch
+                  </button>
+                </div>
               @else
                 <input type="text" class="form-control" value="{{ $current }}" disabled>
               @endif
             </div>
+            <div class="col" style="max-width:60px">
+              <label>Rank</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->RANK : session('rank')}}" disabled>
+            </div>
+            <div class="col" style="min-width:140px">
+              <label>Name</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->NAME : session('name')}}" disabled>
+            </div>
+            <div class="col" style="max-width:70px">
+              <label>AFPOS</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPOS : session('afpos')}}" disabled>
+            </div>
+            <div class="col" style="max-width:70px">
+              <label>AFPSN</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPSN : session('afpsn')}}" disabled>
+            </div>
+            <div class="col" style="max-width:45px">
+              <label>Sex</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->SEX : session('sex')}}" disabled>
+            </div>
+            <div class="col" style="max-width:90px">
+              <label>DOB</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOB : session('dob')}}" disabled>
+            </div>
+            <div class="col" style="max-width:90px">
+              <label>Date Ret</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->RET : session('date_ret')}}" disabled>
+            </div>
           </div>
-          <div class="col-md-1">
-            <label class="small mb-1">Rank</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->RANK : session('rank')}}" disabled>
-          </div>
-          <div class="col-md-2">
-            <label class="small mb-1">Name</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->NAME : session('name')}}" disabled>
-          </div>
-          <div class="col-md-1">
-            <label class="small mb-1">AFPOS</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPOS : session('afpos')}}" disabled>
-          </div>
-          <div class="col-md-1">
-            <label class="small mb-1">AFPSN</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPSN : session('afpsn')}}" disabled>
-          </div>
-          <div class="col-md-1">
-            <label class="small mb-1">Sex</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->SEX : session('sex')}}" disabled>
-          </div>
-          <div class="col-md-1">
-            <label class="small mb-1">DOB</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOB : session('dob')}}" disabled>
-          </div>
-          <div class="col-md-1">
-            <label class="small mb-1">Date Ret</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->RET : session('date_ret')}}" disabled>
-          </div>
-        </div>
 
-        <div class="row mt-2">
-          <div class="col-md-1">
-            <label class="small mb-1">DOR</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOR : session('dor')}}" disabled>
-          </div>
-          <div class="col-md-2">
-            <label class="small mb-1">SOC</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
-          </div>
-          <div class="col-md-2">
-            <label class="small mb-1">SIG</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
-          </div>
-          <div class="col-md-3">
-            <label class="small mb-1">Current Designation</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->designations->name : session('designation')}}" disabled>
-          </div>
-          <div class="col-md-3">
-            <label class="small mb-1">Current Unit</label>
-            <input type="text" class="form-control form-control-sm"
-              value="{{isset($data_items['officerData']) ? $data_items['officerData']->units->name : session('unit')}}" disabled>
+          <div class="row gx mt-1">
+            <div class="col-md-2">
+              <label>DOR</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOR : session('dor')}}" disabled>
+            </div>
+            <div class="col-md-2">
+              <label>SOC</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
+            </div>
+            <div class="col-md-2">
+              <label>SIG</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
+            </div>
+            <div class="col-md-3">
+              <label>Current Designation</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->designations->name : session('designation')}}" disabled>
+            </div>
+            <div class="col-md-3">
+              <label>Current Unit</label>
+              <input type="text" class="form-control"
+                value="{{isset($data_items['officerData']) ? $data_items['officerData']->units->name : session('unit')}}" disabled>
+            </div>
           </div>
         </div>
         <hr>
         
         <!-- CAREER ADVISER INPUTS -->
-         @php
-            $op = $data_items['operation_type'] ?? '';
-            $hasOfficer = isset($data_items['officerData']) && !empty($data_items['officerData']?->NAME);
-            $hasSessionOfficer = session('name');
-          @endphp
-
           @if(
-            ($op === 'create' && $hasSessionOfficer)
-            || ($op === 'edit' && $hasOfficer)
-            || ($op === 'show' && $hasOfficer)
+          ($op === 'create' && $hasSessionOfficer)
+          || ($op === 'edit' && $hasOfficer)
+          || ($op === 'show' && $hasOfficer)
           )
-          <div class="row mt-3">
-            {{-- STEP 1: Assignment Category (MUST SELECT FIRST) --}}
-            <div class="col-md-3">
+
+      <div class="sb sb-ed">
+        <div class="sb-lbl"><span class="dot"></span> Schooling Details</div>
+          <div class="row gx align-items-end">
+            <div class="col" style="min-width:170px">
               <label>Assignment Category <span class="text-danger">*</span></label>
               @if(in_array($op, ['create','edit']))
                 <select name="assignment_id" id="assignment_id" class="form-control select2">
-                  <option value="">-- Select Category First --</option>
+                  <option value="">— Category —</option>
                   @foreach($data_items['assignments'] as $id => $entry)
                     <option value="{{ $id }}" 
                       @selected(old('assignment_id', $data_items['data']->assignment_id ?? session('assignment_id')) == $id)>
@@ -144,7 +211,7 @@
                   @endforeach
                 </select>
                 @error('assignment_id')
-                  <div class="text-danger small mt-1">{{ $message }}</div>
+                  <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
                 @enderror
               @else
                 <input type="text" class="form-control" 
@@ -152,31 +219,27 @@
               @endif
             </div>
 
-            {{-- STEP 2: Entry (Filtered by Assignment) --}}
-            <div class="col-md-3">
+            <div class="col" style="min-width:170px">
               <label>Entry <span class="text-danger">*</span></label>
               @if(in_array($op, ['create','edit']))
                 <select name="schoolingname_id" id="schoolingname_id" class="form-control select2" disabled>
-                  <option value="">-- Select Assignment First --</option>
+                  <option value="">— Select Assignment First —</option>
                 </select>
                 
-                {{-- Hidden container for "Create New Entry" input --}}
-                <div id="new_entry_container" style="display:none; margin-top:10px;">
-                  <label>New Entry Name <span class="text-danger">*</span></label>
+                <div id="new_entry_container" style="display:none; margin-top:3px;">
                   <input type="text" 
                          name="new_entry_name" 
                          id="new_entry_name" 
                          class="form-control" 
-                         placeholder="e.g., PMA Class 2025"
+                         placeholder="New entry name"
                          value="{{ old('new_entry_name') }}">
-                  <small class="text-muted">This entry will be linked to the selected assignment</small>
                   @error('new_entry_name')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
+                    <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
                   @enderror
                 </div>
                 
                 @error('schoolingname_id')
-                  <div class="text-danger small mt-1">{{ $message }}</div>
+                  <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
                 @enderror
               @else
                 <input type="text" class="form-control" 
@@ -184,18 +247,19 @@
               @endif
             </div>
 
-            <div class="col-md-3" style="max-width: 12%; flex: 0 0 12%;">
+            <div class="col" style="max-width:90px">
               <label>Class</label>
               <input type="text" id="classname" name="classname" class="form-control"
                 value="{{ old('classname', $op === 'create' ? '' : ($data_items['data']->classname ?? '')) }}"
+                placeholder="Class"
                 {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
 
-            <div class="col-md-3">
+            <div class="col" style="min-width:150px">
               <label>Schooling Unit</label>
               @if(in_array($op, ['create','edit']))
                 <select name="schooling_unit_id" id="schooling_unit_id" class="form-control select2">
-                  <option value="">-</option>
+                  <option value="">— Unit —</option>
                   @foreach($data_items['schoolingUnits'] as $su)
                     <option value="{{ $su->id }}" data-location="{{ $su->location }}"
                       @selected(old('schooling_unit_id', $data_items['data']->schooling_unit_id ?? session('schooling_unit_id')) == $su->id)>
@@ -208,64 +272,61 @@
               @endif
             </div>
 
-            <div class="col-md-3" style="max-width: 12%; flex: 0 0 12%;">
-              <label>Local/Foreign</label>
+            <div class="col" style="max-width:65px">
+              <label>Loc/For</label>
               <input type="text" id="schooling_unit_location" name="school_location" class="form-control"
                 value="{{ old('school_location', session('school_location', $data_items['data']->schoolingunits->location ?? '')) }}"
                 readonly>
             </div>
-          </div>
 
-          <div class="row mt-3">
-            <div class="col-md-3">
-              <label>Date completed</label>
+            <div class="col" style="max-width:140px">
+              <label>Date Completed</label>
               <input type="date" id="date_completed" name="date_completed" class="form-control"
                 value="{{ old('date_completed', $op === 'create' ? '' : ($data_items['data']->date_completed ?? '')) }}"
                 {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
 
-            <div class="col-md-3">
+            <div class="col" style="max-width:95px">
               <label>Rating</label>
               <input type="number" 
-                     step="0.0001"
+                     step="any"
                      name="rating" 
                      class="form-control"
-                     placeholder="e.g., 92.86"
+                     placeholder="92.86"
                      value="{{ old('rating', $op === 'create' ? '' : $data_items['data']->rating ?? '') }}"
                      {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
 
-            <div class="col-md-3">
+            <div class="col" style="max-width:80px">
               <label>Standing</label>
               <input type="number" 
                      name="standing" 
                      class="form-control"
-                     placeholder="e.g., 1"
+                     placeholder="1"
                      value="{{ old('standing', $op === 'create' ? '' : $data_items['data']->standing ?? '') }}"
                      {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
 
-            <div class="col-md-3">
-              <label>Total Students</label>
+            <div class="col" style="max-width:80px">
+              <label>Total</label>
               <input type="number" 
                      name="total_student" 
                      class="form-control"
-                     placeholder="e.g., 13"
+                     placeholder="13"
                      value="{{ old('total_student', $op === 'create' ? '' : $data_items['data']->total_student ?? '') }}"
                      {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
           </div>
+        </div>
 
-          <div class="row mt-3">
-            <div class="col-md-3">
-              <input type="number" step="0.0001" id="computed_points" class="form-control"
-                value="{{ old('computed_points', $data_items['data']->computed_points ?? '') }}"
-                hidden>
-            </div>
-          </div>
-
-          <div class="row mt-3 row-cols-7">
-            <div class="col">
+          {{-- COMPUTED POINTS --}}
+        <div class="sb sb-au">
+          <div class="sb-lbl"><span class="dot"></span> Computed Points <span style="text-transform:none;font-weight:400;font-size:.58rem;color:#aaa;margin-left:4px">(auto-calculated)</span></div>
+          <input type="number" step="any" id="computed_points" class="form-control"
+            value="{{ old('computed_points', $data_items['data']->computed_points ?? '') }}"
+            hidden>
+          <div class="row gx align-items-end">
+            <div class="col" style="max-width:70px">
               <label>Rank</label>
               <input type="text" id="rank_during_completion" name="rank_during_completion" class="form-control"
                 value="{{ old('rank_during_completion', $data_items['data']->rank_during_completion ?? '') }}"
@@ -274,49 +335,52 @@
 
             <div class="col">
               <label>2LT</label>
-              <input type="number" step="0.00001" name="seclt" class="form-control"
+              <input type="number" step="any" name="seclt" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? number_format($data_items["data"]->seclt, 5, '.', '') : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
 
             <div class="col">
               <label>1LT</label>
-              <input type="number" step="0.00001" name="firstlt" class="form-control"
+              <input type="number" step="any" name="firstlt" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? number_format($data_items["data"]->firstlt, 5, '.', '') : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
 
             <div class="col">
               <label>CPT</label>
-              <input type="number" step="0.00001" name="cpt" class="form-control"
+              <input type="number" step="any" name="cpt" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? number_format($data_items["data"]->cpt, 5, '.', '') : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
 
             <div class="col">
               <label>MAJ</label>
-              <input type="number" step="0.00001" name="maj" class="form-control"
+              <input type="number" step="any" name="maj" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? number_format($data_items["data"]->maj, 5, '.', '') : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
 
             <div class="col">
               <label>LTC</label>
-              <input type="number" step="0.00001" name="ltc" class="form-control"
+              <input type="number" step="any" name="ltc" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? number_format($data_items["data"]->ltc, 5, '.', '') : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
 
             <div class="col">
               <label>COL</label>
-              <input type="number" step="0.00001" name="col" class="form-control"
+              <input type="number" step="any" name="col" class="form-control"
                 value="{{ (isset($data_items["data"]) && $data_items['operation_type'] === 'show') ? number_format($data_items["data"]->col, 5, '.', '') : '' }}"
                 {{ $data_items['operation_type'] === 'show' ? 'disabled' : '' }} readonly>
             </div>
           </div>
+        </div>
+        @endif
 
-          <div class="mt-4 text-right">
-            @if($op === 'create')
+          <div class="sf-actions">
+          <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i> Back</a>
+          @if($op === 'create' && $showInputs)
               <button type="submit" class="btn btn-primary" name="action" value="Save">
                 <i class="fas fa-save"></i> Save
               </button>
@@ -325,16 +389,12 @@
                 <i class="fas fa-edit"></i> Update
               </button>
             @endif
-          @endif
-          <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back
-          </a>
         </div>
       </form>
     </div>
   </div>
 
-  {{-- ══════════════════════════════════════════════════════════════
+    {{-- ══════════════════════════════════════════════════════════════
        RELATED SCHOOLING RECORDS TABLE
        Shows all schooling records for the same PM Code.
        Visible during: create (after Fetch Data), edit, and show.
@@ -350,32 +410,32 @@
   @endphp
 
   @if($schoolingHistories && $schoolingHistories->count() > 0)
-  <div class="card mt-3">
-    <div class="card-header py-2">
-      <h6 class="mb-0">Related Schooling Records (PM Code: {{ $currentPmCode }})</h6>
+  <div class="card rc mt-2">
+    <div class="card-header">
+      <h6><i class="fas fa-book me-1"></i> Schooling Records — {{ $currentPmCode }}</h6>
     </div>
-    <div class="card-body p-2">
+    <div class="card-body p-1">
       <div class="table-responsive">
-        <table class="table table-sm table-bordered table-striped table-hover">
-          <thead class="table-light">
+        <table class="table table-sm table-bordered table-striped table-hover mb-0">
+          <thead>
             <tr>
-              <th style="width: 90px;">PM Code</th>
+              <th>PM Code</th>
               <th>Entry</th>
-              <th style="width: 70px;">Class</th>
+              <th>Class</th>
               <th>School/Unit</th>
               <th>Category</th>
-              <th style="width: 100px;">Date Completed</th>
-              <th style="width: 70px;">Rating</th>
-              <th style="width: 60px;">Standing</th>
-              <th style="width: 60px;">Total</th>
-              <th style="width: 60px;">Rank</th>
-              <th style="width: 70px;">2LT</th>
-              <th style="width: 70px;">1LT</th>
-              <th style="width: 70px;">CPT</th>
-              <th style="width: 70px;">MAJ</th>
-              <th style="width: 70px;">LTC</th>
-              <th style="width: 70px;">COL</th>
-              <th style="width: 140px;">Actions</th>
+              <th>Completed</th>
+              <th>Rating</th>
+              <th>Standing</th>
+              <th>Total</th>
+              <th>Rank</th>
+              <th>2LT</th>
+              <th>1LT</th>
+              <th>CPT</th>
+              <th>MAJ</th>
+              <th>LTC</th>
+              <th>COL</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -442,29 +502,29 @@
   @endphp
 
   @if($histories && $histories->count() > 0)
-  <div class="card mt-3">
-    <div class="card-header py-2">
-      <h6 class="mb-0">Related Assignment History (PM Code: {{ $ahPmCode }})</h6>
+  <div class="card rc mt-2">
+    <div class="card-header">
+      <h6><i class="fas fa-history me-1"></i> Assignment History — {{ $ahPmCode }}</h6>
     </div>
-    <div class="card-body p-2">
+    <div class="card-body p-1">
       <div class="table-responsive">
-        <table class="table table-sm table-bordered table-striped table-hover datatable-AssignmentHistory">
-          <thead class="table-light">
+        <table class="table table-sm table-bordered table-striped table-hover datatable-AssignmentHistory mb-0">
+          <thead>
             <tr>
-              <th style="width: 90px;">PM Code</th>
-              <th style="width: 90px;">Start</th>
-              <th style="width: 90px;">End</th>
+              <th>PM Code</th>
+              <th>Start</th>
+              <th>End</th>
               <th>Designation</th>
               <th>Sub unit</th>
               <th>Unit</th>
               <th>PAMU</th>
               <th>Category</th>
-              <th style="width: 70px;">Type</th>
-              <th style="width: 100px;">Assign Type</th>
-              <th style="width: 80px;">Geography</th>
-              <th style="width: 60px;">Rank</th>
-              <th style="width: 80px;">Years</th>
-              <th style="width: 140px;">Actions</th>
+              <th>Type</th>
+              <th>Assign Type</th>
+              <th>Geography</th>
+              <th>Rank</th>
+              <th>Years</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -515,6 +575,7 @@
     </div>
   </div>
   @endif
+</div>
 @endsection
 
 @section('scripts')
@@ -889,4 +950,4 @@
       }
     });
   </script>
-@endsection 
+@endsection

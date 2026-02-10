@@ -27,7 +27,7 @@ class SchoolingsController extends Controller
         $optionalFields = ['name', 'email'];
 
         $this->config_data = (object) [
-            "module_name" => "Schoolings", //Module name
+            "module_name" => "Schooling", //Module name
             "module_perm_name" => "schooling", //Permission name
             "module_route" => "schoolings", //Web route
             "module_view_folder" => "officerdata.schooling", //View folder
@@ -45,14 +45,19 @@ class SchoolingsController extends Controller
         return view($this->config_data->module_view_folder . '.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    // In SchoolingsController.php
 
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        // Only clear session on fresh GET visits (not redirect-back from Fetch Data)
+        if (!old('pm_code')) {
+            session()->forget([
+                'pm_code', 'name', 'rank', 'afpos', 'afpsn', 'sex',
+                'dob', 'date_ret', 'dor', 'soc', 'sig',
+                'designation', 'unit', 'relatedSchoolings',
+            ]);
+        }
 
         $schooling = Schooling::find(1);
         $schooling->fill([
@@ -123,8 +128,6 @@ class SchoolingsController extends Controller
             'schooling_unit_id'=> null,
             'assignment_id'    => null,
         ]);
-        // $blank = new Schooling();
-        // $blank->pm_code = $schooling->pm_code;
 
         $officerData = Officer::where('PM_CODE', $schooling->pm_code)->first();
 
@@ -194,7 +197,6 @@ class SchoolingsController extends Controller
             ->pluck('pm_code');
     }
 
-    //: AJAX endpoint to get entries by assignment
     public function getEntriesByAssignment(Request $request)
     {
         $assignmentId = $request->input('assignment_id');
@@ -208,6 +210,43 @@ class SchoolingsController extends Controller
             ->get(['id', 'name']);
         
         return response()->json($entries);
+    }
+
+    private function resolveOrCreateSchoolingName(Request $request): void
+    {
+        if ($request->input('schoolingname_id') !== 'new') {
+            return;
+        }
+
+        $newEntryName = trim((string) $request->input('new_entry_name'));
+        $assignmentId = $request->input('assignment_id');
+
+        // Use validation to return proper errors back to blade
+        $request->validate([
+            'new_entry_name' => ['required', 'string'],
+            'assignment_id'  => ['required'],
+        ], [
+            'new_entry_name.required' => 'Entry name is required when creating new entry',
+            'assignment_id.required'  => 'Assignment must be selected before creating new entry',
+        ]);
+
+        $existing = SchoolingName::query()
+            ->where('assignment_id', $assignmentId)
+            ->where('name', $newEntryName)
+            ->first();
+
+        if ($existing) {
+            $request->merge(['schoolingname_id' => $existing->id]);
+            return;
+        }
+
+        $newEntry = SchoolingName::create([
+            'name'          => $newEntryName,
+            'assignment_id' => $assignmentId,
+        ]);
+
+        $request->merge(['schoolingname_id' => $newEntry->id]);
+        session()->flash('success', "New entry '{$newEntryName}' created successfully!");
     }
 
     public function store(Request $request)
@@ -239,8 +278,8 @@ class SchoolingsController extends Controller
                     'otd'         => $officer->OTD,
                     'dor'         => $officer->DOR,
                     'sig'         => $officer->SIG,
-                    'designation' => $officer->DESIGNATION,
-                    'unit'        => $officer->UNIT,
+                    'designation' => $officer->designations->name,
+                    'unit'        => $officer->units->name,
                     'pm_code'     => $pm_code,
                     'relatedSchoolings' => $relatedSchoolings,
                 ]);
@@ -248,37 +287,7 @@ class SchoolingsController extends Controller
         /* ── Save ── */
         } elseif ($action == 'Save') {
 
-            // Handle "Create New Entry"
-            if ($request->input('schoolingname_id') === 'new') {
-                $newEntryName  = trim($request->input('new_entry_name'));
-                $assignmentId  = $request->input('assignment_id');
-
-                if (empty($newEntryName)) {
-                    return back()->withInput()->withErrors([
-                        'new_entry_name' => 'Entry name is required when creating new entry'
-                    ]);
-                }
-                if (empty($assignmentId)) {
-                    return back()->withInput()->withErrors([
-                        'assignment_id' => 'Assignment must be selected before creating new entry'
-                    ]);
-                }
-
-                $existing = SchoolingName::where('assignment_id', $assignmentId)
-                    ->where('name', $newEntryName)
-                    ->first();
-
-                if ($existing) {
-                    $request->merge(['schoolingname_id' => $existing->id]);
-                } else {
-                    $newEntry = SchoolingName::create([
-                        'name'          => $newEntryName,
-                        'assignment_id' => $assignmentId,
-                    ]);
-                    $request->merge(['schoolingname_id' => $newEntry->id]);
-                    session()->flash('success', "New entry '{$newEntryName}' created successfully!");
-                }
-            }
+        $this->resolveOrCreateSchoolingName($request);
 
             $data = $request->validate([
                 'pm_code'                => ['required', 'string'],
@@ -340,11 +349,6 @@ class SchoolingsController extends Controller
             return redirect()->route($this->config_data->module_route . '.index');
         }
     }
-
-    /**
-     * Display the specified resource.
-     */
-    /* ───────────────────── SHOW ───────────────────── */
 
     public function show(Schooling $schooling)
     {
@@ -425,18 +429,18 @@ class SchoolingsController extends Controller
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
-    /* ───────────────────── UPDATE ───────────────────── */
-
     public function update(Request $request, Schooling $schooling)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        
+        $this->resolveOrCreateSchoolingName($request);
 
         $data = $request->validate([
             'pm_code'                => ['required', 'string'],
-            'schoolingname_id'       => ['nullable', 'string'],
+            'schoolingname_id'       => ['nullable', 'integer'],
             'classname'              => ['nullable', 'string'],
             'schooling_unit_id'      => ['nullable', 'string'],
-            'assignment_id'          => ['nullable', 'string'],
+            'assignment_id'          => ['nullable', 'integer'],
             'date_completed'         => ['nullable', 'date'],
             'rating'                 => ['nullable', 'numeric'],
             'standing'               => ['nullable', 'numeric'],
@@ -476,16 +480,12 @@ class SchoolingsController extends Controller
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
-    /* ───────────────────── DESTROY ───────────────────── */
-
     public function destroy(Schooling $schooling)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $schooling->delete();
         return back();
     }
-
-    /* ───────────────────── LIST (DataTables AJAX) ───────────────────── */
 
     public function list(Request $request)
     {
