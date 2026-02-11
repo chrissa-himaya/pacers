@@ -192,9 +192,9 @@
         <hr>
         
         <!-- ASSIGNMENT INPUTS -->
-        @if($showInputs)
+      @if($showInputs)
 
-      <div class="sb sb-ed">
+        <div class="sb sb-ed">
         <div class="sb-lbl"><span class="dot"></span> Assignment Details</div>
           <div class="row gx align-items-end">
             {{-- Designation with Add New --}}
@@ -432,7 +432,7 @@
             </div>
           </div>
         </div>
-        @endif
+      @endif
 
           <div class="sf-actions">
           <a href="{{ route("$config_data->module_route.index") }}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i> Back</a>
@@ -449,160 +449,97 @@
       </form>
     </div>
   </div>
-<!-- 
-  {{-- ==================== ADD DESIGNATION MODAL ==================== --}}
-  <div class="modal fade" id="addDesignationModal" tabindex="-1" aria-labelledby="addDesignationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addDesignationModalLabel">Add New Designation</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="new_designation_name" class="form-label">Designation Name</label>
-            <input type="text" class="form-control" id="new_designation_name" placeholder="Enter designation name" required>
-            <div class="invalid-feedback" id="new_designation_error"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary btn-sm" id="saveDesignationBtn">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {{-- ==================== ADD UNIT MODAL ==================== --}}
-  <div class="modal fade" id="addUnitModal" tabindex="-1" aria-labelledby="addUnitModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addUnitModalLabel">Add New Unit</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="new_unit_name" class="form-label">Unit Name</label>
-            <input type="text" class="form-control" id="new_unit_name" placeholder="Enter unit name" required>
-            <div class="invalid-feedback" id="new_unit_error"></div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">PAMU</label>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="pamu_choice" id="pamu_existing_radio" value="existing" checked>
-              <label class="form-check-label" for="pamu_existing_radio">Select existing PAMU</label>
-            </div>
-            <select class="form-control mt-1" id="modal_pamu_select">
-              <option value="">-- Select PAMU --</option>
-              @foreach(($data_items['pamus'] ?? []) as $id => $name)
-                <option value="{{ $id }}">{{ $name }}</option>
-              @endforeach
-            </select>
-
-            <div class="form-check mt-2">
-              <input class="form-check-input" type="radio" name="pamu_choice" id="pamu_new_radio" value="new">
-              <label class="form-check-label" for="pamu_new_radio">Create new PAMU</label>
-            </div>
-            <input type="text" class="form-control mt-1" id="new_pamu_name" placeholder="Enter new PAMU name" disabled>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary btn-sm" id="saveUnitBtn">Save</button>
-        </div>
-      </div>
-    </div>
-  </div> -->
-
   {{-- Assignment History Records Table --}}
-  @php
-    if ($data_items['operation_type'] === 'create') {
+  <!-- @php
+    if (($data_items['operation_type'] === 'create')) {
         $histories = session('relatedHistories', collect([]));
         $currentPmCode = session('pm_code', old('pm_code', ''));
     } else {
         $histories = $data_items['relatedHistories'] ?? collect([]);
         $currentPmCode = $data_items['data']->pm_code ?? '';
     }
-  @endphp
+  @endphp -->
 
-  @if($histories && $histories->count() > 0)
-  <div class="card rc mt-2">
-    <div class="card-header">
-      <h6><i class="fas fa-history me-1"></i> Assignment History — {{ $currentPmCode }}</h6>
-    </div>
-    <div class="card-body p-1">
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered table-striped table-hover datatable-AssignmentHistory mb-0">
-          <thead>
-            <tr>
-              <th>PM Code</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Designation</th>
-              <th>Sub unit</th>
-              <th>Unit</th>
-              <th>PAMU</th>
-              <th>Category</th>
-              <th>Type</th>
-              <th>Assign Type</th>
-              <th>Geography</th>
-              <th>Rank</th>
-              <th>Years</th>
-              <th>Points</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach($histories as $history)
-            <tr data-entry-id="{{ $history->id }}">
-              <td class="small">{{ $history->pm_code }}</td>
-              <td class="small">{{ $history->start_date }}</td>
-              <td class="small">{{ $history->end_date }}</td>
-              <td class="small">{{ $history->designations->name ?? '-' }}</td>
-              <td class="small">{{ $history->subunit ?? '-' }}</td>
-              <td class="small">{{ $history->units->name ?? '-' }}</td>
-              <td class="small">{{ $history->pamus->name ?? '-' }}</td>
-              <td class="small">{{ $history->assignments->name ?? '-' }}</td>
-              <td class="small">{{ ucfirst($history->pri_sec_spec ?? '-') }}</td>
-              <td class="small">{{ $history->assignmentType->name ?? '-' }}</td>
-              <td class="small">{{ ucfirst($history->geography ?? '-') }}</td>
-              <td class="small">{{ $history->rank_during_completion }}</td>
-              <td class="small">{{ number_format($history->year_earned, 6) }}</td>
-              <td class="small">{{ number_format($history->computed_points ?? 0, 4) }}</td>
-              <td style="white-space: nowrap;">
-                  @can($config_data->module_perm_name . '_show')
-                    <a class="btn btn-xs btn-primary py-0 px-1 small" href="{{ route('assignmenthistories.show', $history->id) }}">
-                      View
-                    </a>
-                  @endcan
-                  @can($config_data->module_perm_name . '_edit')
-                    <a class="btn btn-xs btn-info py-0 px-1 small" href="{{ route('assignmenthistories.edit', $history->id) }}">
-                      Edit
-                    </a>
-                  @endcan
-                  @can($config_data->module_perm_name . '_delete')
-                    <form action="{{ route('assignmenthistories.destroy', $history->id) }}"
-                      method="POST"
-                      onsubmit="return confirm('Delete?');"
-                      style="display: inline-block;">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-xs btn-danger py-0 px-1" title="Delete">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </form>
-                  @endcan
-                </td>
-            </tr>
-            @endforeach
-          </tbody>
-        </table>
+  @if($showInputs)
+
+    @if($histories && $histories->count() > 0)
+      <div class="card rc mt-2">
+        <div class="card-header">
+          <h6><i class="fas fa-history me-1"></i> Assignment History — {{ $currentPmCode }}</h6>
+        </div>
+        <div class="card-body p-1">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-striped table-hover datatable-AssignmentHistory mb-0">
+              <thead>
+                <tr>
+                  <th>PM Code</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Designation</th>
+                  <th>Sub unit</th>
+                  <th>Unit</th>
+                  <th>PAMU</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Assign Type</th>
+                  <th>Geography</th>
+                  <th>Rank</th>
+                  <th>Years</th>
+                  <th>Points</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($histories as $history)
+                <tr data-entry-id="{{ $history->id }}">
+                  <td class="small">{{ $history->pm_code }}</td>
+                  <td class="small">{{ $history->start_date }}</td>
+                  <td class="small">{{ $history->end_date }}</td>
+                  <td class="small">{{ $history->designations->name ?? '-' }}</td>
+                  <td class="small">{{ $history->subunit ?? '-' }}</td>
+                  <td class="small">{{ $history->units->name ?? '-' }}</td>
+                  <td class="small">{{ $history->pamus->name ?? '-' }}</td>
+                  <td class="small">{{ $history->assignments->name ?? '-' }}</td>
+                  <td class="small">{{ ucfirst($history->pri_sec_spec ?? '-') }}</td>
+                  <td class="small">{{ $history->assignmentType->name ?? '-' }}</td>
+                  <td class="small">{{ ucfirst($history->geography ?? '-') }}</td>
+                  <td class="small">{{ $history->rank_during_completion }}</td>
+                  <td class="small">{{ number_format($history->year_earned, 6) }}</td>
+                  <td class="small">{{ number_format($history->computed_points ?? 0, 4) }}</td>
+                  <td style="white-space: nowrap;">
+                      @can($config_data->module_perm_name . '_show')
+                        <a class="btn btn-xs btn-primary py-0 px-1 small" href="{{ route('assignmenthistories.show', $history->id) }}">
+                          View
+                        </a>
+                      @endcan
+                      @can($config_data->module_perm_name . '_edit')
+                        <a class="btn btn-xs btn-info py-0 px-1 small" href="{{ route('assignmenthistories.edit', $history->id) }}">
+                          Edit
+                        </a>
+                      @endcan
+                      @can($config_data->module_perm_name . '_delete')
+                        <form action="{{ route('assignmenthistories.destroy', $history->id) }}"
+                          method="POST"
+                          onsubmit="return confirm('Delete?');"
+                          style="display: inline-block;">
+                          @csrf
+                          @method('DELETE')
+                          <button type="submit" class="btn btn-xs btn-danger py-0 px-1" title="Delete">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </form>
+                      @endcan
+                    </td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-  @endif
+    @endif
 </div>
+@endif
 @endsection
 
 @section('scripts')
