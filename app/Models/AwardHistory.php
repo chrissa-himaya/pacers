@@ -34,7 +34,6 @@ class AwardHistory extends Model implements Auditable
     {
         return $this->belongsTo(Unit::class, 'unit_id', 'id');
     }
-
     public function dateranks()
     {
         return $this->belongsTo(DateRank::class, 'date_rank_id', 'id');
@@ -49,6 +48,10 @@ class AwardHistory extends Model implements Auditable
     {
         return $this->belongsTo(Award::class, 'award_type', 'id');
     }
+    public function getRankAtDateAttribute(): string
+    {
+        return $this->dateranks?->ranks?->code ?? '';
+    }
 
-
+    protected $appends = ['rank_at_date'];
 }

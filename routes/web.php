@@ -135,10 +135,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('pamus', PamuController::class);
     Route::get('/pamus-list', [PamuController::class, 'list'])->name('pamus.list'); // AJAX
 
-    Route::delete('awardhistories/destroy', [AwardHistoryController::class, 'massDestroy'])
-        ->name('awardhistories.massDestroy');
-    Route::resource('awardhistories', AwardHistoryController::class);
-    Route::get('/awardhistories-list', [AwardHistoryController::class, 'list'])->name('awardhistories.list');
+    // Route::delete('awardhistories/destroy', [AwardHistoryController::class, 'massDestroy'])
+    //     ->name('awardhistories.massDestroy');
+    // Route::resource('awardhistories', AwardHistoryController::class);
+    // Route::get('/awardhistories-list', [AwardHistoryController::class, 'list'])->name('awardhistories.list');
 
     Route::delete('pfthistories/destroy', [PftHistoryController::class, 'massDestroy'])
         ->name('pfthistories.massDestroy');
@@ -208,10 +208,32 @@ Route::middleware('auth')->group(function () {
     Route::get('schoolings/{schooling}/add-entry', [SchoolingsController::class, 'createFromExisting'])
         ->name('schoolings.add-entry');
 
-    Route::get('awardhistories/date-rank-at-date', [AwardHistoryController::class, 'dateRankAtDate'])
-        ->name('awardhistories.dateRankAtDate');
+    // Route::get('awardhistories/date-rank-at-date', [AwardHistoryController::class, 'dateRankAtDate'])
+    //     ->name('awardhistories.dateRankAtDate');
 
     Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+
+
+    //     Route::get('awardhistories/{awardhistory}/add-entry', [AwardHistoryController::class, 'createFromExisting'])
+    //      ->name('awardhistories.addEntry');
+
+    // Route::get('awardhistories/ajax/award-points', [AwardHistoryController::class, 'pointsForAward'])
+    //      ->name('awardhistories.pointsForAward');
+
+    Route::get('awardhistories/date-rank-at-date', [AwardHistoryController::class, 'dateRankAtDate'])
+        ->name('awardhistories.dateRankAtDate');
+    
+    Route::get('awardhistories/ajax/award-points', [AwardHistoryController::class, 'pointsForAward'])
+        ->name('awardhistories.pointsForAward');
+
+    Route::get('awardhistories/{awardhistory}/add-entry', [AwardHistoryController::class, 'createFromExisting'])
+        ->name('awardhistories.addEntry');
+
+    Route::delete('awardhistories/destroy', [AwardHistoryController::class, 'massDestroy'])
+        ->name('awardhistories.massDestroy');
+    Route::resource('awardhistories', AwardHistoryController::class);
+    Route::get('/awardhistories-list', [AwardHistoryController::class, 'list'])
+        ->name('awardhistories.list');
 
 
 });
