@@ -24,6 +24,10 @@ class AssignmentHistoryPointsService
             ->where('rank_id', $rankId)
             ->first();
 
+        // No sourcedata row found for this assignment + rank combination
+        if (!$src) return 0.0;
+
+        // Any of the 4 rankpoint relationships missing
         if (!$src->minMonthRankpoint || !$src->minPointRankpoint || !$src->maxMonthRankpoint || !$src->maxPointRankpoint) {
             return 0.0;
         }
@@ -37,7 +41,7 @@ class AssignmentHistoryPointsService
 
         $months = (float) $h->year_earned * 12.0;
 
-        // default clamp + linear interpolation
+        // Clamp + linear interpolation
         if ($months <= $minMonths) return round($minPoints, 4);
         if ($months >= $maxMonths) return round($maxPoints, 4);
         if ($maxMonths <= $minMonths) return round($minPoints, 4);
@@ -50,7 +54,6 @@ class AssignmentHistoryPointsService
     {
         $h->computed_points = $this->compute($h);
         $h->points_last_recomputed_at = now();
-        $h->saveQuietly(); // avoids observer loops
+        $h->saveQuietly();
     }
 }
-
