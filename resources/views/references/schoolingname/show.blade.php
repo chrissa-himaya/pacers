@@ -34,14 +34,28 @@
                                     {{ $data_items['column_labels'][$key] ?? ucfirst(str_replace('_', ' ', $key)) }}
                                 </th>
                                 <td>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        value="{{ $data_items["operation_type"] == "create" ? "" : $value }}"
-                                        name="{{ $key }}"
-                                        @disabled($data_items["operation_type"] === "show")
-                                        @if(isset($data_items['required_fields']) && in_array($key, $data_items['required_fields'])) required @endif
-                                    >                                
+                                    @if($key=='assignment_id')
+                                        <select name="assignment_id" id="assignment_id" class="form-control select2">
+                                            <option value="">-- Select Category --</option>
+                                            @foreach($data_items['assignments'] as $id => $assignment)
+                                                <option value="{{ $id }}"
+                                                    {{ old('assignment_id', $data_items['data']->assignment_id ?? '') == $id ? 'selected' : '' }}>
+                                                    {{ $assignment }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @elseif($key=='assignments' && $data_items["operation_type"] === "show")
+                                        <input type="text" class="form-control" value="{{$value['name']}}" disabled>
+                                    @else
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            value="{{ $data_items["operation_type"] == "create" ? "" : $value }}"
+                                            name="{{ $key }}"
+                                            @disabled($data_items["operation_type"] === "show")
+                                            @if(isset($data_items['required_fields']) && in_array($key, $data_items['required_fields'])) required @endif
+                                        >  
+                                    @endif                              
                                 </td>
                             </tr>
                         @endif

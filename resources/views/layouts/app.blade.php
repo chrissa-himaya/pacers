@@ -68,7 +68,7 @@
                 @include('partials.menu')
                 <div class="content-wrapper" style="min-height: 917px;">
                     <!-- Main content -->
-                    <section class="content" style="padding-top: 5px">
+                    <section class="content">
                         @if(session('message'))
                             <div class="row mb-2">
                                 <div class="col-lg-12">

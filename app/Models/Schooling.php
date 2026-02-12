@@ -20,7 +20,7 @@ class Schooling extends Model implements Auditable
     protected $fillable = [
         'pm_code',
         'schoolingname_id',
-        'classname_id',
+        'classname',
         'schooling_unit_id',
         'assignment_id',
         'date_completed',

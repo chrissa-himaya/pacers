@@ -6,8 +6,10 @@ use App\Models\AssignmentHistory;
 use App\Models\Designation;
 use App\Models\Officer;
 use App\Models\Unit;
+use App\Models\Pamu;
 use App\Models\Assignment;
 use App\Models\DateRank;
+use App\Services\AssignmentHistoryPointsService;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,21 +18,22 @@ use Carbon\Carbon;
 
 class AssignmentHistoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     protected $config_data;
-    public function __construct(AssignmentHistory $assignmenthistory)
+    protected $pointsService;
+
+    public function __construct(AssignmentHistory $assignmenthistory, AssignmentHistoryPointsService $pointsService)
     {
         $columnHidden = array_merge($assignmenthistory->getDates(), ['id']);
         $columnLabels = [''];
         $optionalFields = ['name', 'email'];
 
+        $this->pointsService = $pointsService;
+
         $this->config_data = (object) [
-            "module_name" => "Assignment History", //Module name
-            "module_perm_name" => "assignmenthistory", //Permission name
-            "module_route" => "assignmenthistories", //Web route
-            "module_view_folder" => "officerdata.assignmenthistory", //View folder
+            "module_name" => "Assignment History",
+            "module_perm_name" => "assignmenthistory",
+            "module_route" => "assignmenthistories",
+            "module_view_folder" => "officerdata.assignmenthistory",
             "columnHidden" => $columnHidden,
             "columnLabels" => $columnLabels,
             "optionalFields" => $optionalFields,
@@ -38,36 +41,45 @@ class AssignmentHistoryController extends Controller
 
         view()->share('config_data', $this->config_data);
     }
+
     public function index()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         return view($this->config_data->module_view_folder . '.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $assignmenthistory = AssignmentHistory::find(1);
-        $assignmenthistory->fill([
-            'pm_code' => null,
-            'designation_id' => null,
-            'unit_id' => null,
-            'pamu_id' => null,
-            'assignment_id' => null,
-            'pri_sec_spec' => null,
-            'assignment_type' => null,
-            'geography' => null,
-            'start_date' => null,
-            'end_date' => null,
-            'rank_during_completion' => null,
-            'year_earned' => null,
-        ]);
+
+        // Only clear session on fresh GET visits (not redirect-back from Fetch Data)
+        if (!old('pm_code')) {
+            session()->forget([
+                'pm_code',
+                'name',
+                'rank',
+                'afpos',
+                'afpsn',
+                'sex',
+                'dob',
+                'date_ret',
+                'dor',
+                'soc',
+                'sig',
+                'designation',
+                'unit',
+                'designation_id',
+                'unit_id',
+                'assignment_id',
+                'relatedHistories',
+            ]);
+        }
+
+        $assignmenthistory = new AssignmentHistory();
 
         $designations = Designation::all()->pluck('name', 'id');
         $units = Unit::with('pamus')->get()->keyBy('id');
+        $pamus = Pamu::all()->pluck('name', 'id');
         $assignment_type3 = Assignment::where('type_id', 3)
             ->orderBy('name')
             ->pluck('name', 'id');
@@ -93,6 +105,7 @@ class AssignmentHistoryController extends Controller
             "pm_codes" => $pmcodes,
             "designations" => $designations,
             "units" => $units,
+            "pamus" => $pamus,
             "assignments" => $assignments,
             "assignment_type3" => $assignment_type3,
             "relatedHistories" => collect([]),
@@ -100,9 +113,85 @@ class AssignmentHistoryController extends Controller
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /* ─── CREATE FROM EXISTING (prefill pm_code + officer info) ─── */
+    public function createFromExisting(AssignmentHistory $assignmentHistory)
+    {
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $blank = new AssignmentHistory();
+        $blank->fill([
+            'pm_code' => $assignmentHistory->pm_code,
+            'designation_id' => null,
+            'unit_id' => null,
+            'assignment_id' => null,
+        ]);
+
+        $officerData = Officer::where('PM_CODE', $assignmentHistory->pm_code)->first();
+
+        $this->storeOfficerInSession($assignmentHistory->pm_code, $officerData);
+
+        $data_items = $this->buildCreateDataItems($blank, $officerData, $assignmentHistory->pm_code);
+
+        return view($this->config_data->module_view_folder . '.show', compact('data_items'))
+            ->with('config_data', $this->config_data);
+    }
+
+    private function storeOfficerInSession(string $pmCode, ?Officer $officer): void
+    {
+        session([
+            'pm_code' => $pmCode,
+            'name' => $officer->NAME ?? '',
+            'rank' => $officer->RANK ?? '',
+            'afpos' => $officer->AFPOS ?? '',
+            'afpsn' => $officer->AFPSN ?? '',
+            'sex' => $officer->SEX ?? '',
+            'dob' => $officer->DOB ?? '',
+            'date_ret' => $officer->RET ?? '',
+            'dor' => $officer->DOR ?? '',
+            'soc' => $officer->SOC ?? '',
+            'sig' => $officer->SIG ?? '',
+            'designation' => $officer->designations->name ?? '',
+            'unit' => $officer->units->name ?? '',
+        ]);
+    }
+
+    private function buildCreateDataItems(AssignmentHistory $blank, ?Officer $officerData, string $pmCode): array
+    {
+        $relatedHistories = AssignmentHistory::where('pm_code', $pmCode)
+            ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        session(['relatedHistories' => $relatedHistories]);
+
+        return [
+            'data' => $blank,
+            'column_hidden' => $this->config_data->columnHidden,
+            'column_labels' => $this->config_data->columnLabels,
+            'operation_type' => 'create',
+            'optional_fields' => $this->config_data->optionalFields,
+            'pm_codes' => $this->getPmCodes(),
+            'designations' => Designation::all()->pluck('name', 'id'),
+            'units' => Unit::with('pamus')->get()->keyBy('id'),
+            'pamus' => Pamu::all()->pluck('name', 'id'),
+            'assignments' => Assignment::where('type_id', '!=', 5)->orderBy('name')->pluck('name', 'id'),
+            'assignment_type3' => Assignment::where('type_id', 3)->orderBy('name')->pluck('name', 'id'),
+            'officerData' => $officerData,
+            'relatedHistories' => $relatedHistories,
+        ];
+    }
+
+    private function getPmCodes()
+    {
+        return Officer::query()
+            ->select('pm_code')
+            ->whereNotNull('pm_code')
+            ->where('pm_code', '!=', '')
+            ->distinct()
+            ->orderBy('pm_code')
+            ->pluck('pm_code');
+    }
+
     public function store(Request $request)
     {
         $action = $request->input('action');
@@ -138,26 +227,57 @@ class AssignmentHistoryController extends Controller
                     'otd' => $officer->OTD,
                     'dor' => $officer->DOR,
                     'sig' => $officer->SIG,
-                    'designation' => $officer->designations->name,
-                    'unit' => $officer->units?->name,
+                    'designation' => $officer->designations->name ?? '',
+                    'unit' => $officer->units?->name ?? '',
                     'relatedHistories' => $relatedHistories,
                 ]);
         } elseif ($action == 'Save') {
+
             $data = $request->validate([
                 'pm_code' => ['required', 'string'],
                 'designation_id' => ['nullable', 'string'],
+                'new_designation_name' => ['nullable', 'required_if:designation_id,new', 'string', 'max:255'],
                 'subunit' => ['nullable', 'string'],
-                'unit_id' => ['nullable', 'integer', 'exists:units,id'],
+                'unit_id' => ['nullable', 'integer'],
+                'new_unit_name' => ['nullable', 'required_if:unit_id,new', 'string', 'max:255'],
+                'new_unit_pamu_id' => ['nullable', 'string'],
+                'new_pamu_name' => ['nullable', 'required_if:new_unit_pamu_id,new_pamu', 'string', 'max:255'],
                 'pamu_id' => ['nullable', 'integer'],
                 'assignment_id' => ['nullable', 'string'],
                 'pri_sec_spec' => ['nullable', 'string'],
-                'assignment_type' => ['nullable', 'string'],
+                'assignmentType' => ['nullable', 'string'],
                 'geography' => ['nullable', 'string'],
                 'start_date' => ['nullable', 'date'],
                 'end_date' => ['nullable', 'date'],
                 'rank_during_completion' => ['nullable', 'string'],
                 'year_earned' => ['nullable', 'string'],
             ]);
+
+            // Handle new designation creation
+            if ($data['designation_id'] === 'new' && !empty($data['new_designation_name'])) {
+                $newDesignation = Designation::firstOrCreate(['name' => $data['new_designation_name']]);
+                $data['designation_id'] = $newDesignation->id;
+            }
+
+            // Handle new unit + PAMU creation
+            if ($data['unit_id'] === 'new' && !empty($data['new_unit_name'])) {
+                $pamuId = null;
+
+                if ($data['new_unit_pamu_id'] === 'new_pamu' && !empty($data['new_pamu_name'])) {
+                    $newPamu = Pamu::firstOrCreate(['name' => $data['new_pamu_name']]);
+                    $pamuId = $newPamu->id;
+                } elseif (!empty($data['new_unit_pamu_id']) && $data['new_unit_pamu_id'] !== 'new_pamu') {
+                    $pamuId = $data['new_unit_pamu_id'];
+                }
+
+                $newUnit = Unit::create([
+                    'name' => $data['new_unit_name'],
+                    'pamu_id' => $pamuId,
+                ]);
+                $data['unit_id'] = $newUnit->id;
+                $data['pamu_id'] = $pamuId;
+            }
+
 
             $sd = Carbon::parse($data['start_date'])->startOfDay();
             $ed = Carbon::parse($data['end_date'])->startOfDay();
@@ -175,36 +295,33 @@ class AssignmentHistoryController extends Controller
 
             $isPrimary = (($pri ?? '') === 'primary');
 
-            // FIXED: Allow save even if dates overlap, but set year_earned to 0
             if ($isPrimary && $this->overlapsExistingPrimary($data['pm_code'], $sd, $ed, null)) {
-                $data['year_earned'] = 0; // Set to 0 when overlapping
+                $data['year_earned'] = 0;
             } else {
-                // No overlap => compute normally
                 $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
             }
 
             $match = [
-                'pm_code'                => $data['pm_code'],
-                'designation_id'         => $data['designation_id'] ?? null,
-                'unit_id'                => $data['unit_id'] ?? null,
-                'assignment_id'          => $data['assignment_id'] ?? null,
-                'pri_sec_spec'           => $data['pri_sec_spec'] ?? null,
-                'geography'              => $data['geography'] ?? null,
-                'start_date'             => $data['start_date'] ?? null,
-                'end_date'               => $data['end_date'] ?? null,
+                'pm_code' => $data['pm_code'],
+                'designation_id' => $data['designation_id'] ?? null,
+                'unit_id' => $data['unit_id'] ?? null,
+                'assignment_id' => $data['assignment_id'] ?? null,
+                'pri_sec_spec' => $data['pri_sec_spec'] ?? null,
+                'geography' => $data['geography'] ?? null,
+                'start_date' => $data['start_date'] ?? null,
+                'end_date' => $data['end_date'] ?? null,
                 'rank_during_completion' => $data['rank_during_completion'] ?? null,
             ];
 
-            // Save the record (even if year_earned is 0)
-            AssignmentHistory::updateOrCreate($match, $data);
+            $record = AssignmentHistory::updateOrCreate($match, $data);
+
+            // Compute points after saving
+            $this->pointsService->recomputeAndSave($record);
 
             return redirect()->route($this->config_data->module_route . '.index');
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(AssignmentHistory $assignmenthistory)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -215,6 +332,7 @@ class AssignmentHistoryController extends Controller
 
         $designations = Designation::pluck('name', 'id');
         $units = Unit::with('pamus')->get()->keyBy('id');
+        $pamus = Pamu::all()->pluck('name', 'id');
 
         $assignment_type3 = Assignment::where('type_id', 3)
             ->orderBy('name')
@@ -231,10 +349,9 @@ class AssignmentHistoryController extends Controller
             ->orderBy('pm_code')
             ->pluck('pm_code');
 
-        // FIXED: Exclude the current record being shown
         $relatedHistories = AssignmentHistory::query()
             ->where('pm_code', $assignmenthistory->pm_code)
-            ->where('id', '!=', $assignmenthistory->id) // ← EXCLUDE current record
+            ->where('id', '!=', $assignmenthistory->id)
             ->where('pm_code', '!=', '')
             ->whereNotNull('pm_code')
             ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
@@ -250,6 +367,7 @@ class AssignmentHistoryController extends Controller
             'pm_codes' => $pmcodes,
             'designations' => $designations,
             'units' => $units,
+            'pamus' => $pamus,
             'assignments' => $assignments,
             'assignment_type3' => $assignment_type3,
             'officerData' => $officerData,
@@ -259,9 +377,6 @@ class AssignmentHistoryController extends Controller
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(AssignmentHistory $assignmenthistory)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -272,6 +387,7 @@ class AssignmentHistoryController extends Controller
 
         $designations = Designation::pluck('name', 'id');
         $units = Unit::with('pamus')->get()->keyBy('id');
+        $pamus = Pamu::all()->pluck('name', 'id');
 
         $assignment_type3 = Assignment::where('type_id', 3)
             ->orderBy('name')
@@ -288,10 +404,9 @@ class AssignmentHistoryController extends Controller
             ->orderBy('pm_code')
             ->pluck('pm_code');
 
-        // FIXED: Exclude the current record being edited
         $relatedHistories = AssignmentHistory::query()
             ->where('pm_code', $assignmenthistory->pm_code)
-            ->where('id', '!=', $assignmenthistory->id) // ← EXCLUDE current record
+            ->where('id', '!=', $assignmenthistory->id)
             ->where('pm_code', '!=', '')
             ->whereNotNull('pm_code')
             ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
@@ -307,6 +422,7 @@ class AssignmentHistoryController extends Controller
             'pm_codes' => $pmcodes,
             'designations' => $designations,
             'units' => $units,
+            'pamus' => $pamus,
             'assignments' => $assignments,
             'assignment_type3' => $assignment_type3,
             'officerData' => $officerData,
@@ -316,24 +432,52 @@ class AssignmentHistoryController extends Controller
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, AssignmentHistory $assignmentHistory)
     {
         $data = $request->validate([
             'pm_code' => ['required', 'string'],
-            'designation_id' => ['nullable'],
+            'designation_id' => ['nullable', 'string'],
+            'new_designation_name' => ['nullable', 'required_if:designation_id,new', 'string', 'max:255'],
             'subunit' => ['nullable', 'string'],
             'unit_id' => ['nullable', 'integer'],
+            'new_unit_name' => ['nullable', 'required_if:unit_id,new', 'string', 'max:255'],
+            'new_unit_pamu_id' => ['nullable', 'string'],
+            'new_pamu_name' => ['nullable', 'required_if:new_unit_pamu_id,new_pamu', 'string', 'max:255'],
             'pamu_id' => ['nullable', 'integer'],
-            'assignment_id' => ['nullable'],
+            'assignment_id' => ['nullable', 'string'],
             'pri_sec_spec' => ['nullable', 'string'],
-            'assignment_type' => ['nullable'],
+            'assignmentType' => ['nullable', 'string'],
             'geography' => ['nullable', 'string'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
+            'rank_during_completion' => ['nullable', 'string'],
+            'year_earned' => ['nullable', 'string'],
         ]);
+
+        // Handle new designation creation
+        if ($data['designation_id'] === 'new' && !empty($data['new_designation_name'])) {
+            $newDesignation = Designation::firstOrCreate(['name' => $data['new_designation_name']]);
+            $data['designation_id'] = $newDesignation->id;
+        }
+
+        // Handle new unit + PAMU creation
+        if ($data['unit_id'] === 'new' && !empty($data['new_unit_name'])) {
+            $pamuId = null;
+
+            if ($data['new_unit_pamu_id'] === 'new_pamu' && !empty($data['new_pamu_name'])) {
+                $newPamu = Pamu::firstOrCreate(['name' => $data['new_pamu_name']]);
+                $pamuId = $newPamu->id;
+            } elseif (!empty($data['new_unit_pamu_id']) && $data['new_unit_pamu_id'] !== 'new_pamu') {
+                $pamuId = $data['new_unit_pamu_id'];
+            }
+
+            $newUnit = Unit::create([
+                'name' => $data['new_unit_name'],
+                'pamu_id' => $pamuId,
+            ]);
+            $data['unit_id'] = $newUnit->id;
+            $data['pamu_id'] = $pamuId;
+        }
 
         $sd = Carbon::parse($data['start_date'])->startOfDay();
         $ed = Carbon::parse($data['end_date'])->startOfDay();
@@ -343,7 +487,6 @@ class AssignmentHistoryController extends Controller
             return back()->withErrors(['year_earned' => 'Invalid dates'])->withInput();
         }
 
-        // rank computation
         $rankResult = $this->computeRankDuringCompletionExcel($data['pm_code'], $sd, $ed, $pri);
         if (!$rankResult['ok']) {
             return back()->withErrors(['rank_during_completion' => $rankResult['message']])->withInput();
@@ -351,25 +494,24 @@ class AssignmentHistoryController extends Controller
 
         $data['rank_during_completion'] = $rankResult['rank'];
 
-        // FIXED: Allow update even if dates overlap, but set year_earned to 0
         if ($pri === 'primary' && $this->overlapsExistingPrimary($data['pm_code'], $sd, $ed, $assignmentHistory->id)) {
-            $data['year_earned'] = 0; // Set to 0 when overlapping
+            $data['year_earned'] = 0;
         } else {
-            // No overlap => compute normally
             $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
         }
 
         $assignmentHistory->update($data);
 
+        // Recompute points after update
+        $this->pointsService->recomputeAndSave($assignmentHistory->fresh());
+
         return redirect()->route($this->config_data->module_route . '.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(AssignmentHistory $assignmentHistory)
     {
-        //
+        $assignmentHistory->delete();
+        return redirect()->route($this->config_data->module_route . '.index');
     }
 
     public function list(Request $request)
@@ -377,37 +519,38 @@ class AssignmentHistoryController extends Controller
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $dtColumns = [
-            null,
-            'pm_code',
-            'designations.name',
-            'subunit',
-            'units.name',
-            'pamus.name',
-            'assignments.name',
-            'pri_sec_spec',
-            'assignmentType.name',
-            'geography',
-            'start_date',
-            'end_date',
-            'rank_during_completion',
-            'year_earned',
-            null,
+            null,           // 0: row number
+            'pm_code',      // 1
+            'start_date',   // 2
+            'end_date',     // 3
+            'designations.name', // 4
+            'subunit',      // 5
+            'units.name',   // 6
+            'pamus.name',   // 7
+            'assignments.name', // 8
+            'pri_sec_spec', // 9
+            'assignment_type', // 10 - CHANGED from 'assignmentType.name'
+            'geography',    // 11
+            'rank_during_completion', // 12
+            'year_earned',  // 13
+            'computed_points', // 14
+            null,           // 15: action
         ];
 
         $globalSearchColumns = [
             'pm_code',
+            'start_date',
+            'end_date',
             'designations.name',
             'subunit',
             'units.name',
             'pamus.name',
             'assignments.name',
             'pri_sec_spec',
-            'assignmentType.name',
             'geography',
-            'start_date',
-            'end_date',
             'rank_during_completion',
             'year_earned',
+            'computed_points',
         ];
 
         $start = (int) $request->input('start', 0);
@@ -417,19 +560,16 @@ class AssignmentHistoryController extends Controller
 
         $query = AssignmentHistory::query();
 
-        //for global search *DO NOT DELETE THIS*
+        // global search
         $search = trim((string) $request->input('search.value', ''));
         if ($search !== '') {
             $query->where(function ($q) use ($search, $globalSearchColumns) {
                 foreach ($globalSearchColumns as $col) {
-
                     if (str_contains($col, '.')) {
                         [$relation, $field] = explode('.', $col, 2);
-
                         $q->orWhereHas($relation, function ($r) use ($field, $search) {
                             $r->where($field, 'like', "%{$search}%");
                         });
-
                         continue;
                     }
                     $q->orWhere($col, 'like', "%{$search}%");
@@ -437,7 +577,7 @@ class AssignmentHistoryController extends Controller
             });
         }
 
-        //for each column search *DO NOT DELETE THIS*
+        // per-column search
         foreach ($dtColumns as $index => $column) {
             if (!$column)
                 continue;
@@ -448,7 +588,6 @@ class AssignmentHistoryController extends Controller
 
             if (str_contains($column, '.')) {
                 [$relation, $field] = explode('.', $column, 2);
-
                 $query->whereHas($relation, function ($r) use ($field, $colSearch) {
                     $r->where($field, 'like', "%{$colSearch}%");
                 });
@@ -460,18 +599,23 @@ class AssignmentHistoryController extends Controller
         $totalData = AssignmentHistory::count();
         $filteredData = (clone $query)->count();
 
-        $query->orderBy('id', 'asc');
+        $query->orderBy('start_date', 'desc')->orderBy('id', 'desc');
 
         $data = $query->skip($start)
-                ->take($length)
-                ->with([
-                    'designations:id,name',
-                    'units:id,name',
-                    'pamus:id,name',
-                    'assignments:id,name,type_id',
-                    'assignmentType:id,name',
-                ])
-            ->get();
+            ->take($length)
+            ->with([
+                'designations:id,name',
+                'units:id,name',
+                'pamus:id,name',
+                'assignments:id,name,type_id',
+                'assignmentType:id,name',
+            ])
+            ->get()
+            ->map(function ($item) {
+                // Add assignment_type_name to avoid collision
+                $item->assignment_type_name = $item->assignmentType->name ?? '';
+                return $item;
+            });
 
         return response()->json([
             'draw' => (int) $request->input('draw'),
@@ -480,6 +624,10 @@ class AssignmentHistoryController extends Controller
             'data' => $data,
         ]);
     }
+
+    /**
+     * YEARFRAC US 30/360 - matches Excel YEARFRAC(sd, ed) with basis=0 (default)
+     */
     private function yearfrac_us_30_360(Carbon $start, Carbon $end): float
     {
         $d1 = $start->day;
@@ -499,28 +647,31 @@ class AssignmentHistoryController extends Controller
         return round($days360 / 360, 6);
     }
 
+    /**
+     * Check if a primary assignment overlaps with existing primary assignments
+     */
     private function overlapsExistingPrimary(string $pmCode, Carbon $sd, Carbon $ed, ?int $ignoreId = null): bool
     {
         $edMinus1 = $ed->copy()->subDay();
-        
+
         $q = AssignmentHistory::query()
             ->where('pm_code', $pmCode)
             ->where('pri_sec_spec', 'primary')
-            // Excel formula boundaries:
-            ->whereRaw('DATE(start_date) <= ?', [$edMinus1->toDateString()]) 
+            ->whereRaw('DATE(start_date) <= ?', [$edMinus1->toDateString()])
             ->whereRaw('DATE(end_date) - INTERVAL 1 DAY >= ?', [$sd->toDateString()]);
-        
+
         if ($ignoreId) {
             $q->where('id', '!=', $ignoreId);
         }
-        
+
         return $q->exists();
     }
 
+    /**
+     * Lookup the rank at a given date from the date_ranks table
+     */
     private function lookupRankAt(string $pmCode, Carbon $date): ?string
     {
-        // last rank where date <= $date
-        // join ranks to get rank name (adjust column names if your ranks table differs)
         return DateRank::query()
             ->where('pm_code', $pmCode)
             ->whereDate('date', '<=', $date->toDateString())
@@ -529,30 +680,35 @@ class AssignmentHistoryController extends Controller
             ->value('ranks.code');
     }
 
+    /**
+     * Compute rank during completion following the Excel formula
+     */
     private function computeRankDuringCompletionExcel(string $pmCode, Carbon $sd, Carbon $ed, string $priSecSpec): array
     {
-        // Excel: ed_adj = IF(ed>sd, ed-1, sd)
         $edAdj = $ed->gt($sd) ? $ed->copy()->subDay() : $sd->copy();
-
 
         $sr = $this->lookupRankAt($pmCode, $sd);
         $er = $this->lookupRankAt($pmCode, $edAdj);
 
-
         if (empty($sr) || empty($er)) {
             return ['ok' => false, 'rank' => '', 'message' => 'No rank'];
         }
+
         $isPrimary = ($priSecSpec === 'primary');
-        // Excel: IF(prim, IF(sr=er, sr, "rank conflict"), sr)
+
         if ($isPrimary) {
             if ($sr === $er) {
                 return ['ok' => true, 'rank' => $sr, 'message' => null];
             }
-            return ['ok' => false, 'rank' => '', 'message' => 'Dates overlap'];
+            return ['ok' => false, 'rank' => '', 'message' => 'Rank conflict - rank changed during assignment period'];
         }
+
         return ['ok' => true, 'rank' => $sr, 'message' => null];
     }
 
+    /**
+     * AJAX endpoint for live year_earned + rank computation
+     */
     public function computeYearEarned(Request $request)
     {
         $data = $request->validate([
@@ -560,7 +716,7 @@ class AssignmentHistoryController extends Controller
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date'],
             'pri_sec_spec' => ['nullable', 'string'],
-            'id' => ['nullable', 'integer'], // current record id in edit
+            'id' => ['nullable', 'integer'],
         ]);
 
         $pm = $data['pm_code'];
@@ -568,7 +724,6 @@ class AssignmentHistoryController extends Controller
         $ed = Carbon::parse($data['end_date'])->startOfDay();
         $pri = $data['pri_sec_spec'] ?? '';
 
-        // invalid dates
         if ($sd->gt($ed)) {
             return response()->json([
                 'ok' => false,
@@ -578,7 +733,6 @@ class AssignmentHistoryController extends Controller
             ], 422);
         }
 
-        // rank logic (Excel)
         $rankResult = $this->computeRankDuringCompletionExcel($pm, $sd, $ed, $pri);
         if (!$rankResult['ok']) {
             return response()->json([
@@ -591,17 +745,15 @@ class AssignmentHistoryController extends Controller
 
         $isPrimary = (($pri ?? '') === 'primary');
 
-        // FIXED: Allow save but set year_earned to 0 when overlapping
         if ($isPrimary && $this->overlapsExistingPrimary($pm, $sd, $ed, $data['id'] ?? null)) {
             return response()->json([
-                'ok' => true, // ← Changed from false to true
-                'year_earned' => 0, // Set to 0 when overlapping
+                'ok' => true,
+                'year_earned' => 0,
                 'rank_during_completion' => $rankResult['rank'],
-                'message' => 'Dates overlap - year earned is 0', // Informational message
+                'message' => 'Dates overlap - year earned is 0',
             ]);
         }
 
-        // No overlap - compute normally
         return response()->json([
             'ok' => true,
             'year_earned' => $this->yearfrac_us_30_360($sd, $ed),
@@ -609,4 +761,58 @@ class AssignmentHistoryController extends Controller
         ]);
     }
 
+    /**
+     * AJAX: Create a new designation on-the-fly
+     */
+    public function storeDesignation(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:50'],
+        ]);
+
+        $designation = Designation::firstOrCreate(['name' => $data['name']]);
+
+        return response()->json([
+            'ok' => true,
+            'id' => $designation->id,
+            'name' => $designation->name,
+        ]);
+    }
+
+    /**
+     * AJAX: Create a new unit on-the-fly (with optional new PAMU)
+     */
+    public function storeUnit(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:50'],
+            'pamu_id' => ['nullable', 'integer', 'exists:pamus,id'],
+            'new_pamu_name' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        // If new_pamu_name is provided, create PAMU first
+        $pamuId = $data['pamu_id'] ?? null;
+        $pamuName = '';
+
+        if (!empty($data['new_pamu_name'])) {
+            $pamu = Pamu::firstOrCreate(['name' => $data['new_pamu_name']]);
+            $pamuId = $pamu->id;
+            $pamuName = $pamu->name;
+        } elseif ($pamuId) {
+            $pamuName = Pamu::find($pamuId)->name ?? '';
+        }
+
+        $unit = Unit::create([
+            'name' => $data['name'],
+            'pamu_id' => $pamuId,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'id' => $unit->id,
+            'name' => $unit->name,
+            'pamu_id' => $pamuId,
+            'pamu_name' => $pamuName,
+        ]);
+    }
 }

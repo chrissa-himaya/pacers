@@ -4,24 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Assignment;
-use App\Models\SchoolingEntry;
-use App\Models\SchoolingUnit;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
-
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 
 class AssignmentHistory extends Model implements Auditable
-
 {
     use AuditableTrait;
+
     public $table = 'assignment_histories';
+
     protected $fillable = [
         'pm_code',
         'designation_id',
-        'unit_id',
         'subunit',
+        'unit_id',
         'pamu_id',
         'assignment_id',
         'pri_sec_spec',
@@ -31,12 +28,15 @@ class AssignmentHistory extends Model implements Auditable
         'end_date',
         'rank_during_completion',
         'year_earned',
+        'computed_points',
+        'points_last_recomputed_at',
     ];
 
     public function officer()
     {
         return $this->belongsTo(Officer::class, 'pm_code', 'PM_CODE');
     }
+
     public function designations()
     {
         return $this->belongsTo(Designation::class, 'designation_id', 'id');
@@ -56,10 +56,8 @@ class AssignmentHistory extends Model implements Auditable
     {
         return $this->belongsTo(Assignment::class, 'assignment_id', 'id');
     }
-
     public function assignmentType()
     {
         return $this->belongsTo(Assignment::class, 'assignment_type', 'id');
     }
-
 }
