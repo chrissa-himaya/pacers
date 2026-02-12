@@ -9,7 +9,9 @@ use OwenIt\Auditing\Auditable as AuditableTrait;
 class PftHistory extends Model implements Auditable
 {
     use AuditableTrait;
+
     public $table = 'pfthistories';
+
     protected $fillable = [
         'pm_code',
         'entry',
@@ -19,5 +21,28 @@ class PftHistory extends Model implements Auditable
         'rank',
         'age',
         'profile',
+        'points',
     ];
+
+    protected $casts = [
+        'date_taken' => 'date',
+        'rating' => 'float',
+        'points' => 'float',
+    ];
+
+    /**
+     * Get the officer associated with this PFT record
+     */
+    public function officer()
+    {
+        return $this->belongsTo(Officer::class, 'pm_code', 'PM_CODE');
+    }
+
+    /**
+     * Get the rank record
+     */
+    public function rankRecord()
+    {
+        return $this->belongsTo(Rank::class, 'rank', 'code');
+    }
 }

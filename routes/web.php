@@ -140,11 +140,32 @@ Route::middleware('auth')->group(function () {
     // Route::resource('awardhistories', AwardHistoryController::class);
     // Route::get('/awardhistories-list', [AwardHistoryController::class, 'list'])->name('awardhistories.list');
 
+    // PFT History Routes
     Route::delete('pfthistories/destroy', [PftHistoryController::class, 'massDestroy'])
-        ->name('pfthistories.massDestroy');
-    Route::resource('pfthistories', PftHistoryController::class);
-    Route::get('/pfthistories-list', [PftHistoryController::class, 'list'])->name('pfthistories.list');
+    ->name('pfthistories.massDestroy');
 
+    // Route::post('pfthistories/{pfthistory}/add-entry', [PftHistoryController::class, 'createFromExisting'])
+    // ->name('pfthistories.createFromExisting');
+
+    Route::get('pfthistories/{pfthistory}/add-entry', [PftHistoryController::class, 'createFromExisting'])
+    ->name('pfthistories.addEntry');
+
+
+    Route::get('pfthistories-list', [PftHistoryController::class, 'list'])
+    ->name('pfthistories.list');
+
+    Route::get('pfthistories/calc-points', [PftHistoryController::class, 'calculatePftPoints'])
+    ->name('pfthistories.calcPoints');
+
+    Route::get('date-ranks/lookup', [PftHistoryController::class, 'lookupRankByDate'])
+    ->name('date_ranks.lookupRank');
+
+    Route::resource('pfthistories', PftHistoryController::class)
+    ->whereNumber('pfthistory'); // extra safety (optional but recommended)
+
+
+
+   
     Route::delete('careeradvising/destroy', [CareerAdvisingController::class, 'massDestroy'])
         ->name('careeradvising.massDestroy');
     Route::resource('careeradvising', CareerAdvisingController::class);
