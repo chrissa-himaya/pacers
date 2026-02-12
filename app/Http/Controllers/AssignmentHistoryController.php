@@ -260,10 +260,10 @@ class AssignmentHistoryController extends Controller
             }
 
             // Handle new unit + PAMU creation
-            if ($data['unit_id'] === 'new' && !empty($data['new_unit_name'])) {
+            if (isset($data['unit_id']) && $data['unit_id'] === 'new' && !empty($data['new_unit_name'])) {
                 $pamuId = null;
 
-                if ($data['new_unit_pamu_id'] === 'new_pamu' && !empty($data['new_pamu_name'])) {
+                if (isset($data['new_unit_pamu_id']) && $data['new_unit_pamu_id'] === 'new_pamu' && !empty($data['new_pamu_name'])) {
                     $newPamu = Pamu::firstOrCreate(['name' => $data['new_pamu_name']]);
                     $pamuId = $newPamu->id;
                 } elseif (!empty($data['new_unit_pamu_id']) && $data['new_unit_pamu_id'] !== 'new_pamu') {
@@ -385,6 +385,9 @@ class AssignmentHistoryController extends Controller
             ->where('PM_CODE', $assignmenthistory->pm_code)
             ->first();
 
+        // Store officer data in session for edit mode
+        $this->storeOfficerInSession($assignmenthistory->pm_code, $officerData);
+
         $designations = Designation::pluck('name', 'id');
         $units = Unit::with('pamus')->get()->keyBy('id');
         $pamus = Pamu::all()->pluck('name', 'id');
@@ -413,6 +416,8 @@ class AssignmentHistoryController extends Controller
             ->orderBy('start_date', 'desc')
             ->get();
 
+        session(['relatedHistories' => $relatedHistories]);
+
         $data_items = [
             'data' => $assignmenthistory,
             'column_hidden' => $this->config_data->columnHidden,
@@ -434,6 +439,38 @@ class AssignmentHistoryController extends Controller
 
     public function update(Request $request, AssignmentHistory $assignmentHistory)
     {
+        // CRITICAL FIX: Separate Fetch from Update
+        $action = $request->input('action');
+        
+        // If Fetch Data button clicked in edit mode
+        if ($action === 'Fetch Data') {
+            $pm_code = $request->input('pm_code');
+            
+            $officer = Officer::with(['designations', 'units'])
+                ->where('PM_CODE', $pm_code)
+                ->first();
+
+            if (!$officer) {
+                return back()->withInput($request->all())
+                    ->withErrors(['pm_code' => 'PM Code not found.']);
+            }
+
+            // Store officer in session
+            $this->storeOfficerInSession($pm_code, $officer);
+
+            $relatedHistories = AssignmentHistory::where('pm_code', $pm_code)
+                ->where('id', '!=', $assignmentHistory->id)
+                ->with(['designations', 'units', 'pamus', 'assignments', 'assignmentType'])
+                ->orderBy('start_date', 'desc')
+                ->get();
+
+            session(['relatedHistories' => $relatedHistories]);
+
+            // Return to edit page with officer data
+            return back()->withInput($request->all());
+        }
+
+        // Otherwise proceed with Update
         $data = $request->validate([
             'pm_code' => ['required', 'string'],
             'designation_id' => ['nullable', 'string'],
@@ -461,10 +498,10 @@ class AssignmentHistoryController extends Controller
         }
 
         // Handle new unit + PAMU creation
-        if ($data['unit_id'] === 'new' && !empty($data['new_unit_name'])) {
+        if (isset($data['unit_id']) && $data['unit_id'] === 'new' && !empty($data['new_unit_name'])) {
             $pamuId = null;
 
-            if ($data['new_unit_pamu_id'] === 'new_pamu' && !empty($data['new_pamu_name'])) {
+            if (isset($data['new_unit_pamu_id']) && $data['new_unit_pamu_id'] === 'new_pamu' && !empty($data['new_pamu_name'])) {
                 $newPamu = Pamu::firstOrCreate(['name' => $data['new_pamu_name']]);
                 $pamuId = $newPamu->id;
             } elseif (!empty($data['new_unit_pamu_id']) && $data['new_unit_pamu_id'] !== 'new_pamu') {
@@ -529,7 +566,7 @@ class AssignmentHistoryController extends Controller
             'pamus.name',   // 7
             'assignments.name', // 8
             'pri_sec_spec', // 9
-            'assignment_type', // 10 - CHANGED from 'assignmentType.name'
+            'assignment_type', // 10
             'geography',    // 11
             'rank_during_completion', // 12
             'year_earned',  // 13
@@ -612,7 +649,6 @@ class AssignmentHistoryController extends Controller
             ])
             ->get()
             ->map(function ($item) {
-                // Add assignment_type_name to avoid collision
                 $item->assignment_type_name = $item->assignmentType->name ?? '';
                 return $item;
             });
