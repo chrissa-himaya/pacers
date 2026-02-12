@@ -145,6 +145,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('pfthistories', PftHistoryController::class);
     Route::get('/pfthistories-list', [PftHistoryController::class, 'list'])->name('pfthistories.list');
 
+    Route::get('careeradvising/{careeradvising}/create-from-existing', [CareerAdvisingController::class, 'createFromExisting'])
+    ->name('careeradvising.createFromExisting');
+
     Route::delete('careeradvising/destroy', [CareerAdvisingController::class, 'massDestroy'])
         ->name('careeradvising.massDestroy');
     Route::resource('careeradvising', CareerAdvisingController::class);
