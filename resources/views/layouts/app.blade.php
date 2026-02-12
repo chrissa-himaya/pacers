@@ -68,7 +68,7 @@
                 @include('partials.menu')
                 <div class="content-wrapper" style="min-height: 917px;">
                     <!-- Main content -->
-                    <section class="content" style="padding-top: 20px">
+                    <section class="content" style="padding-top: 5px">
                         @if(session('message'))
                             <div class="row mb-2">
                                 <div class="col-lg-12">
@@ -108,6 +108,8 @@
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
     <!-- Scripts -->
     <script>
         /*!

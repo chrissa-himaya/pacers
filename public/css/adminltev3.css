@@ -9614,7 +9614,7 @@ html {
 .main-sidebar,
 .main-sidebar:before {
 	transition: margin-left .3s ease-in-out, width .3s ease-in-out;
-	width: 250px
+	width: 265px
 }
 
 @media screen and (prefers-reduced-motion:reduce) {
