@@ -181,6 +181,9 @@ Route::middleware('auth')->group(function () {
 
 
    
+    Route::get('careeradvising/{careeradvising}/create-from-existing', [CareerAdvisingController::class, 'createFromExisting'])
+    ->name('careeradvising.createFromExisting');
+
     Route::delete('careeradvising/destroy', [CareerAdvisingController::class, 'massDestroy'])
         ->name('careeradvising.massDestroy');
     Route::resource('careeradvising', CareerAdvisingController::class);
