@@ -231,7 +231,6 @@
                          name="new_entry_name" 
                          id="new_entry_name" 
                          class="form-control" 
-                         placeholder="New entry name"
                          value="{{ old('new_entry_name') }}">
                   @error('new_entry_name')
                     <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
@@ -251,7 +250,7 @@
               <label>Class</label>
               <input type="text" id="classname" name="classname" class="form-control"
                 value="{{ old('classname', $op === 'create' ? '' : ($data_items['data']->classname ?? '')) }}"
-                placeholder="Class"
+                
                 {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
 
@@ -292,7 +291,6 @@
                      step="any"
                      name="rating" 
                      class="form-control"
-                     placeholder="92.86"
                      value="{{ old('rating', $op === 'create' ? '' : $data_items['data']->rating ?? '') }}"
                      {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
@@ -302,7 +300,6 @@
               <input type="number" 
                      name="standing" 
                      class="form-control"
-                     placeholder="1"
                      value="{{ old('standing', $op === 'create' ? '' : $data_items['data']->standing ?? '') }}"
                      {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
@@ -312,7 +309,6 @@
               <input type="number" 
                      name="total_student" 
                      class="form-control"
-                     placeholder="13"
                      value="{{ old('total_student', $op === 'create' ? '' : $data_items['data']->total_student ?? '') }}"
                      {{ $op === 'show' ? 'disabled' : '' }}>
             </div>

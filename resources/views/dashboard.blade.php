@@ -36,7 +36,7 @@
     .dash-shell{
         height: calc(100vh - 84px); /* adjust if your navbar is taller/shorter */
         padding: 10px 12px;
-        overflow: hidden; /* ✅ no scroll */
+        overflow: hidden; ✅ no scroll
     }
 
     .dash-topbar{
@@ -90,10 +90,10 @@
 
     /* Layout grid: KPIs + charts + compact table (no scroll) */
     .dash-grid{
-        margin-top: 10px;
+        margin-top: 5px;
         height: calc(100% - 62px);
         display:grid;
-        grid-template-columns: 420px 1fr;
+        grid-template-columns: 330px 1fr;
         grid-template-rows: auto 1fr;
         gap: 10px;
         overflow:hidden;
@@ -298,7 +298,7 @@
 <div class="dash-shell container-fluid">
     <div class="dash-topbar">
         <div class="dash-title">
-            <h1><i class="fas fa-chart-line"></i> Officer Analytics</h1>
+            <h1><i class="fas fa-chart-line"></i> Officers Dashboard</h1>
             <!-- <p>Actionable overview — assignment gaps, rank distribution, AFPOS mix</p> -->
         </div>
 
@@ -318,7 +318,7 @@
 
     <div class="dash-grid">
         {{-- Left: KPIs --}}
-        <div class="kpi-grid">
+        <div class="kpi-grid" style="width: 320px;">
             <div class="card kpi">
                 <div class="meta">
                     <div class="label">Total Officers</div>
@@ -399,7 +399,7 @@
                 </div>
             </div>
 
-            <div class="card" style="height: 320px !important">
+            <div class="card">
                 <div class="card-hd">
                     <h6><i class="fas fa-layer-group" style="color: var(--violet);"></i> AFPOS Per rank</h6>
                 </div>
@@ -408,7 +408,7 @@
                 </div>
             </div>
 
-            <div class="card" style="height: 370px !important">
+            <div class="card">
                 <div class="card-hd">
                     <h6><i class="fas fa-table" style="color: var(--good)"></i> Tally of AFPOS</h6>
                 </div>
@@ -416,9 +416,9 @@
                     <table class="mini-table">
                         <thead>
                         <tr>
-                            <th style="width: 80px;">Rank</th>
+                            <th>Rank</th>
                             <th>AFPOS Breakdown</th>
-                            <th style="width: 70px; text-align:right;">Total</th>
+                            <th>Total</th>
                         </tr>
                         </thead>
                         <tbody>

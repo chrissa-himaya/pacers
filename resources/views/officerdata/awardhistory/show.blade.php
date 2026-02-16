@@ -243,16 +243,14 @@
                 <div id="new_award_container" style="display:none;margin-top:3px;">
                   <div class="row gx">
                     <div class="col">
-                      <input type="text" name="new_award_code" id="new_award_code" class="form-control"
-                             placeholder="Code (e.g. MoV)" value="{{ old('new_award_code') }}">
+                      <input type="text" name="new_award_code" id="new_award_code" class="form-control" value="{{ old('new_award_code') }}">
                     </div>
                     <div class="col">
-                      <input type="text" name="new_award_name" id="new_award_name" class="form-control"
-                             placeholder="Award name" value="{{ old('new_award_name') }}">
+                      <input type="text" name="new_award_name" id="new_award_name" class="form-control" value="{{ old('new_award_name') }}">
                     </div>
                     <div class="col" style="max-width:90px">
                       <input type="number" step="any" name="new_award_points" id="new_award_points" class="form-control"
-                             placeholder="Points" value="{{ old('new_award_points') }}">
+                             value="{{ old('new_award_points') }}">
                     </div>
                   </div>
                 </div>
@@ -284,15 +282,15 @@
                   <div class="row gx">
                     <div class="col">
                       <input type="text" name="new_award_type_code" id="new_award_type_code" class="form-control"
-                             placeholder="Code" value="{{ old('new_award_type_code') }}">
+                              value="{{ old('new_award_type_code') }}">
                     </div>
                     <div class="col">
                       <input type="text" name="new_award_type_name" id="new_award_type_name" class="form-control"
-                             placeholder="Type name" value="{{ old('new_award_type_name') }}">
+                             value="{{ old('new_award_type_name') }}">
                     </div>
                     <div class="col" style="max-width:90px">
                       <input type="number" step="any" name="new_award_type_points" id="new_award_type_points" class="form-control"
-                             placeholder="Points" value="{{ old('new_award_type_points') }}">
+                              value="{{ old('new_award_type_points') }}">
                     </div>
                   </div>
                 </div>
@@ -315,8 +313,7 @@
               <label>GO #</label>
               <input type="text" name="go_number" class="form-control"
                 value="{{ old('go_number', $op === 'create' ? '' : ($data_items['data']->go_number ?? '')) }}"
-                {{ $op === 'show' ? 'disabled' : '' }}
-                placeholder="#97">
+                {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
           </div>
         </div>

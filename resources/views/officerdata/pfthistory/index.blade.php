@@ -226,7 +226,7 @@
             </div>
         </div>
         <div class="card-body">
-            <table id="dataTable" class="table table-bordered">
+            <table id="dataTable" class="table table-bordered" style="width: 100% !important;">
                 <thead>
                     <tr>
                         <th>Nr</th>

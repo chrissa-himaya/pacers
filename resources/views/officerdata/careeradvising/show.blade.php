@@ -237,7 +237,7 @@
               <label>Venue</label>
               <input type="text" name="venue" class="form-control"
                 value="{{ old('venue', $op === 'create' ? '' : ($data_items['data']->venue ?? '')) }}"
-                placeholder="Location of advising"
+                placeholder="Location"
                 {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
           </div>

@@ -184,7 +184,7 @@
               <div class="col" style="min-width:150px">
                 <label>Entry</label>
                 @if(in_array($op, ['create','edit']))
-                  <input type="text" name="entry" id="entry" class="form-control" placeholder="e.g. Promo to CPT" value="{{ old('entry', $data_items['data']->entry ?? '') }}">
+                  <input type="text" name="entry" id="entry" class="form-control" value="{{ old('entry', $data_items['data']->entry ?? '') }}">
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->entry ?? '-' }}" disabled>
                 @endif
@@ -193,7 +193,7 @@
               <div class="col" style="min-width:120px">
                 <label>Rating (%) <span class="text-danger">*</span></label>
                 @if(in_array($op, ['create','edit']))
-                  <input type="number" id="rating" name="rating" class="form-control" step="0.01" min="0" max="100" placeholder="87.00" value="{{ old('rating', $data_items['data']->rating ?? '') }}">
+                  <input type="number" id="rating" name="rating" class="form-control" step="0.01" min="0" max="100" value="{{ old('rating', $data_items['data']->rating ?? '') }}">
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->rating ?? '-' }}" disabled>
                 @endif
@@ -212,8 +212,7 @@
                 <label>Rank</label>
                 @if(in_array($op, ['create','edit']))
                   <input type="text" name="rank" id="rank" class="form-control"
-                         value="{{ old('rank', $data_items['data']->rank ?? '') }}"
-                         placeholder="Auto" readonly>
+                         value="{{ old('rank', $data_items['data']->rank ?? '') }}" readonly>
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->rank ?? '-' }}" disabled>
                 @endif
@@ -225,7 +224,7 @@
               <div class="col" style="min-width:200px">
                 <label>Supervising Unit</label>
                 @if(in_array($op, ['create','edit']))
-                  <input type="text" name="supervising_unit" id="supervising_unit" class="form-control" placeholder="SSC, HHSG, PA" value="{{ old('supervising_unit', $data_items['data']->supervising_unit ?? '') }}">
+                  <input type="text" name="supervising_unit" id="supervising_unit" class="form-control" value="{{ old('supervising_unit', $data_items['data']->supervising_unit ?? '') }}">
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->supervising_unit ?? '-' }}" disabled>
                 @endif
@@ -234,7 +233,7 @@
               <div class="col" style="max-width:100px">
                 <label>Age</label>
                 @if(in_array($op, ['create','edit']))
-                  <input type="text" name="age" id="age" class="form-control" placeholder="25y 7m" value="{{ old('age', $data_items['data']->age ?? '') }}">
+                  <input type="text" name="age" id="age" class="form-control" value="{{ old('age', $data_items['data']->age ?? '') }}">
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->age ?? '-' }}" disabled>
                 @endif
@@ -243,7 +242,7 @@
               <div class="col" style="max-width:80px">
                 <label>Profile</label>
                 @if(in_array($op, ['create','edit']))
-                  <input type="text" name="profile" id="profile" class="form-control" placeholder="P1" value="{{ old('profile', $data_items['data']->profile ?? '') }}">
+                  <input type="text" name="profile" id="profile" class="form-control" value="{{ old('profile', $data_items['data']->profile ?? '') }}">
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->profile ?? '-' }}" disabled>
                 @endif

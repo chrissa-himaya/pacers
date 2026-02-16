@@ -216,7 +216,6 @@
                         name="new_designation_name" 
                         id="new_designation_name" 
                         class="form-control" 
-                        placeholder="New designation name"
                         value="{{ old('new_designation_name') }}">
                   @error('new_designation_name')
                     <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
@@ -235,7 +234,6 @@
               <label>Sub unit</label>
               <input type="text" id="subunit" name="subunit" class="form-control"
                 value="{{ old('subunit', $op === 'create' ? '' : ($data_items['data']->subunit ?? '')) }}"
-                placeholder="Sub unit"
                 {{ $op === 'show' ? 'disabled' : '' }}>
             </div>
 
@@ -262,7 +260,6 @@
                         name="new_unit_name" 
                         id="new_unit_name" 
                         class="form-control" 
-                        placeholder="New unit name"
                         value="{{ old('new_unit_name') }}"
                         style="margin-bottom:3px;">
                   
@@ -278,7 +275,6 @@
                         name="new_pamu_name" 
                         id="new_pamu_name" 
                         class="form-control" 
-                        placeholder="New PAMU name (if creating new)"
                         value="{{ old('new_pamu_name') }}"
                         style="margin-top:3px; display:none;">
                   

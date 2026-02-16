@@ -9936,9 +9936,9 @@ html {
 	padding: .5rem
 }
 
-.nav-sidebar .nav-header:not(:first-of-type) {
+/* .nav-sidebar .nav-header:not(:first-of-type) {
 	padding: 1.7rem 1rem .5rem 1rem
-}
+} */
 
 .nav-sidebar .nav-link p {
 	display: inline-block;
