@@ -13,14 +13,14 @@
         <table id="dataTable" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>Nr</th>
-                    <th>Duty</th>
-                    <th>Type</th>
+                    <th>ID</th>
+                    <th>Assignment</th>
+                    <th>Types</th>
                     <th>Rank</th>
-                    <th>Min month</th>
-                    <th>Min points</th>
-                    <th>Max month</th>
-                    <th>Max points</th>
+                    <th>Minmonth</th>
+                    <th>Minpoint</th>
+                    <th>Maxmonth</th>
+                    <th>Maxpoint</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -58,23 +58,11 @@
                 },
                 { data: 'assignments.name' },
                 { data: 'assignments.types.name' },
-                { data: 'min_month_rankpoint.ranks.code' },
-                {
-                    data: 'min_month_rankpoint.points',
-                    render: function(val){ return `min_month - ${val ?? ''}`; }
-                },
-                {
-                    data: 'min_point_rankpoint.points',
-                    render: function(val){ return `min_point - ${val ?? ''}`; }
-                },
-                {
-                    data: 'max_month_rankpoint.points',
-                    render: function(val){ return `max_month - ${val ?? ''}`; }
-                },
-                {
-                    data: 'max_point_rankpoint.points',
-                    render: function(val){ return `max_point - ${val ?? ''}`; }
-                },
+                { data: 'ranks.code' },
+                { data: 'min_month' },
+                { data: 'min_point' },
+                { data: 'max_month' },
+                { data: 'max_point' },
                 {
                     data: 'id',
                     render: function (data) {

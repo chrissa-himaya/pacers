@@ -44,17 +44,21 @@ class SourcedatasController extends Controller
         return view($this->config_data->module_view_folder . '.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $sourcedata = new Sourcedata(array_fill_keys((new Sourcedata())->getFillable(), ''));
+        $assignments = Assignment::with('types') // or 'types' if your relation is plural
+            ->get()
+            ->mapWithKeys(function ($assignment) {
+                return [
+                    $assignment->id => $assignment->name . ' - ' . optional($assignment->types)->name
+                ];
+            })
+            ->prepend('Please select', '');
 
-        $sourcedata = new Sourcedata();
-        $assignments = Assignment::with('types')->get()->keyBy('id');
-        $ranks = Rank::all()->pluck('code', 'id');
-        $rankpointsGrouped = Rankpoint::with('ranks')->get()->groupBy('name');
+        $ranks = Rank::all()->pluck('code', 'id')->prepend('Please select', '');
+        // $columnHidden = array_merge($rank->getDates(), ['id']);      
 
         $data_items = [
             "data" => $sourcedata,
@@ -64,12 +68,9 @@ class SourcedatasController extends Controller
             "optional_fields" => $this->config_data->optionalFields,
             "assignments" => $assignments,
             "ranks" => $ranks,
-            "rankpoints_grouped" => $rankpointsGrouped,
         ];
-
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -77,41 +78,24 @@ class SourcedatasController extends Controller
     public function store(Request $request)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $validated = $request->validate([
-            'assignment_id' => ['required', 'exists:assignments,id'],
-            'rank_id' => ['required', 'exists:ranks,id'],
-            'min_month_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-            'min_point_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-            'max_month_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-            'max_point_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-        ]);
-
-        $this->assertSameRank($validated);
-        Sourcedata::create($validated);
+        $data = $request->all();
+        Sourcedata::create($data);
         return redirect()->route($this->config_data->module_route . '.index');
     }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Sourcedata $sourcedata)
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-
-        $sourcedata->load([
-            'assignments.types',
-            'minMonthRankpoint.ranks',
-            'minPointRankpoint.ranks',
-            'maxMonthRankpoint.ranks',
-            'maxPointRankpoint.ranks',
-        ]);
-
-        $assignments = Assignment::with('types')->get()->keyBy('id');
+        $assignments = Assignment::with('types')
+            ->get()
+            ->mapWithKeys(function ($assignment) {
+                return [
+                    $assignment->id => $assignment->name . ' - ' . optional($assignment->types)->name
+                ];
+            })
+            ->prepend('', '');
         $ranks = Rank::all()->pluck('code', 'id');
-        $rankpointsGrouped = Rankpoint::with('ranks')->get()->groupBy('name');
-        $columnHidden = array_merge($sourcedata->getDates(), ['id', 'assignment_id', 'type_id']);
+        $columnHidden = array_merge($sourcedata->getDates(), ['id', 'type_id']);
 
         $data_items = [
             "data" => $sourcedata,
@@ -120,7 +104,7 @@ class SourcedatasController extends Controller
             "operation_type" => "show",
             "assignments" => $assignments,
             "ranks" => $ranks,
-            "rankpoints_grouped" => $rankpointsGrouped,
+            // "rankpoints_grouped" => $rankpointsGrouped,
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -133,7 +117,14 @@ class SourcedatasController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $columnHidden = array_merge($sourcedata->getDates(), ['id']);
-        $assignments = Assignment::with('types')->get()->keyBy('id');
+        $assignments = Assignment::with('types') // or 'types' if your relation is plural
+            ->get()
+            ->mapWithKeys(function ($assignment) {
+                return [
+                    $assignment->id => $assignment->name . ' - ' . optional($assignment->types)->name
+                ];
+            })
+            ->prepend('Please select', '');
         $ranks = Rank::all()->pluck('code', 'id');
         $rankpointsGrouped = Rankpoint::with('ranks')->get()->groupBy('name');
 
@@ -162,13 +153,8 @@ class SourcedatasController extends Controller
         $validated = $request->validate([
             'assignment_id' => ['required', 'exists:assignments,id'],
             'rank_id' => ['required', 'exists:ranks,id'],
-            'min_month_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-            'min_point_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-            'max_month_rankpoint_id' => ['required', 'exists:rankpoints,id'],
-            'max_point_rankpoint_id' => ['required', 'exists:rankpoints,id'],
         ]);
 
-        $this->assertSameRank($validated);
         $sourcedata->update($validated);
         return redirect()->route($this->config_data->module_route . '.index', $sourcedata->id);
     }
@@ -187,7 +173,7 @@ class SourcedatasController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         // All columns in the table
-        $columns = ['id', 'assignment_id', 'rank_id', 'min_month_rankpoint_id', 'min_point_rankpoint_id', 'max_month_rankpoint_id', 'max_point_rankpoint_id', 'created_at', 'updated_at'];
+        $columns = ['id', 'name', 'created_at'];
 
         // Pagination values from DataTables
         $start = $request->input('start', 0);
@@ -216,9 +202,7 @@ class SourcedatasController extends Controller
         $search = $request->input('search.value');
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('assignments', fn($aq) => $aq->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('minMonthRankpoint.ranks', fn($rq) => $rq
-                        ->where('code', 'like', "%{$search}%"));
+                $q->where('name', 'like', "%{$search}%");
             });
         }
 
@@ -230,25 +214,8 @@ class SourcedatasController extends Controller
         $data = $query->orderBy($orderColumn, $orderDir)
             ->skip($start)
             ->take($length)
-            ->with([
-                'assignments:id,name,type_id',
-                'assignments.types:id,name',
-
-                'minMonthRankpoint:id,rank_id,points',
-                'minMonthRankpoint.ranks:id,code',
-
-                'minPointRankpoint:id,rank_id,points',
-                'minPointRankpoint.ranks:id,code',
-
-                'maxMonthRankpoint:id,rank_id,points',
-                'maxMonthRankpoint.ranks:id,code',
-
-                'maxPointRankpoint:id,rank_id,points',
-                'maxPointRankpoint.ranks:id,code',
-            ])
+            ->with(['assignments', 'ranks', 'assignments.types'])
             ->get();
-
-
 
         // Return JSON in DataTables format
         return response()->json([
@@ -257,30 +224,5 @@ class SourcedatasController extends Controller
             'recordsFiltered' => $filteredData,
             'data' => $data,
         ]);
-    }
-
-    private function assertSameRank(array $validated): void
-    {
-        $ids = [
-            $validated['min_month_rankpoint_id'],
-            $validated['min_point_rankpoint_id'],
-            $validated['max_month_rankpoint_id'],
-            $validated['max_point_rankpoint_id'],
-        ];
-
-        $rankIds = Rankpoint::whereIn('id', $ids)->pluck('rank_id')->unique();
-
-        if ($rankIds->count() !== 1) {
-            throw ValidationException::withMessages([
-                'min_month_rankpoint_id' => 'Invalid selection: Min/Max month and points must have the SAME rank.',
-            ]);
-        }
-
-        $rpRankId = (int) $rankIds->first();
-        if ((int) $validated['rank_id'] !== $rpRankId) {
-            throw ValidationException::withMessages([
-                'rank_id' => 'Selected rank must match selected rankpoints.',
-            ]);
-        }
     }
 }
