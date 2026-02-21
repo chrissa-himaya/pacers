@@ -327,7 +327,7 @@ class SchoolingsController extends Controller
                 'pm_code'                => ['required', 'string'],
                 'schoolingname_id'       => ['required', 'integer'],
                 'classname'              => ['nullable', 'string'],
-                'schooling_unit_id'      => ['nullable', 'string'],
+                'schooling_unit_id'      => ['nullable', 'integer'],
                 'assignment_id'          => ['required', 'integer'],
                 'date_completed'         => ['nullable', 'date'],
                 'rating'                 => ['nullable', 'string'],
