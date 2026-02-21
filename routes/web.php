@@ -265,6 +265,8 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+
+    Route::get('/profile/{officer}', [QRSProfilesController::class, 'profile'])->name('profile');
 });
 
 Auth::routes();

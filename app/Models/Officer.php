@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +9,10 @@ use Carbon\Carbon;
 use App\Models\Designation;
 use App\Models\Unit;
 use App\Models\Role;
+use App\Models\AssignmentHistory;
+use App\Models\Schooling;
+use App\Models\AwardHistory;
+use App\Models\PftHistory;
 
 class Officer extends Model implements Auditable
 {
@@ -55,4 +58,25 @@ class Officer extends Model implements Auditable
     {
         return $this->belongsTo(Role::class, 'role_id', 'id');
     }
+
+    public function assignments()
+    {
+        return $this->hasMany(AssignmentHistory::class, 'pm_code', 'PM_CODE');
+    }
+
+    public function schoolings()
+    {
+        return $this->hasMany(Schooling::class, 'pm_code', 'PM_CODE');
+    }
+
+    public function awards()
+    {
+        return $this->hasMany(AwardHistory::class, 'pm_code', 'PM_CODE');
+    }
+
+    public function pfts()
+    {
+        return $this->hasMany(PftHistory::class, 'pm_code', 'PM_CODE');
+    }
+
 }

@@ -1,12 +1,17 @@
 <?php
-
 namespace App\Http\Controllers;
 
+use App\Models\AssignmentHistory;
+use App\Models\Award;
+use App\Models\AwardHistory;
+use App\Models\PftHistory;
 use App\Models\QRSProfile;
+use App\Models\Schooling;
 use Illuminate\Http\Request;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
+use App\Models\Officer;
 
 class QRSProfilesController extends Controller
 {
@@ -32,6 +37,14 @@ class QRSProfilesController extends Controller
         ];
 
         view()->share('config_data', $this->config_data);
+    }
+
+    public function profile(Officer $officer)
+    {
+        $data = $officer->load(['assignments', 'schoolings', 'awards', 'pfts']);
+
+        // return $officer;
+        return view($this->config_data->module_view_folder.'.profile', compact('data'));
     }
     public function index()
     {
@@ -86,4 +99,6 @@ class QRSProfilesController extends Controller
     {
         //
     }
+
+
 }
