@@ -2,189 +2,305 @@
 
 namespace App\Services;
 
-use App\Models\Assignment;
+use App\Models\Schooling;
 use App\Models\Sourcedata;
-use Illuminate\Support\Facades\Log;
+use App\Models\Assignment;
+use Carbon\Carbon;
 
+/**
+ * SchoolingPointsService
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Replicates the Excel LET / XLOOKUP formula for PPAD scoring:
+ *
+ *   =LET(
+ *     G,          [@rating],
+ *     M,          [@total_students],
+ *     N,          [@standing],
+ *     loc,        [@school_location],
+ *     half_pt,    XLOOKUP(category, ppad[PPD], ppad[CPT_factor1]),
+ *     foreign_pt, XLOOKUP(category, ppad[PPD], ppad[CPT_foreignpt]),
+ *     flat_pt,    XLOOKUP(category, ppad[PPD], ppad[flat]),
+ *     IF(cat="Civil Service Eligibility", IF(G>0, flat_pt, 0),
+ *     IF(cat="Specialization Course",     flat_pt,
+ *     IF(cat IN ["Graduate","Post Graduate"], flat_pt,
+ *     IF(loc="local",   ((G/100)*half_pt) + (((M-N+1)/M)*half_pt),
+ *     IF(loc="foreign", foreign_pt, 0))))))
+ *
+ * sourcedatas column mapping:
+ *   min_month  → half_pt    (factor1 — used in both halves of the local formula)
+ *   max_month  → max_month  (informational only, not used in formula)
+ *   max_point  → foreign_pt (flat points for foreign schools)
+ *   min_point  → flat_pt    (flat points for Civil Service / Graduate / Specialization)
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * HOW THE CONTROLLER CALLS THIS SERVICE
+ * ─────────────────────────────────────────────────────────────────────────────
+ * SchoolingsController passes an ARRAY to computeForRank():
+ *
+ *   $svcInput = [
+ *       'assignment_id'   => $data['assignment_id'],
+ *       'school_location' => $request->input('school_location'),  // 'local' | 'foreign'
+ *       'rating'          => $data['rating'],
+ *       'standing'        => $data['standing'],
+ *       'total_students'  => $data['total_student'],   // ← note: key is total_students
+ *   ];
+ *   $points = $svc->computeForRank($svcInput, $rankId);   // $rankId = 1..6
+ *
+ * The zero-out logic for ranks below rank_during_completion is handled
+ * by the controller's loop — this service just returns the raw formula value.
+ *
+ * computeAndSave() / computeAllRanks() accept a Schooling model and are used
+ * for bulk recomputation (e.g. recomputeForOfficer).
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 class SchoolingPointsService
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Excel Formula Reference (per rank column: CPT, MAJ, LTC, COL)
-    |--------------------------------------------------------------------------
-    |
-    | =LET(
-    |   cat,       [@category],
-    |   loc,       [@[school_location]],
-    |   G,         [@rating],
-    |   M,         [@[total_students]],
-    |   N,         [@standing],
-    |   half_pt,   XLOOKUP([@category], ppad[...], ppad[{RANK}_factor1]),
-    |   foreign_pt,XLOOKUP([@category], ppad[...], ppad[{RANK}_foreignpt]),
-    |   civil_service, source!${COL}$45,       ← fixed cell per rank column
-    |   post_grad,     source!${COL}$46,       ← fixed cell per rank column
-    |   specialization,source!${COL}$47,       ← fixed cell per rank column
-    |
-    |   IF(cat="Civil Service Eligibility", IF(G>0, civil_service, 0),
-    |     IF(cat="Specialization Course", specialization,
-    |       IF(cat="Graduate Course", post_grad,
-    |         IF(loc="local",  ((G/100)*half_pt) + (((M-N+1)/M)*half_pt),
-    |           IF(loc="foreign", foreign_pt, 0))))))
-    |
-    |--------------------------------------------------------------------------
-    | Database Mapping (sourcedatas → rankpoints)
-    |--------------------------------------------------------------------------
-    |
-    | Excel Variable   | sourcedata FK              | rankpoints.name
-    | -----------------|-----------------------------|------------------
-    | half_pt          | min_month_rankpoint_id      | factor1
-    | (unused factor2) | min_point_rankpoint_id      | factor2
-    | specialization   | max_month_rankpoint_id      | maxpt
-    | civil_service    | max_month_rankpoint_id      | maxpt
-    | post_grad        | max_month_rankpoint_id      | maxpt
-    | foreign_pt       | max_point_rankpoint_id      | foreignpt
-    |
-    */
+    // ── Constants ──────────────────────────────────────────────────────────────
 
-    private const SOURCE_RELATIONS = [
-        'minMonthRankpoint:id,points',   // factor1 → half_pt
-        'minPointRankpoint:id,points',   // factor2 (unused in main formula)
-        'maxMonthRankpoint:id,points',   // maxpt → civil_service / specialization / post_grad
-        'maxPointRankpoint:id,points',   // foreignpt → foreign_pt
+    const RANK_COLUMNS = ['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'];
+
+    /** ranks.id ↔ rank code */
+    const RANK_IDS = [
+        '2LT' => 1,
+        '1LT' => 2,
+        'CPT' => 3,
+        'MAJ' => 4,
+        'LTC' => 5,
+        'COL' => 6,
     ];
 
+    /** schoolings column name per rank code */
+    const RANK_DB_COLS = [
+        '2LT' => 'seclt',
+        '1LT' => 'firstlt',
+        'CPT' => 'cpt',
+        'MAJ' => 'maj',
+        'LTC' => 'ltc',
+        'COL' => 'col',
+    ];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRIMARY API  — used by SchoolingsController (store / update / computePoints)
+    // ─────────────────────────────────────────────────────────────────────────
+
     /**
-     * Compute schooling points for a specific target rank.
+     * Compute the schooling point for ONE rank using the input ARRAY
+     * that the controller builds and passes in.
      *
-     * @param  array  $data    Form data: assignment_id, school_location, rating, total_students, standing
-     * @param  int    $rankId  Target rank (1=2LT, 2=1LT, 3=CPT, 4=MAJ, 5=LTC, 6=COL)
+     * This is the exact signature the controller uses:
+     *   foreach ([1=>'seclt', 2=>'firstlt', ...] as $rankId => $col) {
+     *       $data[$col] = $svc->computeForRank($svcInput, $rankId);
+     *   }
+     *
+     * @param  array{
+     *     assignment_id:   int|string|null,
+     *     school_location: string|null,
+     *     rating:          float|string|null,
+     *     standing:        int|string|null,
+     *     total_students:  int|string|null,
+     * } $input
+     * @param  int $rankId  ranks.id  (1 = 2LT … 6 = COL)
      * @return float
      */
-    public function computeForRank(array $data, int $rankId): float
+    public function computeForRank(array $input, int $rankId): float
     {
-        $assignmentId = (int) ($data['assignment_id'] ?? 0);
-        $loc          = strtolower(trim((string) ($data['school_location'] ?? '')));
-        $G            = (float) ($data['rating'] ?? 0);
-        $M            = (int) ($data['total_students'] ?? 0);
-        $N            = (int) ($data['standing'] ?? 0);
+        $assignmentId = isset($input['assignment_id'])
+            ? (int) $input['assignment_id']
+            : null;
 
-        Log::debug('SchoolingPoints::computeForRank input', [
-            'assignment_id' => $assignmentId,
-            'rank_id'       => $rankId,
-            'location'      => $loc,
-            'rating'        => $G,
-            'total_students'=> $M,
-            'standing'      => $N,
+        if (! $assignmentId) {
+            return 0.0;
+        }
+
+        // Look up the source row for (assignment_id, rank_id)
+        $source = Sourcedata::where('assignment_id', $assignmentId)
+            ->where('rank_id', $rankId)
+            ->first();
+
+        if (! $source) {
+            return 0.0;
+        }
+
+        $category = $this->getCategoryName($assignmentId);
+        $location = strtolower(trim((string) ($input['school_location'] ?? 'local')));
+
+        $rating   = (float) ($input['rating']         ?? 0);
+        $total    = (int)   ($input['total_students']  ?? 0);   // key: total_students
+        $standing = (int)   ($input['standing']        ?? 0);
+
+        return $this->applyFormula(
+            category:  $category,
+            location:  $location,
+            rating:    $rating,
+            total:     $total,
+            standing:  $standing,
+            halfPt:    (float) $source->min_month,   // factor1 / half_pt
+            foreignPt: (float) $source->max_point,   // CPT_foreignpt
+            flatPt:    (float) $source->min_point,   // flat for special categories
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MODEL-BASED API  — used for bulk / background recomputation
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Compute points for all 6 rank columns from a Schooling model,
+     * persist them, and return the refreshed model.
+     */
+    public function computeAndSave(Schooling $schooling): Schooling
+    {
+        $points = $this->computeAllRanks($schooling);
+
+        $schooling->update([
+            'seclt'   => $points['2LT'],
+            'firstlt' => $points['1LT'],
+            'cpt'     => $points['CPT'],
+            'maj'     => $points['MAJ'],
+            'ltc'     => $points['LTC'],
+            'col'     => $points['COL'],
         ]);
 
-        if ($assignmentId <= 0 || $rankId <= 0) {
-            return 0.0;
-        }
+        return $schooling->fresh();
+    }
 
-        // Verify assignment belongs to type 5 (Professional Preparation & Development)
-        $assignment = Assignment::select('id', 'name', 'type_id')->find($assignmentId);
-        if (!$assignment || (int) $assignment->type_id !== 5) {
-            return 0.0;
-        }
+    /**
+     * Compute all 6 rank columns from a Schooling model.
+     * Ranks below rank_during_completion receive 0.
+     *
+     * Internally bridges to computeForRank(array) so both paths
+     * share exactly the same formula logic.
+     *
+     * @return array<string, float>  ['2LT' => float, '1LT' => float, …]
+     */
+    public function computeAllRanks(Schooling $schooling): array
+    {
+        $result = [];
 
-        $category = strtolower(trim($assignment->name));
+        $rankDuringComp = strtoupper(trim($schooling->rank_during_completion ?? ''));
+        $rankOrder      = array_flip(self::RANK_COLUMNS);   // rank => 0-based index
+        $compIdx        = $rankOrder[$rankDuringComp] ?? null;
 
-        // Pre-Entry Course: no points (Excel shows dashes across all ranks)
-        if ($category === 'pre-entry course') {
-            return 0.0;
-        }
+        // Build the same array the controller would pass
+        $svcInput = [
+            'assignment_id'   => $schooling->assignment_id,
+            'school_location' => $schooling->schoolingunits?->location ?? 'local',
+            'rating'          => $schooling->rating,
+            'standing'        => $schooling->standing,
+            'total_students'  => $schooling->total_student,  // map DB column → array key
+        ];
 
-        // ─── Look up sourcedata ────────────────────────────────────
-        $source = $this->findSourcedata($assignmentId, $rankId, $category);
+        foreach (self::RANK_COLUMNS as $rank) {
+            $rankId = self::RANK_IDS[$rank] ?? null;
 
-        if (!$source) {
-            Log::warning("SchoolingPoints: No sourcedata for assignment_id={$assignmentId}, rank_id={$rankId}, category={$category}");
-            return 0.0;
-        }
-
-        // Extract values (matching Excel variable names)
-        $half_pt    = (float) optional($source->minMonthRankpoint)->points;  // factor1
-        $foreign_pt = (float) optional($source->maxPointRankpoint)->points;  // foreignpt
-        $maxpt      = (float) optional($source->maxMonthRankpoint)->points;  // maxpt
-
-        Log::debug('SchoolingPoints: resolved values', [
-            'sourcedata_id' => $source->id,
-            'half_pt'       => $half_pt,
-            'foreign_pt'    => $foreign_pt,
-            'maxpt'         => $maxpt,
-            'category'      => $category,
-        ]);
-
-        // ═══════════════════════════════════════════════════════════
-        //  FLAT-POINT CATEGORIES (Excel: fixed cell references)
-        //  civil_service = maxpt, specialization = maxpt, post_grad = maxpt
-        // ═══════════════════════════════════════════════════════════
-
-        if ($category === 'civil service eligibility') {
-            // Excel: IF(G > 0, civil_service, 0)
-            return ($G > 0) ? round($maxpt, 6) : 0.0;
-        }
-
-        if ($category === 'specialization course') {
-            // Excel: specialization (always returned, no condition)
-            return round($maxpt, 6);
-        }
-
-        if ($category === 'graduate course' || $category === 'post graduate course' || $category === 'undergraduate course') {
-            // Excel: post_grad (always returned, no condition)
-            return round($maxpt, 6);
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        //  STANDARD CATEGORIES (OBC, OAC, CGSC, SOC)
-        //  Excel: IF(loc="local", formula, IF(loc="foreign", foreign_pt, 0))
-        // ═══════════════════════════════════════════════════════════
-
-        if ($loc === 'foreign') {
-            return round($foreign_pt, 6);
-        }
-
-        if ($loc === 'local') {
-            if ($half_pt == 0) {
-                return 0.0;
-            }
-            if ($M <= 0 || $N <= 0 || $N > $M) {
-                return 0.0;
+            // Zero ranks before rank_during_completion
+            if ($compIdx !== null && $rankOrder[$rank] < $compIdx) {
+                $result[$rank] = 0.0;
+                continue;
             }
 
-            // Excel: ((G/100)*half_pt) + (((M-N+1)/M)*half_pt)
-            $ratingPart   = ($G / 100.0) * $half_pt;
-            $standingPart = (($M - $N + 1) / $M) * $half_pt;
+            if (! $rankId) {
+                $result[$rank] = 0.0;
+                continue;
+            }
 
-            return round($ratingPart + $standingPart, 6);
+            $result[$rank] = $this->computeForRank($svcInput, $rankId);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Bulk recompute all schooling records for one officer.
+     */
+    public function recomputeForOfficer(string $pmCode): void
+    {
+        Schooling::where('pm_code', $pmCode)
+            ->with('schoolingunits')
+            ->get()
+            ->each(fn($s) => $this->computeAndSave($s));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CORE FORMULA
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Applies the Excel LET formula for a single rank row.
+     *
+     * Local regular course:
+     *   ((rating / 100) × halfPt) + (((total − standing + 1) / total) × halfPt)
+     *
+     * Foreign regular course:
+     *   foreignPt  (flat)
+     *
+     * Civil Service Eligibility:
+     *   flatPt if rating > 0, else 0
+     *
+     * Graduate Course / Post Graduate Course:
+     *   flatPt  (flat)
+     *
+     * Specialization Course:
+     *   flatPt  (flat)
+     */
+    public function applyFormula(
+        string $category,
+        string $location,
+        float  $rating,
+        int    $total,
+        int    $standing,
+        float  $halfPt,
+        float  $foreignPt,
+        float  $flatPt,
+    ): float {
+        // ── Special categories ──────────────────────────────────────────────
+        if ($category === 'Civil Service Eligibility') {
+            return $rating > 0 ? $flatPt : 0.0;
+        }
+
+        if ($category === 'Specialization Course') {
+            return $flatPt;
+        }
+
+        if (in_array($category, ['Graduate Course', 'Post Graduate Course'], true)) {
+            return $flatPt;
+        }
+
+        // ── Regular military courses ────────────────────────────────────────
+        if ($location === 'local') {
+            if ($total <= 0 || $standing <= 0) {
+                return 0.0;
+            }
+
+            $ratingComponent   = ($rating / 100) * $halfPt;
+            $standingComponent = (($total - $standing + 1) / $total) * $halfPt;
+
+            return round($ratingComponent + $standingComponent, 5);
+        }
+
+        if ($location === 'foreign') {
+            return $foreignPt;
         }
 
         return 0.0;
     }
 
-    /**
-     * Find sourcedata for a given assignment + rank.
-     *
-     * Strict match only: requires both assignment_id AND rank_id to match.
-     * If no sourcedata exists for a specific rank, returns null (0 points).
-     * All computation is strictly dependent on sourcedata configuration.
-     */
-    private function findSourcedata(int $assignmentId, int $rankId, string $category): ?Sourcedata
-    {
-        // Try exact match first (assignment + rank)
-        $source = Sourcedata::query()
-            ->where('assignment_id', $assignmentId)
-            ->where('rank_id', $rankId)
-            ->with(self::SOURCE_RELATIONS)
-            ->first();
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────────────────────────────────
 
-        if ($source) {
-            return $source;
+    /**
+     * Resolve the category name from assignment_id (request-scoped static cache).
+     */
+    protected function getCategoryName(int $assignmentId): string
+    {
+        static $cache = [];
+
+        if (! isset($cache[$assignmentId])) {
+            $assignment            = Assignment::find($assignmentId);
+            $cache[$assignmentId]  = $assignment?->name ?? '';
         }
 
-        // No fallback — if no sourcedata exists for this exact assignment + rank, return null.
-        // Points are strictly dependent on sourcedata configuration.
-
-        return null;
+        return $cache[$assignmentId];
     }
 }
