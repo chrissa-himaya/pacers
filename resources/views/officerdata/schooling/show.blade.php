@@ -119,53 +119,53 @@
           </div>
           <div class="col" style="max-width:60px">
             <label>Rank</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->RANK : session('rank')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('rank') ?? ($data_items['officerData']->RANK ?? '') }}" disabled>
           </div>
           <div class="col" style="min-width:140px">
             <label>Name</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->NAME : session('name')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('name') ?? ($data_items['officerData']->NAME ?? '') }}" disabled>
           </div>
           <div class="col" style="max-width:70px">
             <label>AFPOS</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPOS : session('afpos')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('afpos') ?? ($data_items['officerData']->AFPOS ?? '') }}" disabled>
           </div>
           <div class="col" style="max-width:70px">
             <label>AFPSN</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->AFPSN : session('afpsn')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('afpsn') ?? ($data_items['officerData']->AFPSN ?? '') }}" disabled>
           </div>
           <div class="col" style="max-width:45px">
             <label>Sex</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SEX : session('sex')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('sex') ?? ($data_items['officerData']->SEX ?? '') }}" disabled>
           </div>
           <div class="col" style="max-width:90px">
             <label>DOB</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOB : session('dob')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('dob') ?? ($data_items['officerData']->DOB ?? '') }}" disabled>
           </div>
           <div class="col" style="max-width:90px">
             <label>Date Ret</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->RET : session('date_ret')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('date_ret') ?? ($data_items['officerData']->RET ?? '') }}" disabled>
           </div>
         </div>
         <div class="row gx mt-1">
           <div class="col-md-2">
             <label>DOR</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->DOR : session('dor')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('dor') ?? ($data_items['officerData']->DOR ?? '') }}" disabled>
           </div>
           <div class="col-md-2">
             <label>SOC</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SOC : session('soc')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('soc') ?? ($data_items['officerData']->SOC ?? '') }}" disabled>
           </div>
           <div class="col-md-2">
             <label>SIG</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->SIG : session('sig')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('sig') ?? ($data_items['officerData']->SIG ?? '') }}" disabled>
           </div>
           <div class="col-md-3">
             <label>Current Designation</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->designations->name : session('designation')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('designation') ?? ($data_items['officerData']->designations->name ?? '') }}" disabled>
           </div>
           <div class="col-md-3">
             <label>Current Unit</label>
-            <input type="text" class="form-control" value="{{isset($data_items['officerData']) ? $data_items['officerData']->units->name : session('unit')}}" disabled>
+            <input type="text" class="form-control" value="{{ session('unit') ?? ($data_items['officerData']->units->name ?? '') }}" disabled>
           </div>
         </div>
       </div>
