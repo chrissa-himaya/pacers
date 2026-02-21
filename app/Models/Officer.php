@@ -59,7 +59,7 @@ class Officer extends Model implements Auditable
         return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
-    public function assignments()
+    public function assignmenthistories()
     {
         return $this->hasMany(AssignmentHistory::class, 'pm_code', 'PM_CODE');
     }
@@ -78,5 +78,10 @@ class Officer extends Model implements Auditable
     {
         return $this->hasMany(PftHistory::class, 'pm_code', 'PM_CODE');
     }
+
+    public function getRouteKeyName()
+{
+    return 'PM_CODE';
+}
 
 }

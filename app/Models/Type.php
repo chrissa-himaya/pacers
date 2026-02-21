@@ -17,4 +17,9 @@ class Type extends Model implements Auditable
     protected $fillable = [
         'name',
     ];
+
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class, 'type_id', 'id');
+    }
 }
