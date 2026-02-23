@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Assignment;
 use App\Models\AssignmentHistory;
 use App\Models\Award;
 use App\Models\AwardHistory;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 use App\Models\Officer;
 use App\Models\Type;
 use App\Models\Sourcedata;
+use Illuminate\Support\Collection;
 
 class QRSProfilesController extends Controller
 {
@@ -58,7 +60,10 @@ class QRSProfilesController extends Controller
             'assignmenthistories.assignments',
             'assignmenthistories.assignments.types',
             'schoolings',
+            'schoolings.assignments',
             'awards',
+            'awards.awards',
+            'awards.dateranks',
             'pfts',
             'designations'
         ]);
@@ -95,8 +100,40 @@ class QRSProfilesController extends Controller
             $qrsScores[$rank] = $this->computeQrsScore($data, $rank);
         }
 
+        // Get all assignments with type_id = 5 (schooling criteria)
+        $schoolingCriteria = Assignment::where('type_id', 5)->orderBy('id')->get();
+
+        // Get officer's schooling records, keeping only the most recent per assignment_id
+        $schoolingMap = $data->schoolings
+            ->sortByDesc('date_completed')
+            ->groupBy('assignment_id')
+            ->map(function ($records, $assignmentId) {
+                if ($assignmentId == 44) {
+                    return $records; // for specialization
+                }
+                return $records->first(); // most recent schooling
+            });
+
+        $awardsMap = $data->awards
+            ->groupBy('date_rank_id')
+            ->map(function ($awards) {
+                return $awards
+                    ->groupBy('award_id')
+                    ->map(function ($group) {
+                        $first = $group->first();
+                        return [
+                            'name' => $first->awards->code ?? 'Unknown',
+                            'count' => $group->count(),
+                        ];
+                    })
+                    ->values();
+            });
+
+            // return $awardsMap;
+
         return view($this->config_data->module_view_folder . '.profile', compact(
-            'data', 'types', 'ranks', 'totals', 'qrsScores', 'sourcedataMap', 'rankIdMap'
+            'data', 'types', 'ranks', 'totals', 'qrsScores', 'sourcedataMap', 'rankIdMap',
+            'schoolingCriteria', 'schoolingMap', 'awardsMap'
         ));
     }
 

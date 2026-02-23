@@ -533,99 +533,83 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="section-title">Professional Preparation and Development</div>
+                
+            <div class="section-title">Professional Preparation and Development</div>
                 <table class="schooling-table">
                     <thead>
                         <tr>
-                            <th colspan="2">CRITERIA</th>
+                            <th>CATEGORY</th>
+                            <th>CRITERIA</th>
                             <th colspan="3">COURSE</th>
                             <th>RATING</th>
                             <th>STANDING</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="2">Pre-entry Course</td>
-                            <td colspan="3">PMA Cl 2000 (PMA)</td>
-                            <td>97</td>
-                            <td>25/200</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">Officer Basic Course</td>
-                            <td colspan="3">Infantry Officer Basic Course Cl 50-2003 (CAS, TRADOC, PA)</td>
-                            <td>95</td>
-                            <td>2/50</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">Officer Advance Course</td>
-                            <td colspan="3">Infantry Officer Advance Course Cl 75-2007 (3ATG, TRADOC, PA)</td>
-                            <td>88</td>
-                            <td>4/45</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">Staff Officer Course</td>
-                            <td colspan="3">-</td>
-                            <td>-</td>
-                            <td>-</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">CGSC</td>
-                            <td colspan="3">Command and General Staff Course Cl 65-2018 (AFPETDC)</td>
-                            <td>87</td>
-                            <td>3/180</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">Civil Service Eligibility</td>
-                            <td colspan="3">Civil Service Exam 2024 (CSC)</td>
-                            <td>85</td>
-                            <td>-</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">Post Graduate Course</td>
-                            <td colspan="3">MNSA (War College, USA)</td>
-                            <td>96</td>
-                            <td>7/50</td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="2">Specialization Course</td>
-                            <td colspan="3">Cyber Security Training NCIII; Information System Online Course Cl 200-2010;
-                                Scout Sniper Course Cl 15-2011 and 3 others</td>
-                            <td>-</td>
-                            <td>-</td>
-                        </tr>
+                        @foreach ($schoolingCriteria as $index => $criteria)
+                            @php
+                                $schoolingEntry = $schoolingMap->get($criteria->id);
+                                $isMultiple = $criteria->id == 44 && $schoolingEntry;
+                                $schooling = $isMultiple ? $schoolingEntry->first() : $schoolingEntry;
+                            @endphp
+                            <tr>
+                                @if ($index === 0)
+                                    <td rowspan="{{ $schoolingCriteria->count() }}" class="category-cell">
+                                        Professional Preparation and Development
+                                    </td>
+                                @endif
+                                <td>{{ $criteria->name }}</td>
+                                <td colspan="3">
+                                    @if ($isMultiple && $schoolingEntry->isNotEmpty())
+                                        {{ $schoolingEntry->map(fn($s) => trim(($s->schoolingnames->name ?? '') . ' ' . ($s->classname ?? '')))->filter()->implode(', ') }}
+                                    @elseif ($schooling && $schooling->date_completed)
+                                        {{ $schooling->schoolingnames->name ?? '' }} {{ $schooling->classname ?? '' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="{{ !$schooling || !$schooling->rating ? 'greyed' : '' }}">
+                                    {{ $schooling->rating ?? '-' }}
+                                </td>
+                                <td class="{{ !$schooling || !$schooling->standing ? 'greyed' : '' }}">
+                                    {{ $schooling->standing ?? '-' }} / {{ $schooling->total_student ?? '-' }}
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
 
                 <div class="section-title">Awards and Decorations</div>
-                <table class="award-table">
-                    <thead>
-                        <tr>
-                            <th>2LT</th>
-                            <th>1LT</th>
-                            <th>CPT</th>
-                            <th>MAJ</th>
-                            <th>LTC</th>
-                            <th>COL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td rowspan="3">MMM (A) -1</td>
-                            <td rowspan="3">GCM-1<br>WPM-1<br>MMM (A)-1</td>
-                            <td>MMM (S)-1<br>MMM (A)-1<br>MCM-1</td>
-                            <td>Others-1</td>
-                            <td>MoV-1<br>OAM-1<br>DCS-1</td>
-                            <td>GSK-1<br>CSAFPCM-1</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <table class="award-table">
+                        <thead>
+                            <tr>
+                                <th>CATEGORY</th>
+                                <th>2LT</th>
+                                <th>1LT</th>
+                                <th>CPT</th>
+                                <th>MAJ</th>
+                                <th>LTC</th>
+                                <th>COL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="category-cell">Awards and Decorations</td>
+                                @foreach ([1, 2, 3, 4, 5, 6] as $rankId)
+                                    @php
+                                        $rankAwards = $awardsMap->get($rankId, collect());
+                                    @endphp
+                                    <td class="{{ $rankAwards->isEmpty() ? 'greyed' : '' }}">
+                                        @forelse ($rankAwards as $award)
+                                            {{ $award['name'] }}-{{ $award['count'] }}<br>
+                                        @empty
+                                            -
+                                        @endforelse
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tbody>
+                    </table>
 
                 <div class="section-title">Physical Fitness Test</div>
                 <table class="pft-table">
@@ -862,7 +846,7 @@
                     @endphp
 
                     <div id="{{ $tabId }}" class="tab-panel" @if(!$loop->first) style="display:none" @endif>
-                        <table class="qrs-table">
+                        <table class="assignment-table">
                             <thead>
                                 <tr>
                                     <th>{{ $rankLabel }} : max year</th>
@@ -890,29 +874,26 @@
                             </tbody>
                         </table>
 
-                        {{-- Schooling Points --}}
                         <div class="section-title">Schooling points</div>
-                        <table class="qrs-table-extra">
-                            <thead>
-                                <tr>
+                            <table class="qrs-table-extra">
+                                <thead>
+                                    <tr>
                                     <th colspan="2">max points</th>
                                     <th>actual points</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($data->schoolings->where('rank', $rankLabel) as $schooling)
-                                <tr>
-                                    <td colspan="2">{{ $schooling->max_points ? number_format($schooling->max_points, 2) : '-' }}</td>
-                                    <td>{{ $schooling->points ? number_format($schooling->points, 2) : '-' }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="2">-</td>
-                                    <td>-</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                    </tr>
+                                    <!-- <tr></tr> -->
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="2">2.00</td><td>1.85</td></tr>
+                                    <tr><td colspan="2">-</td><td>-</td></tr>
+                                    <tr><td colspan="2">-</td><td>-</td></tr>
+                                    <tr><td colspan="2">-</td><td>-</td></tr>
+                                    <tr><td colspan="2">-</td><td>-</td></tr>
+                                    <tr><td colspan="2">1.00</td><td>1.00</td></tr>
+                                    <tr><td colspan="2">-</td><td>-</td></tr>
+                                    <tr><td colspan="2">2.00</td><td>0.50</td></tr>
+                                </tbody>
+                            </table>
 
                         {{-- Awards Points --}}
                         <div class="section-title">Awards points</div>
