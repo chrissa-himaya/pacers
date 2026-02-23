@@ -153,6 +153,10 @@ class SourcedatasController extends Controller
         $validated = $request->validate([
             'assignment_id' => ['required', 'exists:assignments,id'],
             'rank_id' => ['required', 'exists:ranks,id'],
+            'min_month'     => ['nullable', 'numeric', 'min:0'],
+            'min_point'     => ['nullable', 'numeric', 'min:0'],
+            'max_month'     => ['nullable', 'numeric', 'min:0'],
+            'max_point'     => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $sourcedata->update($validated);
