@@ -17,16 +17,13 @@
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet" />
 
     <link href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" rel="stylesheet" />
-    
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css" integrity="sha512-2bBQCjcnw658Lho4nlXJcc6WkV/UxpE/sAokbXPxQNGqmNdQrWqtw26Ns9kFF/yG792pKR1Sx8/Y1Lf1XN4GKA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css">
-    
-    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/main.js'])
 
@@ -37,7 +34,7 @@
         @endguest
         @auth
             <div class="wrapper">
-                <nav class="main-header navbar navbar-expand bg-white navbar-light border-bottom">
+                <nav class="main-header navbar navbar-expand bg-white navbar-light border-bottom text-dark">
                     <!-- Left navbar links -->
                     <ul class="navbar-nav">
                         <li class="nav-item">
@@ -46,9 +43,28 @@
                     </ul>
 
                     <ul class="navbar-nav ml-auto">
-                            <a class="nav-link" href="#">
+                        <li class="nav-item dropdown">
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-user mr-1"></i> {{ Auth::user()->name }}
                             </a>
+
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user-circle fa-sm fa-fw mr-2 text-gray-400"></i>My Profile
+                                </a>
+                                
+                                <div class="dropdown-divider"></div>
+
+                                <a class="dropdown-item" href="{{ route('logout') }}"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger-400"></i> Logout
+                                </a>
+
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                    @csrf
+                                </form>
+                            </div>
+                        </li>
                     </ul>
 
                     <!-- Right navbar links -->
@@ -108,6 +124,7 @@
 
     <!-- jQuery - LOAD ONCE -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 
     <!-- DataTables Core -->
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>

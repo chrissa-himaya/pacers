@@ -2,9 +2,7 @@
     <!-- Brand Logo -->
     <a href="{{ route("dashboard") }}" class="brand-link text-decoration-none" style="background: rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 1.25rem 1rem;">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">
-                <i class="fas fa-shield-alt" style="color: white; font-size: 1.25rem;"></i>
-            </div>
+                <i class="fas fa-users" style="color: white; font-size: 1.25rem;"></i>
             <span class="brand-text" style="font-weight: 700; font-size: 1.1rem; color: #fff; letter-spacing: -0.025em;">{{ config('app.name', 'Laravel') }}</span>
         </div>
     </a>
@@ -36,7 +34,7 @@
             }
 
             .nav-link {
-                color: rgba(255, 255, 255, 0.75) !important;
+                /* color: rgba(255, 255, 255, 0.75) !important; */
                 border-radius: 10px;
                 padding: 0.75rem 1rem !important;
                 transition: all 0.3s ease;
@@ -49,7 +47,7 @@
 
             .nav-link:hover {
                 background: rgba(255, 255, 255, 0.08) !important;
-                color: #fff !important;
+                /* color: #fff !important; */
                 transform: translateX(4px);
             }
 
