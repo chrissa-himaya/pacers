@@ -426,9 +426,9 @@
                     extend: 'colvis',
                     className: 'btn btn-sm btn-info',
                     text: '<i class="fas fa-columns"></i> Column visibility',
-                    exportOptions: {
-                        columns: ':visible'
-                    }
+                    columnText: function ( dt, idx, title ) {
+                            return $(dt.column(idx).header()).closest('thead').find('tr:first-child th').eq(idx).text();
+                        }
                 }
             ],
             columns: [
