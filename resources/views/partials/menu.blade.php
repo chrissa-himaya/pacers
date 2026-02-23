@@ -224,7 +224,6 @@
                             'types*',
                             'ranks*',
                             'dateranks',
-                            'rankpoints*',
                             'sourcedatas*',
                             'classnames',
                             'schoolingunits*',
@@ -277,15 +276,6 @@
                                 <a href="{{ route("dateranks.index") }}" class="nav-link {{ request()->is('dateranks') || request()->is('dateranks/*') ? 'active' : '' }}">
                                     <i class="fas fa-chevron-right"></i>
                                     <span>Date of Rank</span>
-                                </a>
-                            </li>
-                            @endcan
-                            
-                            @can('rankpoint_access')
-                            <li class="nav-item">
-                                <a href="{{ route("rankpoints.index") }}" class="nav-link {{ request()->is('rankpoints') || request()->is('rankpoints/*') ? 'active' : '' }}">
-                                    <i class="fas fa-chevron-right"></i>
-                                    <span>Rank Points</span>
                                 </a>
                             </li>
                             @endcan
