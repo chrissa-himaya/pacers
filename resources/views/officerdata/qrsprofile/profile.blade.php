@@ -476,6 +476,17 @@
         <div class="sub-panel">
             <div class="panel qrs-wrap1">
                 <div class="section-title" style="text-align: center;">Career Summary</div>
+                        @php
+                            function yearsToYrM($decimalYears): string {
+                                if (!$decimalYears || $decimalYears == 0) return '-';
+                                $totalMonths = round($decimalYears * 12);
+                                $yrs = intdiv($totalMonths, 12);
+                                $mos = $totalMonths % 12;
+                                if ($yrs > 0 && $mos > 0) return "{$yrs}yr{$mos}m";
+                                if ($yrs > 0) return "{$yrs}yr";
+                                return "{$mos}m";
+                            }
+                        @endphp
                     <table class="career-table">
                         <colgroup>
                             <col class="col-category">
@@ -516,8 +527,11 @@
                                         <td class="left-col">{{ $assignment->name }}</td>
 
                                         @foreach ($ranks as $rank)
+                                            @php
+                                                $val = data_get($totals, $assignment->id . '.' . $rank, 0);
+                                            @endphp
                                             <td class="rank-col">
-                                                {{ data_get($totals, $assignment->id . '.' . $rank, 0) }}
+                                                {{ yearsToYrM($val) }}
                                             </td>
                                         @endforeach
                                     </tr>
@@ -580,7 +594,7 @@
                     </table>
 
                 <div class="section-title">Awards and Decorations</div>
-                    <table class="award-table">
+                    <table class="award-table" id="awards-deco-table">
                         <thead>
                             <tr>
                                 <th>CATEGORY</th>
@@ -615,7 +629,7 @@
                     <table class="pft-table">
                         <thead>
                             <tr>
-                                <th class="category-cell" rowspan="4">Physical<br>Fitness<br>Test</th>
+                                <th class="category-cell" rowspan="4">PFT</th>
                                 @foreach (['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'] as $rank)
                                     <th>{{ $rank }}</th>
                                 @endforeach
@@ -671,7 +685,7 @@
                     @endphp
 
                         <div id="{{ $tabId }}" class="tab-panel" @if(!$loop->first) style="display:none" @endif>
-                            <table class="assignment-table">
+                            <table class="assignmentpts-table">
                                 <thead>
                                     <tr>
                                         <th>{{ $rankLabel }} : max year</th>
@@ -682,13 +696,17 @@
                                 <tbody>
                                     @foreach ($types as $type)
                                         @foreach ($type->assignments as $assignment)
-                                        @php
-                                            $sd = $sourcedataMap[$assignment->id][$rankId] ?? null;
-                                            $maxYear      = $sd ? number_format($sd->max_month / 12, 2) : '-';
-                                            $maxPoints    = $sd ? number_format($sd->max_point, 2) : '-';
-                                            $gained       = data_get($totals, $assignment->id . '.' . $rankLabel);
-                                            $gainedDisplay = $gained ? number_format($gained, 2) : '-';
-                                        @endphp
+                                            @php
+                                                $sd         = $sourcedataMap[$assignment->id][$rankId] ?? null;
+                                                $maxYear    = $sd ? number_format($sd->max_month / 12, 2) : '-';
+                                                $maxPoints  = $sd ? number_format($sd->max_point, 2) : '-';
+
+                                                // Use computed_points for gained, capped at max_point
+                                                $gained     = data_get($computedTotals, $assignment->id . '.' . $rankLabel, 0);
+                                                $maxPt      = $sd ? (float) $sd->max_point : null;
+                                                $gainedCapped = $maxPt !== null ? min((float) $gained, $maxPt) : (float) $gained;
+                                                $gainedDisplay = $gainedCapped > 0 ? number_format($gainedCapped, 2) : '-';
+                                            @endphp
                                         <tr>
                                             <td>{{ $maxYear }}</td>
                                             <td>{{ $maxPoints }}</td>
@@ -700,7 +718,7 @@
                             </table>
 
                         <div class="section-title">Schooling points</div>
-                            <table class="qrs-table-extra">
+                            <table class="schoolingpts-table">
                                 <thead>
                                     <tr>
                                         <th>max points</th>
@@ -728,54 +746,72 @@
 
                         {{-- Awards Points --}}
                         <div class="section-title">Awards points</div>
-                        <table class="qrs-table-extra">
-                            <thead>
-                                <tr>
-                                    <th colspan="2">max points</th>
-                                    <th>actual points</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($data->awards->where('rank', $rankLabel) as $award)
-                                <tr>
-                                    <td colspan="2">{{ $award->max_points ? number_format($award->max_points, 2) : '-' }}</td>
-                                    <td>{{ $award->points ? number_format($award->points, 2) : '-' }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="2">-</td>
-                                    <td>-</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                            <table class="awardpts-table" id="awards-points-table">
+                                <thead>
+                                    <tr>
+                                        <th>max points</th>
+                                        <th>actual points</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        $ap = $awardsPoints[$rankLabel] ?? [];
+                                        $currentMax    = $ap['current_max'] ?? null;
+                                        $prevMin       = $ap['prev_min'] ?? null;
+                                        $currentActual = $ap['current_actual'] ?? null;
+                                        $prevActual    = $ap['prev_actual'] ?? null;
+                                    @endphp
+                                    <tr class="awards-points-row">
+                                        <td class="{{ is_null($currentMax) ? 'greyed' : '' }}">
+                                            {{ !is_null($currentMax) ? number_format($currentMax, 1) : '-' }}
+                                        </td>
+                                        <td class="{{ is_null($currentActual) ? 'greyed' : '' }}">
+                                            {{ !is_null($currentActual) ? number_format($currentActual, 2) : '-' }}
+                                        </td>
+                                    </tr>
+                                    <tr class="awards-points-row">
+                                        <td class="{{ is_null($prevMin) ? 'greyed' : '' }}">
+                                            {{ !is_null($prevMin) ? number_format($prevMin, 1) : '-' }}
+                                        </td>
+                                        <td class="{{ is_null($prevActual) ? 'greyed' : '' }}">
+                                            {{ !is_null($prevActual) ? number_format($prevActual, 2) : '-' }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
                         {{-- PFT Points --}}
                         <div class="section-title">PFT points</div>
-                        <table class="qrs-table-extra">
-                            <thead>
-                                <tr>
-                                    <th>min points</th>
-                                    <th>max points</th>
-                                    <th>actual points</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $pft = $data->pfts->firstWhere('rank', $rankLabel); @endphp
-                                <tr>
-                                    <td>{{ $pft && $pft->min_points ? number_format($pft->min_points, 2) : '(-)' }}</td>
-                                    <td>{{ $pft && $pft->max_points ? number_format($pft->max_points, 2) : '-' }}</td>
-                                    <td>{{ $pft && $pft->points ? number_format($pft->points, 2) : '-' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            <table class="pftpts-table">
+                                <thead>
+                                    <tr>
+                                        <th>max points</th>
+                                        <th>actual points</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        $pp = $pftPoints[$rankLabel] ?? ['max' => null, 'actual' => null];
+                                        $hasMax    = !is_null($pp['max']);
+                                        $hasActual = !is_null($pp['actual']);
+                                    @endphp
+                                    <tr>
+                                        <td class="{{ !$hasMax ? 'greyed' : '' }}">
+                                            {{ $hasMax ? number_format($pp['max'], 1) : '-' }}
+                                        </td>
+                                        <td class="{{ !$hasActual ? 'greyed' : '' }}">
+                                            {{ $hasActual ? number_format($pp['actual'], 2) : '-' }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
                         {{-- QRS Score --}}
                         <div style="margin-top:8px">
                             <table class="qrs-table" style="width:100%">
                                 <tbody>
                                     <tr>
-                                        <td colspan="2" rowspan="3" 
+                                        <td rowspan="3" 
                                             style="background-color: #9dc791; font-size: large;">
                                             <strong>QRS SCORE:</strong>
                                         </td>
@@ -816,6 +852,92 @@
                     const target = document.getElementById(tab.dataset.tab);
                     if (target) target.style.display = 'block';
                 });
+            });
+        });
+    </script>
+
+    <script>
+        function syncAwardsHeight() {
+            const decoTable = document.getElementById('awards-deco-table');
+            const pointsTable = document.getElementById('awards-points-table');
+            if (!decoTable || !pointsTable) return;
+
+            // Get the tbody rows of the decorations table
+            const decoRows = decoTable.querySelectorAll('tbody tr');
+            const pointRows = pointsTable.querySelectorAll('tbody tr.awards-points-row');
+
+            if (decoRows.length === 0) return;
+
+            // Total height of awards deco tbody
+            const totalDecoHeight = Array.from(decoRows)
+                .reduce((sum, row) => sum + row.offsetHeight, 0);
+
+            // Split evenly between the 2 points rows
+            const rowHeight = Math.floor(totalDecoHeight / pointRows.length);
+            pointRows.forEach(row => {
+                row.style.height = rowHeight + 'px';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs   = document.querySelectorAll('.qrs-wrap2 .tab');
+            const panels = document.querySelectorAll('.qrs-wrap2 .tab-panel');
+
+            function syncAwardsHeight(activePanel) {
+                const decoTable   = document.getElementById('awards-deco-table');
+                const pointsTable = activePanel.querySelector('.awardpts-table');
+                const pftMain     = document.querySelector('.pft-table');
+                const pftPoints   = activePanel.querySelector('.pftpts-table');
+
+                // Sync awards height
+                if (decoTable && pointsTable) {
+                    const decoRows  = decoTable.querySelectorAll('tbody tr');
+                    const pointRows = pointsTable.querySelectorAll('tbody tr.awards-points-row');
+
+                    if (decoRows.length > 0 && pointRows.length > 0) {
+                        const totalDecoHeight = Array.from(decoRows)
+                            .reduce((sum, row) => sum + row.offsetHeight, 0);
+                        const rowHeight = Math.floor(totalDecoHeight / pointRows.length);
+                        pointRows.forEach(row => row.style.height = rowHeight + 'px');
+                    }
+                }
+
+                // Sync PFT height
+                if (pftMain && pftPoints) {
+                    const totalHeight  = pftMain.offsetHeight;
+                    const theadHeight  = pftPoints.querySelector('thead').offsetHeight;
+                    const singleRow    = pftPoints.querySelector('tbody tr');
+                    pftPoints.style.height = totalHeight + 'px';
+                    if (singleRow) {
+                        singleRow.style.height = (totalHeight - theadHeight) + 'px';
+                    }
+                }
+            }
+
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panels.forEach(p => p.style.display = 'none');
+                    tab.classList.add('active');
+
+                    const target = document.getElementById(tab.dataset.tab);
+                    if (target) {
+                        target.style.display = 'block';
+                        // Small delay to let DOM render before measuring
+                        setTimeout(() => syncAwardsHeight(target), 10);
+                    }
+                });
+            });
+
+            // Run on initial load — find the first visible panel
+            const firstPanel = document.querySelector('.tab-panel');
+            if (firstPanel) {
+                setTimeout(() => syncAwardsHeight(firstPanel), 10);
+            }
+
+            window.addEventListener('resize', () => {
+                const activePanel = document.querySelector('.tab-panel[style*="block"], .tab-panel:not([style])');
+                if (activePanel) syncAwardsHeight(activePanel);
             });
         });
     </script>

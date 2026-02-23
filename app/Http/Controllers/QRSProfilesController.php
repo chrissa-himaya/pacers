@@ -95,11 +95,14 @@ class QRSProfilesController extends Controller
                     ->map(fn($rows2) => $rows2->sum('year_earned'))
             );
 
-        // QRS scores per rank
-        $qrsScores = [];
-        foreach ($ranks as $rank) {
-            $qrsScores[$rank] = $this->computeQrsScore($data, $rank);
-        }
+        // Computed points totals - for gained points display and QRS score
+        $computedTotals = $data->assignmenthistories
+            ->filter(fn($h) => $h->pri_sec_spec === 'primary' && !empty($h->assignment_id) && !empty($h->rank_during_completion))
+            ->groupBy(fn($h) => $h->assignment_id)
+            ->map(
+                fn($rows) => $rows->groupBy('rank_during_completion')
+                    ->map(fn($rows2) => $rows2->sum('computed_points')) // use computed_points
+            );
 
         // Get all assignments with type_id = 5 (schooling criteria)
         $schoolingCriteria = Assignment::where('type_id', 5)->orderBy('id')->get();
@@ -145,21 +148,86 @@ class QRSProfilesController extends Controller
         ];
 
         $schoolingPoints = [];
-        foreach ($schoolingCriteria as $criteria) {
-            $schoolingEntry = $schoolingMap->get($criteria->id);
-            $schoolingRecord = ($schoolingEntry) ? $schoolingEntry->first() : $schoolingEntry;
+            foreach ($schoolingCriteria as $criteria) {
+                $schoolingEntry = $schoolingMap->get($criteria->id);
 
-            foreach ($rankColumnMap as $rankId => $col) {
-                $maxPoint = $sourcedataMap[$criteria->id][$rankId]->max_point ?? null;
+                $schoolingRecord = ($schoolingEntry instanceof Collection)
+                    ? $schoolingEntry->first()
+                    : $schoolingEntry;
 
-                $actualPoint = $schoolingRecord ? (float) ($schoolingRecord->$col ?? 0) : null;
-                $actualPoint = ($actualPoint > 0) ? $actualPoint : null;
+                foreach ($rankColumnMap as $rankId => $col) {
+                    $maxPoint = $sourcedataMap[$criteria->id][$rankId]->max_month ?? null;
 
-                $schoolingPoints[$criteria->id][$rankId] = [
-                    'max' => $maxPoint,
-                    'actual' => $actualPoint,
+                    $actualPoint = $schoolingRecord ? (float) ($schoolingRecord->$col ?? 0) : null;
+                    $actualPoint = ($actualPoint > 0) ? $actualPoint : null;
+
+                    // Cap actual at max
+                    if (!is_null($actualPoint) && !is_null($maxPoint)) {
+                        $actualPoint = min($actualPoint, (float) $maxPoint);
+                    }
+
+                    $schoolingPoints[$criteria->id][$rankId] = [
+                        'max'    => $maxPoint,
+                        'actual' => $actualPoint,
+                    ];
+                }
+            }
+
+        // Awards points: assignment_id=45 for max/min, grouped by current rank
+        $awardsPoints = [];
+            foreach ($rankIdMap as $rankLabel => $rankId) {
+                $sd = $sourcedataMap[45][$rankId] ?? null;
+
+                // Previous rank ID
+                $prevRankId = $rankId > 1 ? $rankId - 1 : null;
+                $sdPrev = $prevRankId ? ($sourcedataMap[45][$prevRankId] ?? null) : null;
+
+                // Current rank awards sum (capped at max_point)
+                $currentMax = $sd ? (float) $sd->max_point : null;
+                $currentActualRaw = $data->awards
+                    ->where('date_rank_id', $rankId)
+                    ->sum('points');
+                $currentActual = $currentMax !== null 
+                    ? min((float) $currentActualRaw, $currentMax) 
+                    : (float) $currentActualRaw;
+
+                // Previous rank awards sum (capped at prev min_point)
+                $prevMax = $sdPrev ? (float) $sdPrev->min_point : null;
+                $prevActualRaw = $prevRankId 
+                    ? $data->awards->where('date_rank_id', $prevRankId)->sum('points') 
+                    : 0;
+                $prevActual = $prevMax !== null 
+                    ? min((float) $prevActualRaw, $prevMax) 
+                    : (float) $prevActualRaw;
+
+                $awardsPoints[$rankLabel] = [
+                    'current_max'    => $currentMax,
+                    'prev_min'       => $prevMax,
+                    'current_actual' => $currentActual > 0 ? $currentActual : null,
+                    'prev_actual'    => $prevActual > 0 ? $prevActual : null,
                 ];
             }
+
+            // PFT points: assignment_id=46, actual from pfthistories.points
+        $pftPoints = [];
+            foreach ($rankIdMap as $rankLabel => $rankId) {
+                $sd = $sourcedataMap[46][$rankId] ?? null;
+                $pft = $data->pfts->firstWhere('rank', $rankLabel);
+
+                $pftPoints[$rankLabel] = [
+                    'max'    => $sd ? (float) $sd->max_point : null,
+                    'actual' => $pft && $pft->points > 0 ? (float) $pft->points : null,
+                ];
+            }
+
+        $qrsScores = [];
+        foreach ($rankIdMap as $rank => $rankId) {
+            $qrsScores[$rank] = $this->computeQrsScore(
+                $data, $rank, $rankId,
+                $sourcedataMap, $computedTotals,
+                $schoolingPoints, $schoolingCriteria,
+                $awardsPoints, $pftPoints
+            );
         }
 
         return view($this->config_data->module_view_folder . '.profile', 
@@ -176,32 +244,75 @@ class QRSProfilesController extends Controller
             'awardsMap',
             'pftMap',
             'rankColumnMap',
-            'schoolingPoints'
+            'schoolingPoints',
+            'awardsPoints',
+            'pftPoints',
+            'computedTotals'
         ));
     }
 
-    private function computeQrsScore($officer, $rank): float
-    {
-        // Sum all gained points for this rank from QRS requirements
-        // Adjust this logic to match your actual QRS computation rules
-        $assignmentPoints = $officer->assignmenthistories
-            ->filter(fn($h) => $h->rank_during_completion === $rank)
-            ->sum('points_earned'); // adjust field name
+    private function computeQrsScore(
+            $data, $rank, $rankId,
+            $sourcedataMap, $computedTotals,
+            $schoolingPoints, $schoolingCriteria,
+            $awardsPoints, $pftPoints
+        ): float {
 
-        $schoolingPoints = $officer->schoolings
-            ->where('rank', $rank)
-            ->sum('points');
+            // 1. Assignment gained points — sum computed_points capped at max_point
+            $assignmentTotal = 0;
+            $assignmentData  = data_get($computedTotals, null) ?? collect();
+            foreach ($computedTotals as $assignmentId => $rankTotals) {
+                $gained  = data_get($rankTotals, $rank, 0);
+                $sd      = $sourcedataMap[$assignmentId][$rankId] ?? null;
+                $maxPt   = $sd ? (float) $sd->max_point : null;
+                $capped  = $maxPt !== null ? min((float) $gained, $maxPt) : (float) $gained;
+                $assignmentTotal += $capped;
+            }
 
-        $awardPoints = $officer->awards
-            ->where('rank', $rank)
-            ->sum('points');
+            // 2. Schooling actual points
+            $schoolingTotal = 0;
+            foreach ($schoolingCriteria as $criteria) {
+                $point  = $schoolingPoints[$criteria->id][$rankId] ?? ['max' => null, 'actual' => null];
+                $actual = (float) ($point['actual'] ?? 0);
+                $max    = $point['max'] !== null ? (float) $point['max'] : null;
+                $schoolingTotal += $max !== null ? min($actual, $max) : $actual;
+            }
 
-        $pftPoints = $officer->pfts
-            ->where('rank', $rank)
-            ->value('points') ?? 0;
+            // 3. Awards points (current + prev)
+            $ap          = $awardsPoints[$rank] ?? [];
+            $awardsTotal = ((float)($ap['current_actual'] ?? 0)) + ((float)($ap['prev_actual'] ?? 0));
 
-        return round($assignmentPoints + $schoolingPoints + $awardPoints + $pftPoints, 2);
-    }
+            // 4. PFT points (capped at max)
+            $pp        = $pftPoints[$rank] ?? [];
+            $pftActual = (float)($pp['actual'] ?? 0);
+            $pftMax    = $pp['max'] !== null ? (float)$pp['max'] : null;
+            $pftCapped = $pftMax !== null ? min($pftActual, $pftMax) : $pftActual;
+
+            return round($assignmentTotal + $schoolingTotal + $awardsTotal + $pftCapped, 2);
+        }
+
+    // private function computeQrsScore($officer, $rank): float
+    // {
+    //     // Sum all gained points for this rank from QRS requirements
+    //     // Adjust this logic to match your actual QRS computation rules
+    //     $assignmentPoints = $officer->assignmenthistories
+    //         ->filter(fn($h) => $h->rank_during_completion === $rank)
+    //         ->sum('points_earned'); // adjust field name
+
+    //     $schoolingPoints = $officer->schoolings
+    //         ->where('rank', $rank)
+    //         ->sum('points');
+
+    //     $awardPoints = $officer->awards
+    //         ->where('rank', $rank)
+    //         ->sum('points');
+
+    //     $pftPoints = $officer->pfts
+    //         ->where('rank', $rank)
+    //         ->value('points') ?? 0;
+
+    //     return round($assignmentPoints + $schoolingPoints + $awardPoints + $pftPoints, 2);
+    // }
 
     public function index()
     {
