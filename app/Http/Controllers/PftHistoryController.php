@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\DateRank;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
+use Carbon\Carbon;
 
 class PftHistoryController extends Controller
 {
@@ -82,6 +83,7 @@ class PftHistoryController extends Controller
             "relatedPftRecords" => collect([]),
             "rank_lookup_url" => route('date_ranks.lookupRank'),
             "points_lookup_url" => route('pfthistories.calcPoints'),
+            "age_lookup_url" => route('pfthistories.lookupAge'),
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -112,6 +114,7 @@ class PftHistoryController extends Controller
             "relatedPftRecords" => $relatedPftRecords,
             "rank_lookup_url" => route('date_ranks.lookupRank'),
             "points_lookup_url" => route('pfthistories.calcPoints'),
+            "age_lookup_url" => route('pfthistories.lookupAge'),
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -167,6 +170,10 @@ class PftHistoryController extends Controller
             $rating = array_key_exists('rating', $data) ? $data['rating'] : null;
             $rank = array_key_exists('rank', $data) ? $data['rank'] : null;
             $data['points'] = $this->computePftPointsValue($rating, $rank);
+
+            $officerDob = $officer?->DOB;
+            $computedAge = $this->computeAgeAtDate($officerDob, $data['date_taken'] ?? null);
+            $data['age'] = $computedAge !== null ? (string) $computedAge : ($data['age'] ?? null);
 
             $match = [
                 'pm_code' => $data['pm_code'],
@@ -251,6 +258,7 @@ class PftHistoryController extends Controller
             "relatedPftRecords" => $relatedPftRecords,
             "rank_lookup_url" => route('date_ranks.lookupRank'),
             "points_lookup_url" => route('pfthistories.calcPoints'),
+            "age_lookup_url" => route('pfthistories.lookupAge'),
         ];
 
         return view($this->config_data->module_view_folder . '.show', compact('data_items'));
@@ -308,11 +316,15 @@ class PftHistoryController extends Controller
             $rank = array_key_exists('rank', $data) ? $data['rank'] : null;
             $data['points'] = $this->computePftPointsValue($rating, $rank);
 
+            $officer = $data['pm_code'] ? Officer::where('PM_CODE', $data['pm_code'])->first() : null;
+            $computedAge = $this->computeAgeAtDate($officer?->DOB, $data['date_taken'] ?? null);
+            $data['age'] = $computedAge !== null ? (string) $computedAge : ($data['age'] ?? null);
+
             $pfthistory->update($data);
-            
+
             // Clear session after successful update
             session()->forget(['fetched', 'pm_code', 'relatedPftRecords']);
-            
+
             return redirect()->route($this->config_data->module_route . '.index');
         }
 
@@ -432,10 +444,10 @@ class PftHistoryController extends Controller
             ->get();
     }
 
-        public function calculatePftPoints(Request $request)
+    public function calculatePftPoints(Request $request)
     {
         $rating = $request->query('rating');
-        $rank   = $request->query('rank');
+        $rank = $request->query('rank');
 
         $points = $this->computePftPointsValue($rating, $rank);
 
@@ -444,18 +456,23 @@ class PftHistoryController extends Controller
 
     private function computePftPointsValue($rating, $rank): float
     {
-        if ($rating === null || $rating === '' || !is_numeric($rating)) return 0.0;
+        if ($rating === null || $rating === '' || !is_numeric($rating))
+            return 0.0;
         $rating = (float) $rating;
-        if ($rating < 70) return 0.0;
+        if ($rating < 70)
+            return 0.0;
 
         $rank = trim((string) ($rank ?? ''));
-        if ($rank === '') return 0.0;
+        if ($rank === '')
+            return 0.0;
 
         $rankRecord = Rank::where('code', $rank)->first();
-        if (!$rankRecord) return 0.0;
+        if (!$rankRecord)
+            return 0.0;
 
         $maxPts = Pft::where('ranks_id', $rankRecord->id)->value('points');
-        if ($maxPts === null || !is_numeric($maxPts)) return 0.0;
+        if ($maxPts === null || !is_numeric($maxPts))
+            return 0.0;
 
         $maxPts = (float) $maxPts;
 
@@ -469,7 +486,7 @@ class PftHistoryController extends Controller
     public function lookupRankByDate(Request $request)
     {
         $pmCode = (string) $request->query('pm_code', '');
-        $date   = $request->query('date');
+        $date = $request->query('date');
 
         if ($pmCode === '' || !$date) {
             return response()->json(['rank' => '']);
@@ -485,6 +502,69 @@ class PftHistoryController extends Controller
 
         return response()->json(['rank' => $rankCode ?? '']);
     }
-    
-   
+
+    public function lookupAge(Request $request)
+    {
+        $pmCode = (string) $request->query('pm_code', '');
+        $dateTaken = $request->query('date');
+
+        if ($pmCode === '' || !$dateTaken) {
+            return response()->json(['age' => null]);
+        }
+
+        $officer = Officer::where('PM_CODE', $pmCode)->first();
+        if (!$officer) {
+            return response()->json(['age' => null]);
+        }
+
+        $age = $this->computeAgeAtDate($officer->DOB, $dateTaken);
+
+        return response()->json(['age' => $age]);
+    }
+
+
+    private function parseOfficerDob(?string $dob): ?Carbon
+    {
+        if (!$dob)
+            return null;
+
+        // Try common formats first to avoid mis-parsing
+        foreach (['Y-m-d', 'm/d/Y', 'd/m/Y', 'Y/m/d'] as $fmt) {
+            try {
+                return Carbon::createFromFormat($fmt, $dob)->startOfDay();
+            } catch (\Throwable $e) {
+                // keep trying
+            }
+        }
+
+        // Fallback: Carbon::parse (handles many formats)
+        try {
+            return Carbon::parse($dob)->startOfDay();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function computeAgeAtDate(?string $dob, $dateTaken): ?int
+    {
+        if (!$dob || !$dateTaken)
+            return null;
+
+        $birth = $this->parseOfficerDob($dob);
+        if (!$birth)
+            return null;
+
+        try {
+            $asOf = Carbon::parse($dateTaken)->startOfDay();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if ($asOf->lessThan($birth))
+            return 0;
+
+        // Age in completed years at the test date
+        return $birth->diffInYears($asOf);
+    }
+
 }

@@ -233,7 +233,7 @@
               <div class="col" style="max-width:100px">
                 <label>Age</label>
                 @if(in_array($op, ['create','edit']))
-                  <input type="text" name="age" id="age" class="form-control" value="{{ old('age', $data_items['data']->age ?? '') }}">
+                  <input type="text" name="age" id="age" class="form-control" value="{{ old('age', $data_items['data']->age ?? '') }}" readonly>
                 @else
                   <input type="text" class="form-control" value="{{ $data_items['data']->age ?? '-' }}" disabled>
                 @endif
@@ -313,7 +313,7 @@
                   <td class="small">{{ $record->pm_code }}</td>
                   <td class="small">{{ $record->entry ?? '-' }}</td>
                   <td class="small">{{ $record->rating !== null ? number_format($record->rating, 2) . '%' : '-' }}</td>
-                  <td class="small">{{ $record->date_taken ? $record->date_taken->format('d-M-Y') : '-' }}</td>
+                  <td class="small">{{ $record->date_taken ? $record->date_taken : '-' }}</td>
                   <td class="small">{{ $record->rank ?? '-' }}</td>
                   <td class="small">{{ $record->supervising_unit ?? '-' }}</td>
                   <td class="small"><strong>{{ $record->points !== null ? number_format($record->points, 2) : '-' }}</strong></td>
@@ -357,6 +357,9 @@
 
       const rankLookupUrl   = @json($data_items['rank_lookup_url'] ?? null);
       const pointsLookupUrl = @json($data_items['points_lookup_url'] ?? null);
+
+      const ageEl = document.getElementById('age');
+      const ageLookupUrl = @json($data_items['age_lookup_url'] ?? null);
 
       async function safeJson(res) {
         const ct = res.headers.get('content-type') || '';
@@ -403,6 +406,32 @@
         pointsEl.value = Number.isFinite(pts) ? pts.toFixed(2) : '';
       }
 
+      async function autoSetAge() {
+        if (!ageLookupUrl || !pmCodeEl || !dateTakenEl || !ageEl) return;
+
+        const pmCode = pmCodeEl.value;
+        const dateTaken = dateTakenEl.value;
+
+        if (!pmCode || !dateTaken) {
+          ageEl.value = '';
+          return;
+        }
+
+        const url = new URL(ageLookupUrl, window.location.origin);
+        url.searchParams.set('pm_code', pmCode);
+        url.searchParams.set('date', dateTaken);
+
+        const res = await fetch(url.toString(), {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          cache: 'no-store'
+        });
+
+        const json = await safeJson(res);
+        if (!json) { ageEl.value = ''; return; }
+
+        ageEl.value = (json.age ?? '');
+      }
+
       async function autoSetRank() {
         if (!rankLookupUrl || !pmCodeEl || !dateTakenEl || !rankEl) return;
 
@@ -428,6 +457,7 @@
         if (!json) { rankEl.value = ''; return; }
 
         rankEl.value = json.rank || '';
+        await autoSetAge();
         await autoSetPoints();
       }
 

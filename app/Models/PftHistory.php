@@ -26,11 +26,11 @@ class PftHistory extends Model implements Auditable
         'points',
     ];
 
-    protected $casts = [
-        'date_taken' => 'date',
-        'rating' => 'float',
-        'points' => 'float',
-    ];
+    // protected $casts = [
+    //     'date_taken' => 'date',
+    //     'rating' => 'float',
+    //     'points' => 'float',
+    // ];
 
     /**
      * Get the officer associated with this PFT record
