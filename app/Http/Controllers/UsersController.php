@@ -7,6 +7,7 @@ use App\Models\User;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Role;
+use App\Models\Officer;
 
 class UsersController extends Controller
 {
@@ -49,9 +50,9 @@ class UsersController extends Controller
     public function create()
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $user = User::find(2);
+        $user = User::find(1);
         $user->password = 'password';
-        $user->makeVisible('password');
+        $user->makeVisible('password'); 
         $columnHidden = array_merge($user->getDates(), ['id','email_verified_at','roles']);
         $columnLabels = [
             'name'  => 'Full Name',
@@ -59,6 +60,7 @@ class UsersController extends Controller
         ];       
         $roles = Role::all()->pluck('name', 'id');
         $user->load('roles');
+        $pmcode = Officer::all()->pluck('PM_CODE', 'PM_CODE')->prepend('Please select', '');
         $data_items = [
             "data" => $user,
             "column_hidden" => $columnHidden,
@@ -67,8 +69,8 @@ class UsersController extends Controller
             "optional_fields" => $this->config_data->optionalFields,
             "roles" => $roles,
             "user" => $user,
+            "pmcode" => $pmcode, 
         ];
-
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
 
@@ -93,6 +95,7 @@ class UsersController extends Controller
         abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $roles = Role::all()->pluck('name', 'id');
         $user->load('roles');
+        $pmcode = Officer::all()->pluck('PM_CODE', 'PM_CODE')->prepend('NO PM CODE', '');
         $data_items = [
             "data" => $user,
             "column_hidden" => $this->config_data->columnHidden,
@@ -100,6 +103,7 @@ class UsersController extends Controller
             "operation_type" => "show",
             "user" => $user,
             "roles" => $roles,
+            "pmcode" => $pmcode, 
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }
@@ -111,13 +115,13 @@ class UsersController extends Controller
     {
         abort_if(Gate::denies($this->config_data->module_perm_name.'_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $columnHidden = array_merge($user->getDates(), ['id','email_verified_at','roles']);
+        $pmcode = Officer::all()->pluck('PM_CODE', 'PM_CODE')->prepend('NO PM CODE', '');
         $columnLabels = [
             'name'  => 'Full Name',
             'email' => 'Email Address',
         ];  
         $roles = Role::all()->pluck('name', 'id'); 
         $user->load('roles');
-
         $data_items = [
             "data" => $user,
             "column_hidden" => $columnHidden,
@@ -126,6 +130,7 @@ class UsersController extends Controller
             "optional_fields" => $this->config_data->optionalFields,
             "roles" => $roles,
             "user" => $user,
+            "pmcode" => $pmcode, 
         ];
         return view($this->config_data->module_view_folder.'.show', compact('data_items'));
     }

@@ -35,6 +35,14 @@
                                     {{ $data_items['column_labels'][$key] ?? ucfirst(str_replace('_', ' ', $key)) }}
                                 </th>
                                 <td>
+                                @if($key=="pm_code")
+                                <select name="pm_code" class="form-control select2" required {{$data_items["operation_type"] == "show" ? "disabled" : ""}} required>
+                                    @foreach($data_items["pmcode"] as $id => $pmcode)
+                                        <option value="{{ $id }}" {{ (isset($data_items["data"]) && $data_items["data"]->pm_code ? $data_items["data"]->pm_code : old('pm_code')) == $id ? 'selected' : '' }}>
+                                            {{ $pmcode }}</option>
+                                    @endforeach
+                                </select>  
+                                @else
                                     <input
                                         type="text"
                                         class="form-control"
@@ -42,7 +50,8 @@
                                         name="{{ $key }}"
                                         @disabled($data_items["operation_type"] === "show")
                                         @if(isset($data_items['required_fields']) && in_array($key, $data_items['required_fields'])) required @endif
-                                    >                                
+                                    >   
+                                @endif                             
                                 </td>
                             </tr>
                         @endif
