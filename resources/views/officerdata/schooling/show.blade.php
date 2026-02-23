@@ -379,7 +379,7 @@
 
 {{-- RELATED SCHOOLING RECORDS TABLE --}}
 @php
-  if ($data_items['operation_type'] === 'create') {
+  if ($data_items['operation_type'] === 'create' || $data_items['operation_type'] === 'edit') {
       $schoolingHistories = session('relatedSchoolings', $data_items['relatedSchoolings'] ?? collect([]));
       $currentPmCode = session('pm_code', old('pm_code', $data_items['data']->pm_code ?? ''));
   } else {
@@ -511,260 +511,260 @@
 @endsection
 
 @section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+  <script>
+      document.addEventListener('DOMContentLoaded', function () {
 
-  // ── Unit dropdown + Loc/For sync ──────────────────────────────────────────
-  const unitSelect  = document.getElementById('schooling_unit_id');
-  const locInput    = document.getElementById('schooling_unit_location');
-  const newUnitBox  = document.getElementById('new_unit_container');
-  const newUnitName = document.getElementById('new_unit_name');
-  const newUnitLoc  = document.getElementById('new_unit_location');
-  const btnLocal    = document.getElementById('btn_local');
-  const btnForeign  = document.getElementById('btn_foreign');
+        // ── Unit dropdown + Loc/For sync ──────────────────────────────────────────
+        const unitSelect  = document.getElementById('schooling_unit_id');
+        const locInput    = document.getElementById('schooling_unit_location');
+        const newUnitBox  = document.getElementById('new_unit_container');
+        const newUnitName = document.getElementById('new_unit_name');
+        const newUnitLoc  = document.getElementById('new_unit_location');
+        const btnLocal    = document.getElementById('btn_local');
+        const btnForeign  = document.getElementById('btn_foreign');
 
-  function syncLocation() {
-    if (!unitSelect || !locInput) return;
-    const opt = unitSelect.options[unitSelect.selectedIndex];
-    locInput.value = opt ? (opt.dataset.location || '') : '';
-  }
+        function syncLocation() {
+          if (!unitSelect || !locInput) return;
+          const opt = unitSelect.options[unitSelect.selectedIndex];
+          locInput.value = opt ? (opt.dataset.location || '') : '';
+        }
 
-  function handleUnitChange() {
-    if (!unitSelect) return;
-    if (unitSelect.value === 'new') {
-      if (newUnitBox) newUnitBox.style.display = 'block';
-      if (newUnitName) newUnitName.focus();
-      if (locInput) locInput.value = '';          // clear until user picks Local/Foreign
-    } else {
-      if (newUnitBox) newUnitBox.style.display = 'none';
-      resetNewUnitPanel();
-      syncLocation();
-    }
-    schedulePoints();
-  }
+        function handleUnitChange() {
+          if (!unitSelect) return;
+          if (unitSelect.value === 'new') {
+            if (newUnitBox) newUnitBox.style.display = 'block';
+            if (newUnitName) newUnitName.focus();
+            if (locInput) locInput.value = '';          // clear until user picks Local/Foreign
+          } else {
+            if (newUnitBox) newUnitBox.style.display = 'none';
+            resetNewUnitPanel();
+            syncLocation();
+          }
+          schedulePoints();
+        }
 
-  function resetNewUnitPanel() {
-    if (newUnitName) newUnitName.value = '';
-    if (newUnitLoc)  newUnitLoc.value  = '';
-    if (btnLocal)    btnLocal.classList.remove('active-local');
-    if (btnForeign)  btnForeign.classList.remove('active-foreign');
-  }
+        function resetNewUnitPanel() {
+          if (newUnitName) newUnitName.value = '';
+          if (newUnitLoc)  newUnitLoc.value  = '';
+          if (btnLocal)    btnLocal.classList.remove('active-local');
+          if (btnForeign)  btnForeign.classList.remove('active-foreign');
+        }
 
-  // Local / Foreign toggle buttons
-  [btnLocal, btnForeign].forEach(btn => {
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      const val = this.dataset.val;
-      if (newUnitLoc) newUnitLoc.value = val;
-      btnLocal?.classList.toggle('active-local',   val === 'local');
-      btnForeign?.classList.toggle('active-foreign', val === 'foreign');
-      // Mirror into Loc/For field so user sees it immediately
-      if (locInput) locInput.value = val;
-    });
-  });
-
-  if (unitSelect) {
-    syncLocation();
-    unitSelect.addEventListener('change', handleUnitChange);
-    if (window.jQuery) jQuery(unitSelect).on('select2:select select2:clear', handleUnitChange);
-  }
-
-  // ── Early exit for show mode ──────────────────────────────────────────────
-  const OP = @json($data_items['operation_type']);
-  if (OP === 'show') return;
-
-  // ── Element refs ──────────────────────────────────────────────────────────
-  const assignmentSelect  = document.getElementById('assignment_id');
-  const entrySelect       = document.getElementById('schoolingname_id');
-  const newEntryContainer = document.getElementById('new_entry_container');
-  const newEntryInput     = document.getElementById('new_entry_name');
-  const dateEl            = document.getElementById('date_completed');
-  const rankEl            = document.getElementById('rank_during_completion');
-  const computedEl        = document.getElementById('computed_points');
-
-  // ── Cascading: Assignment → Entry ─────────────────────────────────────────
-  if (assignmentSelect && entrySelect) {
-
-    async function loadEntriesByAssignment() {
-      const assignmentId = assignmentSelect.value;
-      if (newEntryContainer) newEntryContainer.style.display = 'none';
-      if (newEntryInput) { newEntryInput.required = false; newEntryInput.value = ''; }
-
-      if (!assignmentId) {
-        entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
-        entrySelect.disabled  = true;
-        if (window.jQuery && jQuery(entrySelect).data('select2')) jQuery(entrySelect).trigger('change.select2');
-        return;
-      }
-      entrySelect.disabled = false;
-
-      try {
-        const res     = await fetch(`{{ route('schoolings.getEntriesByAssignment') }}?assignment_id=${assignmentId}`,
-                                    { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-        const entries = await res.json();
-        const oldSelected = @json(old('schoolingname_id', $data_items['data']->schoolingname_id ?? ''));
-
-        let opts = '<option value="">-- Select Entry --</option>';
-        entries.forEach(e => {
-          const sel = String(oldSelected) === String(e.id) ? 'selected' : '';
-          opts += `<option value="${e.id}" ${sel}>${e.name}</option>`;
+        // Local / Foreign toggle buttons
+        [btnLocal, btnForeign].forEach(btn => {
+          if (!btn) return;
+          btn.addEventListener('click', function () {
+            const val = this.dataset.val;
+            if (newUnitLoc) newUnitLoc.value = val;
+            btnLocal?.classList.toggle('active-local',   val === 'local');
+            btnForeign?.classList.toggle('active-foreign', val === 'foreign');
+            // Mirror into Loc/For field so user sees it immediately
+            if (locInput) locInput.value = val;
+          });
         });
-        opts += '<option value="new" style="font-weight:bold;color:#007bff;border-top:2px solid #ccc;">➕ Create New Entry</option>';
-        entrySelect.innerHTML = opts;
 
-        if (window.jQuery && jQuery(entrySelect).data('select2')) jQuery(entrySelect).trigger('change.select2');
-        if (entrySelect.value) handleEntryChange();
-      } catch (err) {
-        console.error('Entry load error:', err);
-        entrySelect.innerHTML = '<option value="">-- Error loading entries --</option>';
-      }
-    }
+        if (unitSelect) {
+          syncLocation();
+          unitSelect.addEventListener('change', handleUnitChange);
+          if (window.jQuery) jQuery(unitSelect).on('select2:select select2:clear', handleUnitChange);
+        }
 
-    function handleEntryChange() {
-      const isNew = entrySelect.value === 'new';
-      if (newEntryContainer) newEntryContainer.style.display = isNew ? 'block' : 'none';
-      if (newEntryInput) { newEntryInput.required = isNew; if (isNew) newEntryInput.focus(); else newEntryInput.value = ''; }
-    }
+        // ── Early exit for show mode ──────────────────────────────────────────────
+        const OP = @json($data_items['operation_type']);
+        if (OP === 'show') return;
 
-    function clearDependentFields() {
-      entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
-      entrySelect.value = ''; entrySelect.disabled = true;
-      if (window.jQuery && jQuery(entrySelect).data('select2')) jQuery(entrySelect).trigger('change.select2');
-      if (newEntryContainer) newEntryContainer.style.display = 'none';
-      if (newEntryInput) { newEntryInput.required = false; newEntryInput.value = ''; }
+        // ── Element refs ──────────────────────────────────────────────────────────
+        const assignmentSelect  = document.getElementById('assignment_id');
+        const entrySelect       = document.getElementById('schoolingname_id');
+        const newEntryContainer = document.getElementById('new_entry_container');
+        const newEntryInput     = document.getElementById('new_entry_name');
+        const dateEl            = document.getElementById('date_completed');
+        const rankEl            = document.getElementById('rank_during_completion');
+        const computedEl        = document.getElementById('computed_points');
 
-      const classEl = document.getElementById('classname'); if (classEl) classEl.value = '';
+        // ── Cascading: Assignment → Entry ─────────────────────────────────────────
+        if (assignmentSelect && entrySelect) {
 
-      // Reset unit dropdown and new-unit panel
-      if (unitSelect) {
-        unitSelect.value = '';
-        if (window.jQuery && jQuery(unitSelect).data('select2')) jQuery(unitSelect).trigger('change.select2');
-      }
-      if (newUnitBox) newUnitBox.style.display = 'none';
-      resetNewUnitPanel();
-      if (locInput) locInput.value = '';
-      if (dateEl)   dateEl.value   = '';
-      if (rankEl)   rankEl.value   = '';
+          async function loadEntriesByAssignment() {
+            const assignmentId = assignmentSelect.value;
+            if (newEntryContainer) newEntryContainer.style.display = 'none';
+            if (newEntryInput) { newEntryInput.required = false; newEntryInput.value = ''; }
 
-      ['rating','standing','total_student'].forEach(n => {
-        const el = document.querySelector(`input[name="${n}"]`); if (el) el.value = '';
+            if (!assignmentId) {
+              entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
+              entrySelect.disabled  = true;
+              if (window.jQuery && jQuery(entrySelect).data('select2')) jQuery(entrySelect).trigger('change.select2');
+              return;
+            }
+            entrySelect.disabled = false;
+
+            try {
+              const res     = await fetch(`{{ route('schoolings.getEntriesByAssignment') }}?assignment_id=${assignmentId}`,
+                                          { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+              const entries = await res.json();
+              const oldSelected = @json(old('schoolingname_id', $data_items['data']->schoolingname_id ?? ''));
+
+              let opts = '<option value="">-- Select Entry --</option>';
+              entries.forEach(e => {
+                const sel = String(oldSelected) === String(e.id) ? 'selected' : '';
+                opts += `<option value="${e.id}" ${sel}>${e.name}</option>`;
+              });
+              opts += '<option value="new" style="font-weight:bold;color:#007bff;border-top:2px solid #ccc;">➕ Create New Entry</option>';
+              entrySelect.innerHTML = opts;
+
+              if (window.jQuery && jQuery(entrySelect).data('select2')) jQuery(entrySelect).trigger('change.select2');
+              if (entrySelect.value) handleEntryChange();
+            } catch (err) {
+              console.error('Entry load error:', err);
+              entrySelect.innerHTML = '<option value="">-- Error loading entries --</option>';
+            }
+          }
+
+          function handleEntryChange() {
+            const isNew = entrySelect.value === 'new';
+            if (newEntryContainer) newEntryContainer.style.display = isNew ? 'block' : 'none';
+            if (newEntryInput) { newEntryInput.required = isNew; if (isNew) newEntryInput.focus(); else newEntryInput.value = ''; }
+          }
+
+          function clearDependentFields() {
+            entrySelect.innerHTML = '<option value="">-- Select Assignment First --</option>';
+            entrySelect.value = ''; entrySelect.disabled = true;
+            if (window.jQuery && jQuery(entrySelect).data('select2')) jQuery(entrySelect).trigger('change.select2');
+            if (newEntryContainer) newEntryContainer.style.display = 'none';
+            if (newEntryInput) { newEntryInput.required = false; newEntryInput.value = ''; }
+
+            const classEl = document.getElementById('classname'); if (classEl) classEl.value = '';
+
+            // Reset unit dropdown and new-unit panel
+            if (unitSelect) {
+              unitSelect.value = '';
+              if (window.jQuery && jQuery(unitSelect).data('select2')) jQuery(unitSelect).trigger('change.select2');
+            }
+            if (newUnitBox) newUnitBox.style.display = 'none';
+            resetNewUnitPanel();
+            if (locInput) locInput.value = '';
+            if (dateEl)   dateEl.value   = '';
+            if (rankEl)   rankEl.value   = '';
+
+            ['rating','standing','total_student'].forEach(n => {
+              const el = document.querySelector(`input[name="${n}"]`); if (el) el.value = '';
+            });
+            clearPointFields();
+          }
+
+          assignmentSelect.addEventListener('change', () => { clearDependentFields(); loadEntriesByAssignment(); });
+          if (window.jQuery) {
+            jQuery(assignmentSelect).off('select2:select select2:clear')
+              .on('select2:select select2:clear', () => { clearDependentFields(); loadEntriesByAssignment(); });
+          }
+          entrySelect.addEventListener('change', handleEntryChange);
+          if (window.jQuery) jQuery(entrySelect).on('select2:select select2:clear', handleEntryChange);
+
+          if (assignmentSelect.value) loadEntriesByAssignment();
+        }
+
+        // ── Submit: enable disabled selects, remove stale required ───────────────
+        const form = document.querySelector('form');
+        if (form) {
+          form.addEventListener('submit', function () {
+            if (entrySelect && entrySelect.disabled) entrySelect.disabled = false;
+            if (newEntryInput && newEntryContainer?.style.display === 'none') newEntryInput.required = false;
+            // If not creating new unit, clear the hidden fields so they don't trigger server-side errors
+            if (unitSelect && unitSelect.value !== 'new') {
+              if (newUnitName) newUnitName.name  = '';   // strip from POST
+              if (newUnitLoc)  newUnitLoc.name   = '';
+            }
+          });
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+        function clearPointFields() {
+          ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
+            const el = document.getElementById(n); if (el) el.value = '';
+          });
+          if (computedEl) computedEl.value = '';
+        }
+
+        function getSchoolLocation() {
+          return (locInput?.value || '').trim();
+        }
+
+        // ── Rank During Completion (AJAX) ─────────────────────────────────────────
+        const pmCodeEl = document.getElementById('pm_code');
+
+        async function fetchRank() {
+          const pm_code        = pmCodeEl?.value || '';
+          const date_completed = dateEl?.value   || '';
+          if (!/^(\d{4})-(\d{2})-(\d{2})$/.test(date_completed) || parseInt(date_completed, 10) < 1900) {
+            if (rankEl) rankEl.value = ''; return;
+          }
+          const url = new URL(@json(route('schoolings.rankDuringCompletion')));
+          url.searchParams.set('pm_code', pm_code);
+          url.searchParams.set('date_completed', date_completed);
+          try {
+            const res  = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            if (rankEl) rankEl.value = data.rank ?? '';
+            schedulePoints();
+          } catch (e) { console.error('fetchRank error:', e); if (rankEl) rankEl.value = ''; }
+        }
+
+        let rankTimer = null;
+        function scheduleRank() { clearTimeout(rankTimer); rankTimer = setTimeout(fetchRank, 300); }
+
+        if (dateEl)   dateEl.addEventListener('change', scheduleRank);
+        if (pmCodeEl) pmCodeEl.addEventListener('change', scheduleRank);
+        if (window.jQuery && pmCodeEl && jQuery(pmCodeEl).data('select2'))
+          jQuery(pmCodeEl).on('select2:select select2:clear', scheduleRank);
+
+        // ── Compute Points (AJAX) ─────────────────────────────────────────────────
+        const ratingEl   = document.querySelector('input[name="rating"]');
+        const standingEl = document.querySelector('input[name="standing"]');
+        const totalEl    = document.querySelector('input[name="total_student"]');
+
+        async function fetchPoints() {
+          const assignmentId   = assignmentSelect?.value || '';
+          const schoolLocation = getSchoolLocation();
+          if (!assignmentId || assignmentId === 'new') { clearPointFields(); return; }
+
+          const params = new URLSearchParams({
+            assignment_id:   assignmentId,
+            school_location: schoolLocation,
+            rating:          ratingEl?.value   || '0',
+            standing:        standingEl?.value || '0',
+            total_students:  totalEl?.value    || '0',
+          });
+          try {
+            const res  = await fetch(`{{ route('schoolings.computePoints') }}?${params}`,
+                                    { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const json = await res.json();
+            ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
+              const el = document.getElementById(n); if (el) el.value = json[n] ?? '';
+            });
+            const rankMap = {'2LT':'seclt','1LT':'firstlt','CPT':'cpt','MAJ':'maj','LTC':'ltc','COL':'col'};
+            const cur = (rankEl?.value || '').toUpperCase().trim();
+            if (computedEl) computedEl.value = (rankMap[cur] ? (json[rankMap[cur]] ?? '') : '');
+          } catch (e) { console.error('fetchPoints error:', e); clearPointFields(); }
+        }
+
+        let pTimer = null;
+        function schedulePoints() { clearTimeout(pTimer); pTimer = setTimeout(fetchPoints, 250); }
+
+        [ratingEl, standingEl, totalEl].forEach(el => {
+          if (!el) return;
+          el.addEventListener('input',  schedulePoints);
+          el.addEventListener('change', schedulePoints);
+        });
+        if (assignmentSelect) {
+          assignmentSelect.addEventListener('change', schedulePoints);
+          if (window.jQuery) jQuery(assignmentSelect).on('change', schedulePoints);
+        }
+
+        // Re-expose for fetchRank callback
+        window._schedulePoints = schedulePoints;
+
+        scheduleRank();
+        schedulePoints();
       });
-      clearPointFields();
-    }
-
-    assignmentSelect.addEventListener('change', () => { clearDependentFields(); loadEntriesByAssignment(); });
-    if (window.jQuery) {
-      jQuery(assignmentSelect).off('select2:select select2:clear')
-        .on('select2:select select2:clear', () => { clearDependentFields(); loadEntriesByAssignment(); });
-    }
-    entrySelect.addEventListener('change', handleEntryChange);
-    if (window.jQuery) jQuery(entrySelect).on('select2:select select2:clear', handleEntryChange);
-
-    if (assignmentSelect.value) loadEntriesByAssignment();
-  }
-
-  // ── Submit: enable disabled selects, remove stale required ───────────────
-  const form = document.querySelector('form');
-  if (form) {
-    form.addEventListener('submit', function () {
-      if (entrySelect && entrySelect.disabled) entrySelect.disabled = false;
-      if (newEntryInput && newEntryContainer?.style.display === 'none') newEntryInput.required = false;
-      // If not creating new unit, clear the hidden fields so they don't trigger server-side errors
-      if (unitSelect && unitSelect.value !== 'new') {
-        if (newUnitName) newUnitName.name  = '';   // strip from POST
-        if (newUnitLoc)  newUnitLoc.name   = '';
-      }
-    });
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  function clearPointFields() {
-    ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
-      const el = document.getElementById(n); if (el) el.value = '';
-    });
-    if (computedEl) computedEl.value = '';
-  }
-
-  function getSchoolLocation() {
-    return (locInput?.value || '').trim();
-  }
-
-  // ── Rank During Completion (AJAX) ─────────────────────────────────────────
-  const pmCodeEl = document.getElementById('pm_code');
-
-  async function fetchRank() {
-    const pm_code        = pmCodeEl?.value || '';
-    const date_completed = dateEl?.value   || '';
-    if (!/^(\d{4})-(\d{2})-(\d{2})$/.test(date_completed) || parseInt(date_completed, 10) < 1900) {
-      if (rankEl) rankEl.value = ''; return;
-    }
-    const url = new URL(@json(route('schoolings.rankDuringCompletion')));
-    url.searchParams.set('pm_code', pm_code);
-    url.searchParams.set('date_completed', date_completed);
-    try {
-      const res  = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-      const data = await res.json();
-      if (rankEl) rankEl.value = data.rank ?? '';
-      schedulePoints();
-    } catch (e) { console.error('fetchRank error:', e); if (rankEl) rankEl.value = ''; }
-  }
-
-  let rankTimer = null;
-  function scheduleRank() { clearTimeout(rankTimer); rankTimer = setTimeout(fetchRank, 300); }
-
-  if (dateEl)   dateEl.addEventListener('change', scheduleRank);
-  if (pmCodeEl) pmCodeEl.addEventListener('change', scheduleRank);
-  if (window.jQuery && pmCodeEl && jQuery(pmCodeEl).data('select2'))
-    jQuery(pmCodeEl).on('select2:select select2:clear', scheduleRank);
-
-  // ── Compute Points (AJAX) ─────────────────────────────────────────────────
-  const ratingEl   = document.querySelector('input[name="rating"]');
-  const standingEl = document.querySelector('input[name="standing"]');
-  const totalEl    = document.querySelector('input[name="total_student"]');
-
-  async function fetchPoints() {
-    const assignmentId   = assignmentSelect?.value || '';
-    const schoolLocation = getSchoolLocation();
-    if (!assignmentId || assignmentId === 'new') { clearPointFields(); return; }
-
-    const params = new URLSearchParams({
-      assignment_id:   assignmentId,
-      school_location: schoolLocation,
-      rating:          ratingEl?.value   || '0',
-      standing:        standingEl?.value || '0',
-      total_students:  totalEl?.value    || '0',
-    });
-    try {
-      const res  = await fetch(`{{ route('schoolings.computePoints') }}?${params}`,
-                               { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-      const json = await res.json();
-      ['seclt','firstlt','cpt','maj','ltc','col'].forEach(n => {
-        const el = document.getElementById(n); if (el) el.value = json[n] ?? '';
-      });
-      const rankMap = {'2LT':'seclt','1LT':'firstlt','CPT':'cpt','MAJ':'maj','LTC':'ltc','COL':'col'};
-      const cur = (rankEl?.value || '').toUpperCase().trim();
-      if (computedEl) computedEl.value = (rankMap[cur] ? (json[rankMap[cur]] ?? '') : '');
-    } catch (e) { console.error('fetchPoints error:', e); clearPointFields(); }
-  }
-
-  let pTimer = null;
-  function schedulePoints() { clearTimeout(pTimer); pTimer = setTimeout(fetchPoints, 250); }
-
-  [ratingEl, standingEl, totalEl].forEach(el => {
-    if (!el) return;
-    el.addEventListener('input',  schedulePoints);
-    el.addEventListener('change', schedulePoints);
-  });
-  if (assignmentSelect) {
-    assignmentSelect.addEventListener('change', schedulePoints);
-    if (window.jQuery) jQuery(assignmentSelect).on('change', schedulePoints);
-  }
-
-  // Re-expose for fetchRank callback
-  window._schedulePoints = schedulePoints;
-
-  scheduleRank();
-  schedulePoints();
-});
-</script>
+  </script>
 @endsection
