@@ -12,6 +12,8 @@ use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 
+use App\Models\Scopes\PMCodeScope;
+
 class Schooling extends Model implements Auditable
 
 {
@@ -59,5 +61,10 @@ class Schooling extends Model implements Auditable
     public function assignments()
     {
         return $this->belongsTo(Assignment::class, 'assignment_id', 'id');
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\PMCodeScope);
     }
 }

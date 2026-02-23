@@ -14,6 +14,9 @@ use App\Models\Schooling;
 use App\Models\AwardHistory;
 use App\Models\PftHistory;
 
+use App\Models\Scopes\PMCodeScope;
+
+
 class Officer extends Model implements Auditable
 {
     use AuditableTrait;
@@ -80,8 +83,14 @@ class Officer extends Model implements Auditable
     }
 
     public function getRouteKeyName()
-{
-    return 'PM_CODE';
-}
+    {
+        return 'PM_CODE';
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\PMCodeScope);
+    }
+
 
 }

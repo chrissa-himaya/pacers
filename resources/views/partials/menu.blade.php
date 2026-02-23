@@ -145,7 +145,6 @@
                 </li>
                 @endcan
 
-                @can('home_access')
                     <li class="nav-header" style="font-size: 12px;">PERSONNEL MANAGEMENT</li>
 
                     @can('qrsprofile_access')
@@ -217,7 +216,6 @@
                         </a>
                     </li>
                     @endcan
-                @endcan
 
                 @can('reference_access')
                     @php

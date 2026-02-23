@@ -31,8 +31,14 @@ use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        return redirect('/dashboard');
+        $user = auth()->user();
+        if ($user->hasRole('admin')) { 
+            return redirect('/dashboard');
+        } else {
+            return redirect('/profile/' . $user->pm_code); 
+        }
     }
+
     return redirect()->route('login');
 });
 

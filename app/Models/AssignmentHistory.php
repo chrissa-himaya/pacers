@@ -8,6 +8,8 @@ use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use Carbon\Carbon;
 
+use App\Models\Scopes\PMCodeScope;
+
 class AssignmentHistory extends Model implements Auditable
 {
     use AuditableTrait;
@@ -56,8 +58,15 @@ class AssignmentHistory extends Model implements Auditable
     {
         return $this->belongsTo(Assignment::class, 'assignment_id', 'id');
     }
+    
     public function assignmentType()
     {
         return $this->belongsTo(Assignment::class, 'assignment_type', 'id');
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\PMCodeScope);
+    }
+
 }

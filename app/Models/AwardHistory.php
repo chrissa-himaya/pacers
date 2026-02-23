@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 
+use App\Models\Scopes\PMCodeScope;
+
 class AwardHistory extends Model implements Auditable
 {
     use AuditableTrait;
@@ -54,4 +56,10 @@ class AwardHistory extends Model implements Auditable
     }
 
     protected $appends = ['rank_at_date'];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\PMCodeScope);
+    }
+
 }

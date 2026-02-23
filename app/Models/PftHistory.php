@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 
+use App\Models\Scopes\PMCodeScope;
+
 class PftHistory extends Model implements Auditable
 {
     use AuditableTrait;
@@ -45,4 +47,10 @@ class PftHistory extends Model implements Auditable
     {
         return $this->belongsTo(Rank::class, 'rank', 'code');
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\PMCodeScope);
+    }
+
 }

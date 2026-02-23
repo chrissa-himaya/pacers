@@ -25,7 +25,19 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dashboard';
+    // protected $redirectTo = '/dashboard';
+
+    protected function redirectTo()
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            return '/dashboard';
+        }
+
+        // This pulls the pm_code dynamically from the logged-in user
+        return '/profile/' . $user->pm_code;
+    }
 
     /**
      * Create a new controller instance.

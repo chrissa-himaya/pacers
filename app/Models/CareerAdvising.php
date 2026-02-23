@@ -9,6 +9,8 @@ use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
 
+use App\Models\Scopes\PMCodeScope;
+
 class CareerAdvising extends Model implements Auditable
 
 {
@@ -22,4 +24,10 @@ class CareerAdvising extends Model implements Auditable
         'venue',
         'remarks',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Models\Scopes\PMCodeScope);
+    }
+
 }
