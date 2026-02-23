@@ -443,7 +443,15 @@
                     searchable: false
                 },
                 { data: 'SRTY', searchable: true },
-                { data: 'PM_CODE', searchable: true },
+                { 
+                    data: 'PM_CODE', 
+                    searchable: true,
+                    render: function (data, type, row) {
+                        return `<a href="/profile/${data}" class="text-primary font-weight-bold">
+                                    ${data}
+                                </a>`;
+                    }
+                },
                 { data: 'NAME', searchable: true },
                 { data: 'SUFFIX', searchable: true },
                 { data: 'RANK', searchable: true },
@@ -467,11 +475,11 @@
                     data: 'id',
                     orderable: false,
                     searchable: false,
-                    render: function (data) {
+                    render: function (data, type, row) {
                         let buttons = '<div class="action-btns">';
                         if (canView) {
                             buttons += `
-                                    <a href="/${url_route}/${data}" class="btn btn-view">
+                                    <a href="/profile/${row.PM_CODE}" class="btn btn-view">
                                         <i class="fas fa-eye"></i> View
                                     </a>
                                 `;
