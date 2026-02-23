@@ -27,17 +27,17 @@ class QRSProfilesController extends Controller
     public function __construct(QRSProfile $qrsprofile)
     {
         $columnHidden = array_merge($qrsprofile->getDates(), ['id']);
-        $columnLabels = [''];    
+        $columnLabels = [''];
         $optionalFields = ['name', 'email'];
 
         $this->config_data = (object) [
-            "module_name"=>"QRS Profiles", //Module name
-            "module_perm_name"=>"qrsprofile", //Permission name
-            "module_route"=>"qrsprofiles", //Web route
-            "module_view_folder"=>"officerdata.qrsprofile", //View folder
-            "columnHidden"=>$columnHidden,
-            "columnLabels"=>$columnLabels,
-            "optionalFields"=>$optionalFields,
+            "module_name" => "QRS Profiles", //Module name
+            "module_perm_name" => "qrsprofile", //Permission name
+            "module_route" => "qrsprofiles", //Web route
+            "module_view_folder" => "officerdata.qrsprofile", //View folder
+            "columnHidden" => $columnHidden,
+            "columnLabels" => $columnLabels,
+            "optionalFields" => $optionalFields,
         ];
 
         view()->share('config_data', $this->config_data);
@@ -51,8 +51,8 @@ class QRSProfilesController extends Controller
     //     return view($this->config_data->module_view_folder.'.profile', compact('data'));
     // }
 
-    
-    
+
+
     public function profile(Officer $officer)
     {
         $data = $officer->load([
@@ -68,8 +68,8 @@ class QRSProfilesController extends Controller
             'designations'
         ]);
 
-        $types = Type::whereIn('id', [1,2,3,4])->with('assignments')->get();
-        $ranks = ['2LT','1LT','CPT','MAJ','LTC','COL'];
+        $types = Type::whereIn('id', [1, 2, 3, 4])->with('assignments')->get();
+        $ranks = ['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'];
         $rankIdMap = [
             '2LT' => 1,
             '1LT' => 2,
@@ -90,8 +90,9 @@ class QRSProfilesController extends Controller
         $totals = $data->assignmenthistories
             ->filter(fn($h) => $h->pri_sec_spec === 'primary' && !empty($h->assignment_id) && !empty($h->rank_during_completion))
             ->groupBy(fn($h) => $h->assignment_id)
-            ->map(fn($rows) => $rows->groupBy('rank_during_completion')
-                ->map(fn($rows2) => $rows2->sum('year_earned'))
+            ->map(
+                fn($rows) => $rows->groupBy('rank_during_completion')
+                    ->map(fn($rows2) => $rows2->sum('year_earned'))
             );
 
         // QRS scores per rank
@@ -129,11 +130,53 @@ class QRSProfilesController extends Controller
                     ->values();
             });
 
-            // return $awardsMap;
+        $pftMap = $data->pfts
+            ->sortByDesc('date_taken')
+            ->groupBy('rank')
+            ->map(fn($records) => $records->first());
 
-        return view($this->config_data->module_view_folder . '.profile', compact(
-            'data', 'types', 'ranks', 'totals', 'qrsScores', 'sourcedataMap', 'rankIdMap',
-            'schoolingCriteria', 'schoolingMap', 'awardsMap'
+        $rankColumnMap = [
+            1 => 'seclt',
+            2 => 'firstlt',
+            3 => 'cpt',
+            4 => 'maj',
+            5 => 'ltc',
+            6 => 'col',
+        ];
+
+        $schoolingPoints = [];
+        foreach ($schoolingCriteria as $criteria) {
+            $schoolingEntry = $schoolingMap->get($criteria->id);
+            $schoolingRecord = ($schoolingEntry) ? $schoolingEntry->first() : $schoolingEntry;
+
+            foreach ($rankColumnMap as $rankId => $col) {
+                $maxPoint = $sourcedataMap[$criteria->id][$rankId]->max_point ?? null;
+
+                $actualPoint = $schoolingRecord ? (float) ($schoolingRecord->$col ?? 0) : null;
+                $actualPoint = ($actualPoint > 0) ? $actualPoint : null;
+
+                $schoolingPoints[$criteria->id][$rankId] = [
+                    'max' => $maxPoint,
+                    'actual' => $actualPoint,
+                ];
+            }
+        }
+
+        return view($this->config_data->module_view_folder . '.profile', 
+        compact(
+            'data',
+            'types',
+            'ranks',
+            'totals',
+            'qrsScores',
+            'sourcedataMap',
+            'rankIdMap',
+            'schoolingCriteria',
+            'schoolingMap',
+            'awardsMap',
+            'pftMap',
+            'rankColumnMap',
+            'schoolingPoints'
         ));
     }
 
@@ -159,11 +202,11 @@ class QRSProfilesController extends Controller
 
         return round($assignmentPoints + $schoolingPoints + $awardPoints + $pftPoints, 2);
     }
-    
+
     public function index()
     {
-        abort_if(Gate::denies($this->config_data->module_perm_name.'_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        return view($this->config_data->module_view_folder.'.index');
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        return view($this->config_data->module_view_folder . '.index');
     }
 
     /**

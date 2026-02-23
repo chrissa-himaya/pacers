@@ -476,108 +476,108 @@
         <div class="sub-panel">
             <div class="panel qrs-wrap1">
                 <div class="section-title" style="text-align: center;">Career Summary</div>
-                <table class="career-table">
-                    <colgroup>
-                        <col class="col-category">
-                        <col class="col-criteria">
-                        @foreach ($ranks as $rank)
-                            <col class="col-rank">
-                        @endforeach
-                    </colgroup>
+                    <table class="career-table">
+                        <colgroup>
+                            <col class="col-category">
+                            <col class="col-criteria">
+                            @foreach ($ranks as $rank)
+                                <col class="col-rank">
+                            @endforeach
+                        </colgroup>
 
-                    <thead style="height: 72px;">
-                        <tr>
-                            <th class="left-col">CATEGORY</th>
-                            <th class="left-col">CRITERIA</th>
-                            <th class="rank-col">2LT</th>
-                            <th class="rank-col">1LT</th>
-                            <th class="rank-col">CPT</th>
-                            <th class="rank-col">MAJ</th>
-                            <th class="rank-col">LTC</th>
-                            <th class="rank-col">COL</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach ($types as $type)
-                            @php
-                                $criteria = $type->assignments;
-                                $rowspan = max(1, $criteria->count());
-                            @endphp
-
-                            @forelse ($criteria as $i => $assignment)
-                                <tr>
-                                    @if ($i === 0)
-                                        <td rowspan="{{ $rowspan }}" class="left-col">
-                                            {{ $type->name }}
-                                        </td>
-                                    @endif
-
-                                    <td class="left-col">{{ $assignment->name }}</td>
-
-                                    @foreach ($ranks as $rank)
-                                        <td class="rank-col">
-                                            {{ data_get($totals, $assignment->id . '.' . $rank, 0) }}
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td class="left-col">{{ $type->name }}</td>
-                                    <td class="left-col">—</td>
-                                    @foreach ($ranks as $rank)
-                                        <td class="rank-col">0</td>
-                                    @endforeach
-                                </tr>
-                            @endforelse
-                        @endforeach
-                    </tbody>
-                </table>
-                
-            <div class="section-title">Professional Preparation and Development</div>
-                <table class="schooling-table">
-                    <thead>
-                        <tr>
-                            <th>CATEGORY</th>
-                            <th>CRITERIA</th>
-                            <th colspan="3">COURSE</th>
-                            <th>RATING</th>
-                            <th>STANDING</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($schoolingCriteria as $index => $criteria)
-                            @php
-                                $schoolingEntry = $schoolingMap->get($criteria->id);
-                                $isMultiple = $criteria->id == 44 && $schoolingEntry;
-                                $schooling = $isMultiple ? $schoolingEntry->first() : $schoolingEntry;
-                            @endphp
+                        <thead style="height: 72px;">
                             <tr>
-                                @if ($index === 0)
-                                    <td rowspan="{{ $schoolingCriteria->count() }}" class="category-cell">
-                                        Professional Preparation and Development
-                                    </td>
-                                @endif
-                                <td>{{ $criteria->name }}</td>
-                                <td colspan="3">
-                                    @if ($isMultiple && $schoolingEntry->isNotEmpty())
-                                        {{ $schoolingEntry->map(fn($s) => trim(($s->schoolingnames->name ?? '') . ' ' . ($s->classname ?? '')))->filter()->implode(', ') }}
-                                    @elseif ($schooling && $schooling->date_completed)
-                                        {{ $schooling->schoolingnames->name ?? '' }} {{ $schooling->classname ?? '' }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="{{ !$schooling || !$schooling->rating ? 'greyed' : '' }}">
-                                    {{ $schooling->rating ?? '-' }}
-                                </td>
-                                <td class="{{ !$schooling || !$schooling->standing ? 'greyed' : '' }}">
-                                    {{ $schooling->standing ?? '-' }} / {{ $schooling->total_student ?? '-' }}
-                                </td>
+                                <th class="left-col">CATEGORY</th>
+                                <th class="left-col">CRITERIA</th>
+                                <th class="rank-col">2LT</th>
+                                <th class="rank-col">1LT</th>
+                                <th class="rank-col">CPT</th>
+                                <th class="rank-col">MAJ</th>
+                                <th class="rank-col">LTC</th>
+                                <th class="rank-col">COL</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                            @foreach ($types as $type)
+                                @php
+                                    $criteria = $type->assignments;
+                                    $rowspan = max(1, $criteria->count());
+                                @endphp
+
+                                @forelse ($criteria as $i => $assignment)
+                                    <tr>
+                                        @if ($i === 0)
+                                            <td rowspan="{{ $rowspan }}" class="left-col">
+                                                {{ $type->name }}
+                                            </td>
+                                        @endif
+
+                                        <td class="left-col">{{ $assignment->name }}</td>
+
+                                        @foreach ($ranks as $rank)
+                                            <td class="rank-col">
+                                                {{ data_get($totals, $assignment->id . '.' . $rank, 0) }}
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td class="left-col">{{ $type->name }}</td>
+                                        <td class="left-col">—</td>
+                                        @foreach ($ranks as $rank)
+                                            <td class="rank-col">0</td>
+                                        @endforeach
+                                    </tr>
+                                @endforelse
+                            @endforeach
+                        </tbody>
+                    </table>
+                
+                <div class="section-title">Professional Preparation and Development</div>
+                    <table class="schooling-table">
+                        <thead>
+                            <tr>
+                                <th>CATEGORY</th>
+                                <th>CRITERIA</th>
+                                <th colspan="3">COURSE</th>
+                                <th>RATING</th>
+                                <th>STANDING</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($schoolingCriteria as $index => $criteria)
+                                @php
+                                    $schoolingEntry = $schoolingMap->get($criteria->id);
+                                    $isMultiple = $criteria->id == 44 && $schoolingEntry;
+                                    $schooling = $isMultiple ? $schoolingEntry->first() : $schoolingEntry;
+                                @endphp
+                                <tr>
+                                    @if ($index === 0)
+                                        <td rowspan="{{ $schoolingCriteria->count() }}" class="category-cell">
+                                            Professional Preparation and Development
+                                        </td>
+                                    @endif
+                                    <td>{{ $criteria->name }}</td>
+                                    <td colspan="3">
+                                        @if ($isMultiple && $schoolingEntry->isNotEmpty())
+                                            {{ $schoolingEntry->map(fn($s) => trim(($s->schoolingnames->name ?? '') . ' ' . ($s->classname ?? '')))->filter()->implode(', ') }}
+                                        @elseif ($schooling && $schooling->date_completed)
+                                            {{ $schooling->schoolingnames->name ?? '' }} {{ $schooling->classname ?? '' }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="{{ !$schooling || !$schooling->rating ? 'greyed' : '' }}">
+                                        {{ $schooling->rating ?? '-' }}
+                                    </td>
+                                    <td class="{{ !$schooling || !$schooling->standing ? 'greyed' : '' }}">
+                                        {{ $schooling->standing ?? '-' }} / {{ $schooling->total_student ?? '-' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
 
                 <div class="section-title">Awards and Decorations</div>
                     <table class="award-table">
@@ -612,220 +612,45 @@
                     </table>
 
                 <div class="section-title">Physical Fitness Test</div>
-                <table class="pft-table">
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>2LT</th>
-                            <th>1LT</th>
-                            <th>CPT</th>
-                            <th>MAJ</th>
-                            <th>LTC</th>
-                            <th>COL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Rating</td>
-                            <td>96.20</td>
-                            <td>95.10</td>
-                            <td>94.30</td>
-                            <td>70.00</td>
-                            <td>90.20</td>
-                            <td>91.00</td>
-                        </tr>
-                        <tr>
-                            <td>Date taken</td>
-                            <td>01/May/2003</td>
-                            <td>01/Jun/2007</td>
-                            <td>01/Aug/2012</td>
-                            <td>20/Sep/2016</td>
-                            <td>01/Oct/2022</td>
-                            <td>01/Jun/2025</td>
-                        </tr>
-                        <tr>
-                            <td>Supervising unit</td>
-                            <td>SSC, HHSG, PA</td>
-                            <td>SSU, 4ID, PA</td>
-                            <td>SSU, 2ID, PA</td>
-                            <td>SSC, HHSG, PA</td>
-                            <td>SSC, HHSG, PA</td>
-                            <td>SSC, HHSG, PA</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- <div class="section-title" style="text-align:left;">Officer Career Analysis Report</div> -->
-                <div class="analysis-wrap">
-                    <!-- <div class="analysis-panel">
-                            <div class="bar-chart">
-
-                                <div class="row">
-                                <span class="label">Category A</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:14.25">
-                                    <span class="bar-value">14.25</span>
-                                    </div>
-                                    <div class="bar max" style="--val:2">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Category B</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:10.25">
-                                    <span class="bar-value">10.25</span>
-                                    </div>
-                                    <div class="bar max" style="--val:4">
-                                    <span class="bar-value">4</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Category C</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:2.00">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                    <div class="bar max" style="--val:4">
-                                    <span class="bar-value">4</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">HHQs Staff</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:1.50">
-                                    <span class="bar-value">1.50</span>
-                                    </div>
-                                    <div class="bar max" style="--val:5">
-                                    <span class="bar-value">5</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">PAMU Staff</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:0.58">
-                                    <span class="bar-value">0.58</span>
-                                    </div>
-                                    <div class="bar max" style="--val:4">
-                                    <span class="bar-value">4</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Bn/Bde Staff</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:10.33">
-                                    <span class="bar-value">10.33</span>
-                                    </div>
-                                    <div class="bar max" style="--val:2">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Instructor Duty</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:3.75">
-                                    <span class="bar-value">3.75</span>
-                                    </div>
-                                    <div class="bar max" style="--val:2">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">ResCom Duty</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:1.20">
-                                    <span class="bar-value">1.20</span>
-                                    </div>
-                                    <div class="bar max" style="--val:2">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Special/Foreign</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:3.83">
-                                    <span class="bar-value">3.83</span>
-                                    </div>
-                                    <div class="bar max" style="--val:2">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Company Cmd</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:5.42">
-                                    <span class="bar-value">5.42</span>
-                                    </div>
-                                    <div class="bar max" style="--val:1.5">
-                                    <span class="bar-value">1.5</span>
-                                    </div>
-                                </div>
-                                </div>
-
-                                <div class="row">
-                                <span class="label">Pltn Ldr/Coy XO</span>
-                                <div class="bars stacked">
-                                    <div class="bar actual" style="--val:3.75">
-                                    <span class="bar-value">3.75</span>
-                                    </div>
-                                    <div class="bar max" style="--val:2">
-                                    <span class="bar-value">2</span>
-                                    </div>
-                                </div>
-                                </div>
-                            </div>
-                            </div> -->
-
-                    <!-- RIGHT : STATUS TABLE -->
-                    <!-- <div class="analysis-panel">
-                            <table class="analysis-status-table">
-                                <thead>
-                                <tr>
-                                    <th>Assignment/Duty</th>
-                                    <th>Status</th>
-                                    <th>Remarks</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr><td>Category A</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Category B</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Category C</td><td class="warn">None</td><td>Satisfy HPA/GUA Assignment</td></tr>
-                                <tr><td>HHQs Staff</td><td class="warn">None</td><td>Satisfy HHQs Staff Duty</td></tr>
-                                <tr><td>PAMU Staff</td><td class="bad">Incomplete</td><td>To complete PAMU Staff Duty</td></tr>
-                                <tr><td>Bn/Bde Staff</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Instructor Duty</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>ResCom Duty</td><td class="warn">None</td><td>Satisfy ResCom Duty</td></tr>
-                                <tr><td>Special/Foreign</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Company Commander</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Pltn Ldr/Coy XO</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Officer Basic Course</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Officer Advance Course</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Spcl Crse/Post Grad</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Civil Service Eligibility</td><td class="ok">Complete</td><td></td></tr>
-                                <tr><td>Awards (Present)</td><td class="bad">Incomplete</td><td>Gain more Awards</td></tr>
-                                <tr><td>Awards (Previous)</td><td class="bad">Incomplete</td><td>Gain more Awards</td></tr>
-                                </tbody>
-                            </table>
-                            </div> -->
-                </div>
+                    <table class="pft-table">
+                        <thead>
+                            <tr>
+                                <th class="category-cell" rowspan="4">Physical<br>Fitness<br>Test</th>
+                                @foreach (['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'] as $rank)
+                                    <th>{{ $rank }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Rating</td>
+                                @foreach (['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'] as $rank)
+                                    @php $pft = $pftMap->get($rank); @endphp
+                                    <td class="{{ !$pft ? 'greyed' : '' }}">
+                                        {{ $pft ? number_format($pft->rating, 2) : '' }}
+                                    </td>
+                                @endforeach
+                            </tr>
+                            <tr>
+                                <td>Date Taken</td>
+                                @foreach (['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'] as $rank)
+                                    @php $pft = $pftMap->get($rank); @endphp
+                                    <td class="{{ !$pft ? 'greyed' : '' }}">
+                                        {{ $pft ? \Carbon\Carbon::parse($pft->date_taken)->format('d/M/Y') : '' }}
+                                    </td>
+                                @endforeach
+                            </tr>
+                            <tr>
+                                <td>Supervising Unit</td>
+                                @foreach (['2LT', '1LT', 'CPT', 'MAJ', 'LTC', 'COL'] as $rank)
+                                    @php $pft = $pftMap->get($rank); @endphp
+                                    <td class="{{ !$pft ? 'greyed' : '' }}">
+                                        {{ $pft->supervising_unit ?? '' }}
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tbody>
+                    </table>
             </div>
 
             <div class="panel qrs-wrap2">
@@ -845,53 +670,59 @@
                         $tabId = 't-' . strtolower($rankLabel);
                     @endphp
 
-                    <div id="{{ $tabId }}" class="tab-panel" @if(!$loop->first) style="display:none" @endif>
-                        <table class="assignment-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ $rankLabel }} : max year</th>
-                                    <th>{{ $rankLabel }} : max points</th>
-                                    <th>{{ $rankLabel }} : gained points</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($types as $type)
-                                    @foreach ($type->assignments as $assignment)
-                                    @php
-                                        $sd = $sourcedataMap[$assignment->id][$rankId] ?? null;
-                                        $maxYear      = $sd ? number_format($sd->max_month / 12, 2) : '-';
-                                        $maxPoints    = $sd ? number_format($sd->max_point, 2) : '-';
-                                        $gained       = data_get($totals, $assignment->id . '.' . $rankLabel);
-                                        $gainedDisplay = $gained ? number_format($gained, 2) : '-';
-                                    @endphp
+                        <div id="{{ $tabId }}" class="tab-panel" @if(!$loop->first) style="display:none" @endif>
+                            <table class="assignment-table">
+                                <thead>
                                     <tr>
-                                        <td>{{ $maxYear }}</td>
-                                        <td>{{ $maxPoints }}</td>
-                                        <td>{{ $gainedDisplay }}</td>
+                                        <th>{{ $rankLabel }} : max year</th>
+                                        <th>{{ $rankLabel }} : max points</th>
+                                        <th>{{ $rankLabel }} : gained points</th>
                                     </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($types as $type)
+                                        @foreach ($type->assignments as $assignment)
+                                        @php
+                                            $sd = $sourcedataMap[$assignment->id][$rankId] ?? null;
+                                            $maxYear      = $sd ? number_format($sd->max_month / 12, 2) : '-';
+                                            $maxPoints    = $sd ? number_format($sd->max_point, 2) : '-';
+                                            $gained       = data_get($totals, $assignment->id . '.' . $rankLabel);
+                                            $gainedDisplay = $gained ? number_format($gained, 2) : '-';
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $maxYear }}</td>
+                                            <td>{{ $maxPoints }}</td>
+                                            <td>{{ $gainedDisplay }}</td>
+                                        </tr>
+                                        @endforeach
                                     @endforeach
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
 
                         <div class="section-title">Schooling points</div>
                             <table class="qrs-table-extra">
                                 <thead>
                                     <tr>
-                                    <th colspan="2">max points</th>
-                                    <th>actual points</th>
+                                        <th>max points</th>
+                                        <th>actual points</th>
                                     </tr>
-                                    <!-- <tr></tr> -->
                                 </thead>
                                 <tbody>
-                                    <tr><td colspan="2">2.00</td><td>1.85</td></tr>
-                                    <tr><td colspan="2">-</td><td>-</td></tr>
-                                    <tr><td colspan="2">-</td><td>-</td></tr>
-                                    <tr><td colspan="2">-</td><td>-</td></tr>
-                                    <tr><td colspan="2">-</td><td>-</td></tr>
-                                    <tr><td colspan="2">1.00</td><td>1.00</td></tr>
-                                    <tr><td colspan="2">-</td><td>-</td></tr>
-                                    <tr><td colspan="2">2.00</td><td>0.50</td></tr>
+                                    @foreach ($schoolingCriteria as $criteria)
+                                        @php
+                                            $point = $schoolingPoints[$criteria->id][$rankId] ?? ['max' => null, 'actual' => null];
+                                            $hasMax = !is_null($point['max']);
+                                            $hasActual = !is_null($point['actual']) && $point['actual'] > 0;
+                                        @endphp
+                                        <tr>
+                                            <td class="{{ !$hasMax ? 'greyed' : '' }}">
+                                                {{ $hasMax ? number_format($point['max'], 2) : '-' }}
+                                            </td>
+                                            <td class="{{ !$hasActual ? 'greyed' : '' }}">
+                                                {{ $hasActual ? number_format($point['actual'], 2) : '-' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
 
