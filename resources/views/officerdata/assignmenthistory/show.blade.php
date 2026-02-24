@@ -263,7 +263,7 @@
 
             <div class="col" style="min-width:120px">
               <label>PAMU</label>
-              <input type="text" class="form-control" id="pamu_name" name="pamu_display" readonly
+              <input type="text" class="form-control" id="pamu_name" name="pamu_display" @readonly($data_items["operation_type"] != "edit")
                      value="{{ old('pamu_display', $data_items['data']->pamus->name ?? '') }}">
               <input type="hidden" id="pamu_id" name="pamu_id"
                      value="{{ old('pamu_id', $data_items['data']->pamu_id ?? '') }}">
