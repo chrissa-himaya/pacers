@@ -4,9 +4,6 @@
 <div class="card">
     <div class="card-header">
         <h4 class="d-inline">{{$config_data->module_name}}</h4>
-        <a href="{{ route("$config_data->module_route.create") }}" class="btn btn-primary float-end">
-            Create
-        </a>
     </div>
 
     <div class="card-body">
@@ -15,11 +12,10 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Model</th>
-                        <th>User</th>
-                        <th>Old Values</th>
-                        <th>New Values</th>
                         <th>Created</th>
+                        <th>User</th>
+                        <th>Event</th>
+                        <th>Model</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -54,11 +50,10 @@
                     orderable: false,
                     searchable: false
                 },
-                { data: 'auditable_type' },
-                { data: 'user.name' },
-                { data: 'old_values' },
-                { data: 'new_values' },
                 { data: 'created_at' },
+                { data: 'user.name' },
+                { data: 'event' },
+                { data: 'auditable_type' },
                 {
                     data: 'id',
                     render: function (data) {

@@ -13,7 +13,7 @@ class AuditController extends Controller
     protected $config_data;
     public function __construct(Audit $audit)
     {
-        $columnHidden = array_merge($audit->getDates(), ['id','permissions']);
+        $columnHidden = array_merge($audit->getDates(), ['id','permissions','user_id']);
         $columnLabels = [''];    
         $optionalFields = ['name', 'email'];
 

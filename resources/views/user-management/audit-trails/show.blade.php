@@ -22,13 +22,16 @@
                                     {{ ucfirst(str_replace('_', ' ', $key)) }}
                                 </th>
                                 <td>
-
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        value="{{ ($key=='user') ? $value['name'] : $value }}"
-                                        @disabled($data_items["operation_type"] === "show")
-                                    >                                
+                                    @if($key=="user")
+                                    <input type="text" class="form-control" value="{{ $value['name'] }}" disabled>
+                                    @else
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            value="{{ ($key=='user') ? $value['name'] : $value }}"
+                                            @disabled($data_items["operation_type"] === "show")
+                                        >  
+                                    @endif                              
                                 </td>
                             </tr>
                         @endif
