@@ -209,9 +209,11 @@
         <div class="card">
             <div class="index-header"></div>
             <h4 class="module-header"><i class="fas fa-graduation-cap"></i>{{$config_data->module_name}}
+                @can($config_data->module_perm_name . '_create')
                 <a href="{{ route("$config_data->module_route.create", "") }}" class="btn btn-primary float-right">
                     Create New
                 </a>
+                @endcan
             </h4>
         </div>
         <div class="card-body">

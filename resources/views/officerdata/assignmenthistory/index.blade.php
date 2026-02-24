@@ -189,9 +189,11 @@
         <div class="card">
             <div class="index-header">
                 <h4 class="module-header"><i class="fas fa-history"></i>{{ $config_data->module_name }}</h4>
-                <a href="{{ route("$config_data->module_route.create") }}" class="btn btn-primary float-end">
-                    + Create New
-                </a>
+                @can($config_data->module_perm_name . '_create')
+                    <a href="{{ route("$config_data->module_route.create") }}" class="btn btn-primary float-end">
+                        + Create New
+                    </a>
+                @endcan
             </div>
 
             <div class="card-body">

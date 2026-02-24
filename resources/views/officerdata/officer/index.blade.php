@@ -286,12 +286,14 @@
             <div class="index-header">
                 <h4><i class="fas fa-users"></i>{{$config_data->module_name}}</h4>
                 <div>
+                    @can($config_data->module_perm_name . '_create')
                     <a href="{{ route($config_data->module_route.'.bulkcreate') }}" class="btn-bulk">
                         <i class="fas fa-upload me-1"></i> Bulk Upload
                     </a>
                     <a href="{{ route("$config_data->module_route.create", "") }}" class="btn-create">
                         <i class="fas fa-plus me-1"></i> Create New
                     </a>
+                    @endcan
                 </div>
             </div>
             <div class="card-body">
