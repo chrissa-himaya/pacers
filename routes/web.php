@@ -277,6 +277,27 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/profile/{officer}', [QRSProfilesController::class, 'profile'])->name('profile');
 
+    Route::get('/dashboard/tenured-officers', [HomeController::class, 'tenuredOfficers'])
+    ->name('dashboard.tenured-officers');
+
+    Route::get('/dashboard/age-officers', [HomeController::class, 'ageOfficers'])
+    ->name('dashboard.age-officers');
+
+    Route::get('/dashboard/retiring-officers', [HomeController::class, 'retiringOfficers'])
+    ->name('dashboard.retiring-officers');
+
+    Route::get('/dashboard/tenured-officers', [HomeController::class, 'tenuredOfficers'])
+        ->name('dashboard.tenured-officers');
+
+    Route::get('/dashboard/age-officers', [HomeController::class, 'ageOfficers'])
+        ->name('dashboard.age-officers');
+
+    Route::get('/dashboard/cc-officers', [HomeController::class, 'ccOfficers'])
+        ->name('dashboard.cc-officers');
+
+    Route::get('/dashboard/cgsc-officers', [HomeController::class, 'cgscOfficers'])
+        ->name('dashboard.cgsc-officers');
+
 });
 
 Auth::routes();
