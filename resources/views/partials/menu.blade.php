@@ -147,7 +147,7 @@
 
                     <li class="nav-header" style="font-size: 12px;">PERSONNEL MANAGEMENT</li>
 
-                    @can('qrsprofile_access')
+                    <!-- @can('qrsprofile_access')
                     <li class="nav-item">
                         <a href="{{ route('qrsprofiles.index') }}"
                             class="nav-link {{ request()->is('qrsprofiles') || request()->is('qrsprofiles/*') ? 'active' : '' }}">
@@ -155,7 +155,7 @@
                             <span>QRS Profile</span>
                         </a>
                     </li>
-                    @endcan
+                    @endcan -->
 
                     @can('officerdata_access')
                     <li class="nav-item">
