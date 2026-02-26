@@ -277,11 +277,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/profile/{officer}', [QRSProfilesController::class, 'profile'])->name('profile');
 
-    Route::get('/dashboard/tenured-officers', [HomeController::class, 'tenuredOfficers'])
-    ->name('dashboard.tenured-officers');
+    // Route::get('/dashboard/tenured-officers', [HomeController::class, 'tenuredOfficers'])
+    // ->name('dashboard.tenured-officers');
 
-    Route::get('/dashboard/age-officers', [HomeController::class, 'ageOfficers'])
-    ->name('dashboard.age-officers');
+    // Route::get('/dashboard/age-officers', [HomeController::class, 'ageOfficers'])
+    // ->name('dashboard.age-officers');
 
     Route::get('/dashboard/retiring-officers', [HomeController::class, 'retiringOfficers'])
     ->name('dashboard.retiring-officers');
@@ -297,6 +297,21 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard/cgsc-officers', [HomeController::class, 'cgscOfficers'])
         ->name('dashboard.cgsc-officers');
+
+    Route::get('/dashboard/population-officers', [HomeController::class, 'populationOfficers'])   
+        ->name('dashboard.population-officers');
+
+    Route::get('/dashboard/afpos-rank-officers', [HomeController::class, 'afposRankOfficers'])    
+        ->name('dashboard.afpos-rank-officers');
+
+    Route::get('/dashboard/assigned-officers',        [HomeController::class, 'assignedOfficers'])     
+        ->name('dashboard.assigned-officers');
+
+    Route::get('/dashboard/population-officers',      [HomeController::class, 'populationOfficers'])   
+        ->name('dashboard.population-officers');
+
+    Route::get('/dashboard/afpos-rank-officers',      [HomeController::class, 'afposRankOfficers'])    
+        ->name('dashboard.afpos-rank-officers');
 
 });
 
