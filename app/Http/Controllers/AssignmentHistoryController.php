@@ -191,8 +191,6 @@ class AssignmentHistoryController extends Controller
         $action = $request->input('action');
 
         // ── Fetch Data inside edit form ────────────────────────────
-        // We POST back to update but with action=Fetch Data so we can
-        // change the pm_code on an existing record before saving.
         if ($action === 'Fetch Data') {
             $pm_code = $request->input('pm_code');
 
@@ -226,7 +224,7 @@ class AssignmentHistoryController extends Controller
                     'designation'      => $officer->designations->name ?? '',
                     'unit'             => $officer->units?->name ?? '',
                     'relatedHistories' => $relatedHistories,
-                    'fetched_officer'  => true,   // flag so blade knows data came from fetch
+                    'fetched_officer'  => true,
                 ]);
         }
 
@@ -459,24 +457,23 @@ class AssignmentHistoryController extends Controller
     private function saveRecord(Request $request, ?AssignmentHistory $existing)
     {
         $data = $request->validate([
-            'pm_code'              => ['required', 'string'],
-            'designation_id'       => ['nullable', 'string'],
-            'new_designation_name' => ['nullable', 'required_if:designation_id,new', 'string', 'max:255'],
-            'subunit'              => ['nullable', 'string'],
-            'unit_id'              => ['nullable', 'string'],
-            'new_unit_name'        => ['nullable', 'required_if:unit_id,new', 'string', 'max:255'],
-            'new_unit_pamu_id'     => ['nullable', 'string'],
-            'new_pamu_name'        => ['nullable', 'required_if:new_unit_pamu_id,new_pamu', 'string', 'max:255'],
-            'pamu_id'              => ['nullable', 'string'],
-            'assignment_id'        => ['nullable', 'string'],
-            'pri_sec_spec'         => ['nullable', 'string'],
-            'assignment_type'      => ['nullable', 'string'],
-            'geography'            => ['nullable', 'string'],
-            // FIX #4 – dates are fully optional
-            'start_date'           => ['nullable', 'date'],
-            'end_date'             => ['nullable', 'date'],
-            // 'rank_during_completion' => ['nullable', 'string'],
-            'year_earned'          => ['nullable', 'string'],
+            'pm_code'                  => ['required', 'string'],
+            'designation_id'           => ['nullable', 'string'],
+            'new_designation_name'     => ['nullable', 'required_if:designation_id,new', 'string', 'max:255'],
+            'subunit'                  => ['nullable', 'string'],
+            'unit_id'                  => ['nullable', 'string'],
+            'new_unit_name'            => ['nullable', 'required_if:unit_id,new', 'string', 'max:255'],
+            'new_unit_pamu_id'         => ['nullable', 'string'],
+            'new_pamu_name'            => ['nullable', 'required_if:new_unit_pamu_id,new_pamu', 'string', 'max:255'],
+            'pamu_id'                  => ['nullable', 'string'],
+            'new_pamu_standalone_name' => ['nullable', 'required_if:pamu_id,new', 'string', 'max:255'],
+            'assignment_id'            => ['nullable', 'string'],
+            'pri_sec_spec'             => ['nullable', 'string'],
+            'assignment_type'          => ['nullable', 'string'],
+            'geography'                => ['nullable', 'string'],
+            'start_date'               => ['nullable', 'date'],
+            'end_date'                 => ['nullable', 'date'],
+            'year_earned'              => ['nullable', 'string'],
         ]);
 
         // ── Inline designation creation ───────────────────────────
@@ -496,7 +493,11 @@ class AssignmentHistoryController extends Controller
 
             $newUnit         = Unit::create(['name' => $data['new_unit_name'], 'pamu_id' => $pamuId]);
             $data['unit_id'] = $newUnit->id;
-            $data['pamu_id'] = $pamuId;
+        }
+
+        // ── Standalone PAMU creation ──────────────────────────────
+        if (($data['pamu_id'] ?? '') === 'new' && !empty($data['new_pamu_standalone_name'])) {
+            $data['pamu_id'] = Pamu::firstOrCreate(['name' => $data['new_pamu_standalone_name']])->id;
         }
 
         // ── Compute rank + year_earned only when both dates present ─
@@ -512,22 +513,16 @@ class AssignmentHistoryController extends Controller
             }
 
             $rankResult = $this->computeRankDuringCompletionExcel($data['pm_code'], $sd, $ed, $pri);
-            if (!$rankResult['ok']) {
-                return back()->withErrors(['rank_during_completion' => $rankResult['message']])->withInput();
-            }
-
-            $data['rank_during_completion'] = $rankResult['rank'];
+            $data['rank_during_completion'] = $rankResult['rank'] ?: null;
 
             $ignoreId = $existing?->id;
 
-            // FIX #3 – overlap → year_earned = 0 but still save
             if ($pri === 'primary' && $this->overlapsExistingPrimary($data['pm_code'], $sd, $ed, $ignoreId)) {
                 $data['year_earned'] = 0;
             } else {
                 $data['year_earned'] = $this->yearfrac_us_30_360($sd, $ed);
             }
         } else {
-            // FIX #4 – no dates, store null/blank
             $data['rank_during_completion'] = $data['rank_during_completion'] ?? null;
             $data['year_earned']            = null;
         }
@@ -589,7 +584,7 @@ class AssignmentHistoryController extends Controller
             'designations'      => Designation::all()->pluck('name', 'id'),
             'units'             => Unit::with('pamus')->get()->keyBy('id'),
             'pamus'             => Pamu::all()->pluck('name', 'id'),
-            'assignments'       => Assignment::where('type_id', '!=', 5)->orderBy('name')->pluck('name', 'id'),
+            'assignments'       => Assignment::whereNotIn('type_id', [5, 10, 11])->orderBy('name')->pluck('name', 'id'),
             'assignment_type3'  => Assignment::where('type_id', 3)->orderBy('name')->pluck('name', 'id'),
             'officerData'       => $officerData,
             'relatedHistories'  => $relatedHistories,

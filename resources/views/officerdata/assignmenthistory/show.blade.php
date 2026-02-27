@@ -3,26 +3,26 @@
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-  .sf{font-family:'DM Sans',sans-serif}.sf .card{border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}
+  .sf{font-family:Arial, Helvetica, sans-serif}.sf .card{border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}
   .sf-hdr{background:linear-gradient(135deg,#1e3a5f,#2d5a8e);color:#fff;padding:10px 18px;display:flex;align-items:center;justify-content:space-between}
   .sf-hdr h4{margin:0;font-weight:700;font-size:1.05rem;letter-spacing:.3px}
   .sf-hdr .badge-op{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-left:8px}
   .badge-op.view{background:rgba(255,255,255,.2)}.badge-op.edit{background:#f0ad4e;color:#3d2e00}.badge-op.create{background:#5cb85c;color:#fff}
-  .sf-legend{display:flex;gap:16px;padding:5px 18px;font-size:.68rem;font-weight:500;color:#777;border-bottom:1px solid #eee;background:#fcfcfd}
-  .sf-legend .li{display:flex;align-items:center;gap:4px}.sf-legend .sw{width:10px;height:10px;border-radius:2px;border:1px solid rgba(0,0,0,.08)}
-  .sw-ro{background:#a4a7ab}.sw-ed{background:#fff7d5}.sw-au{background:#daf2e0}
+  .sf-legend{display:flex;gap:16px;padding:5px 18px;font-size:.8rem;font-weight:500;color:#777;border-bottom:1px solid #eee;background:#fcfcfd}
+  .sf-legend .li{display:flex;align-items:center;gap:4px}.sf-legend .sw{width:14px;height:14px;border-radius:2px;border:1px solid rgba(0,0,0,.08)}
+  .sw-ro{background:#a4a7ab}.sw-ed{background:#fff5c9}.sw-au{background:#9de9b0}
   .sb{border-radius:7px;padding:8px 12px 6px;margin-bottom:6px;position:relative}
   .sb::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:7px 0 0 7px}
   .sb-ro{background:#f0f4f8;border:1px solid #d6e0eb}.sb-ro::before{background:#7b9bc0}
-  .sb-ed{background:#fffdf5;border:1px solid #efe5c7}.sb-ed::before{background:#d4a843}
+  .sb-ed{background:#fffdf5;border:1px solid #f3e339}.sb-ed::before{background:#fbf7e7}
   .sb-au{background:#f2faf4;border:1px solid #c8e6ce}.sb-au::before{background:#5ba96e}
-  .sb-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+  .sb-lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
   .sb-lbl .dot{width:5px;height:5px;border-radius:50%;display:inline-block}
   .sb-ro .sb-lbl{color:#5a7a9b}.sb-ro .dot{background:#7b9bc0}
   .sb-ed .sb-lbl{color:#9a7d2e}.sb-ed .dot{background:#d4a843}
   .sb-au .sb-lbl{color:#3d7a4f}.sb-au .dot{background:#5ba96e}
   .sf-steps{display:flex;margin-bottom:6px}
-  .sf-step{flex:1;text-align:center;padding:4px;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#aaa;background:#f0f0f0;border-bottom:2px solid #ddd}
+  .sf-step{flex:1;text-align:center;padding:4px;font-size:.9rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#aaa;background:#f0f0f0;border-bottom:2px solid #ddd}
   .sf-step.on{color:#2d5a8e;background:#e8f0fa;border-bottom-color:#2d5a8e}
   .sf-step .sn{display:inline-flex;width:14px;height:14px;border-radius:50%;background:#ccc;color:#fff;font-size:.55rem;align-items:center;justify-content:center;margin-right:2px}
   .sf-step.on .sn{background:#2d5a8e}.sf-step:first-child{border-radius:5px 0 0 0}.sf-step:last-child{border-radius:0 5px 0 0}
@@ -30,7 +30,7 @@
   .sf .form-control,.sf .form-control-sm{font-size:.76rem;border-radius:4px;padding:3px 6px;height:28px}
   .sf .form-control:focus{border-color:#2d5a8e;box-shadow:0 0 0 2px rgba(45,90,142,.1)}
   .sf .form-control[disabled],.sf .form-control[readonly]{background-color:#e9eef3;color:#555;border-color:#d0d8e0;cursor:default}
-  .sb-au .form-control[readonly]{background-color:#e3f2e7;border-color:#b0d9b8;color:#2d6e3f;font-family:'JetBrains Mono',monospace;font-size:.73rem}
+  .sb-au .form-control[readonly]{background-color:#e3f2e7;border-color:#b0d9b8;color:#2d6e3f;font-family:Arial, Helvetica, sans-serif, var(--font-body);font-size:.73rem}
   .sf select.form-control{height:28px;padding:1px 6px}
   .btn-fetch{background:linear-gradient(135deg,#2d5a8e,#3a7bd5);color:#fff;border:none;border-radius:4px;padding:3px 12px;font-size:.76rem;font-weight:600;height:28px;white-space:nowrap}
   .btn-fetch:hover{box-shadow:0 3px 10px rgba(45,90,142,.3);color:#fff}
@@ -240,15 +240,7 @@
                 <div id="new_unit_container" style="display:none;margin-top:3px;">
                   <input type="text" name="new_unit_name" id="new_unit_name" class="form-control"
                          value="{{ old('new_unit_name') }}" style="margin-bottom:3px;">
-                  <select name="new_unit_pamu_id" id="new_unit_pamu_id" class="form-control">
-                    <option value="">— Select PAMU (optional) —</option>
-                    @foreach(($data_items['pamus'] ?? []) as $id => $name)
-                      <option value="{{ $id }}" @selected(old('new_unit_pamu_id') == $id)>{{ $name }}</option>
-                    @endforeach
-                    <option value="new_pamu" style="font-weight:bold;color:#007bff;">➕ Create New PAMU</option>
-                  </select>
-                  <input type="text" name="new_pamu_name" id="new_pamu_name" class="form-control"
-                         value="{{ old('new_pamu_name') }}" style="margin-top:3px;display:none;">
+                  
                   @error('new_unit_name')
                     <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
                   @enderror
@@ -261,12 +253,35 @@
               @endif
             </div>
 
+            {{-- ── PAMU (independent select, not driven by Unit) ── --}}
             <div class="col" style="min-width:120px">
               <label>PAMU</label>
-              <input type="text" class="form-control" id="pamu_name" name="pamu_display" @readonly($data_items["operation_type"] != "edit")
-                     value="{{ old('pamu_display', $data_items['data']->pamus->name ?? '') }}">
-              <input type="hidden" id="pamu_id" name="pamu_id"
-                     value="{{ old('pamu_id', $data_items['data']->pamu_id ?? '') }}">
+              @if(in_array($op, ['create','edit']))
+                <select name="pamu_id" id="pamu_id" class="form-control select2">
+                  <option value="">— PAMU —</option>
+                  @foreach(($data_items['pamus'] ?? []) as $id => $name)
+                    <option value="{{ $id }}"
+                      @selected(old('pamu_id', $data_items['data']->pamu_id ?? '') == $id)>
+                      {{ $name }}
+                    </option>
+                  @endforeach
+                  <option value="new" style="font-weight:bold;color:#007bff;border-top:2px solid #ccc;">➕ Create New PAMU</option>
+                </select>
+                <div id="new_pamu_standalone_container" style="display:none;margin-top:3px;">
+                  <input type="text" name="new_pamu_standalone_name" id="new_pamu_standalone_name"
+                         class="form-control" value="{{ old('new_pamu_standalone_name') }}"
+                         placeholder="New PAMU name">
+                  @error('new_pamu_standalone_name')
+                    <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
+                  @enderror
+                </div>
+                @error('pamu_id')
+                  <div class="text-danger" style="font-size:.6rem">{{ $message }}</div>
+                @enderror
+              @else
+                <input type="text" class="form-control"
+                       value="{{ $data_items['data']->pamus->name ?? '' }}" disabled>
+              @endif
             </div>
           </div>
 
@@ -477,12 +492,14 @@ $(function () {
   function markSave()  { _isFetch = false; }
 </script>
 
-{{-- PAMU auto-fill --}}
+{{-- PAMU auto-fill (kept for Unit field's internal new-unit PAMU sub-select only) --}}
 <script>
 (function () {
   const unitSel  = document.getElementById('unit_id');
   const pamuName = document.getElementById('pamu_name');
   const pamuId   = document.getElementById('pamu_id');
+  // pamu_name and pamu_id no longer exist as text/hidden inputs;
+  // this block is a no-op but kept to avoid removing any unrelated logic.
   if (!unitSel || !pamuName || !pamuId) return;
 
   function fillPamu() {
@@ -502,174 +519,190 @@ $(function () {
 
 {{-- Auto-compute rank + year_earned --}}
 <script>
-(function () {
-  const op = @json($data_items['operation_type'] ?? '');
-  if (op === 'show') return;
+  (function () {
+    const op = @json($data_items['operation_type'] ?? '');
+    if (op === 'show') return;
 
-  const pmCodeEl  = document.getElementById('pm_code');
-  const startEl   = document.getElementById('start_date');
-  const endEl     = document.getElementById('end_date');
-  const priEl     = document.getElementById('pri_sec_spec');
-  const rankOutEl = document.getElementById('rank_during_completion');
-  const yearEl    = document.getElementById('year_earned');
+    const pmCodeEl  = document.getElementById('pm_code');
+    const startEl   = document.getElementById('start_date');
+    const endEl     = document.getElementById('end_date');
+    const priEl     = document.getElementById('pri_sec_spec');
+    const rankOutEl = document.getElementById('rank_during_completion');
+    const yearEl    = document.getElementById('year_earned');
 
-  // Three separate message elements
-  const rankWarnEl = document.getElementById('rank_warning');     // below Rank
-  const yearOverEl = document.getElementById('year_overlap_warn');// below Year earned
-  const yearErrEl  = document.getElementById('year_earned_error');// below Year earned (hard errors)
+    // Three separate message elements
+    const rankWarnEl = document.getElementById('rank_warning');     // below Rank
+    const yearOverEl = document.getElementById('year_overlap_warn');// below Year earned
+    const yearErrEl  = document.getElementById('year_earned_error');// below Year earned (hard errors)
 
-  if (!pmCodeEl || !startEl || !endEl || !rankOutEl || !yearEl) return;
+    if (!pmCodeEl || !startEl || !endEl || !rankOutEl || !yearEl) return;
 
-  const recordId = @json($data_items['data']->id ?? null);
-  let timer   = null;
-  let aborter = null;
+    const recordId = @json($data_items['data']->id ?? null);
+    let timer   = null;
+    let aborter = null;
 
-  function show(el, visible, text) {
-    if (!el) return;
-    el.style.display = visible ? 'block' : 'none';
-    if (text !== undefined) el.textContent = text;
-  }
-
-  function clearAll() {
-    rankOutEl.value = '';
-    yearEl.value    = '';
-    show(rankWarnEl, false);
-    show(yearOverEl, false);
-    show(yearErrEl,  false);
-  }
-
-  function payload() {
-    return {
-      id:           recordId,
-      pm_code:      pmCodeEl.value || '',
-      start_date:   startEl.value  || '',
-      end_date:     endEl.value    || '',
-      pri_sec_spec: priEl?.value   || '',
-    };
-  }
-
-  async function compute() {
-    const p = payload();
-
-    // Missing pm_code or either date → clear and bail (no error shown)
-    if (!p.pm_code || !p.start_date || !p.end_date) {
-      clearAll();
-      return;
+    function show(el, visible, text) {
+      if (!el) return;
+      el.style.display = visible ? 'block' : 'none';
+      if (text !== undefined) el.textContent = text;
     }
 
-    if (aborter) aborter.abort();
-    aborter = new AbortController();
+    function clearAll() {
+      rankOutEl.value = '';
+      yearEl.value    = '';
+      show(rankWarnEl, false);
+      show(yearOverEl, false);
+      show(yearErrEl,  false);
+    }
 
-    try {
-      const res = await fetch(@json(route('assignmenthistories.computeYearEarned')), {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': @json(csrf_token()),
-          'Accept':       'application/json',
-        },
-        body:   JSON.stringify(p),
-        signal: aborter.signal,
-      });
+    function payload() {
+      return {
+        id:           recordId,
+        pm_code:      pmCodeEl.value || '',
+        start_date:   startEl.value  || '',
+        end_date:     endEl.value    || '',
+        pri_sec_spec: priEl?.value   || '',
+      };
+    }
 
-      const json = await res.json().catch(() => ({}));
+    async function compute() {
+      const p = payload();
 
-      if (!res.ok) {
-        // Hard error (422 invalid dates etc.) – show below year_earned
-        rankOutEl.value = '';
-        yearEl.value    = '';
-        show(rankWarnEl, false);
-        show(yearOverEl, false);
-        show(yearErrEl,  true, json?.message || 'Error');
+      // Missing pm_code or either date → clear and bail (no error shown)
+      if (!p.pm_code || !p.start_date || !p.end_date) {
+        clearAll();
         return;
       }
 
-      // ── Rank ──────────────────────────────────────────────────
-      rankOutEl.value = (json.rank_during_completion ?? '').toString();
-      // rank_warning (no rank / conflict) → below Rank field only
-      show(rankWarnEl, !!json.rank_warning, json.rank_warning || '');
+      if (aborter) aborter.abort();
+      aborter = new AbortController();
 
-      // ── Year earned ───────────────────────────────────────────
-      yearEl.value = (json.year_earned !== null && json.year_earned !== undefined)
-                       ? json.year_earned.toString() : '';
+      try {
+        const res = await fetch(@json(route('assignmenthistories.computeYearEarned')), {
+          method:  'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': @json(csrf_token()),
+            'Accept':       'application/json',
+          },
+          body:   JSON.stringify(p),
+          signal: aborter.signal,
+        });
 
-      // Overlap warning → year=0, record saves fine, shown below Year earned
-      show(yearOverEl, json.ok && json.year_earned === 0 && !!json.message);
+        const json = await res.json().catch(() => ({}));
 
-      // Clear any lingering hard error
-      show(yearErrEl, false);
+        if (!res.ok) {
+          // Hard error (422 invalid dates etc.) – show below year_earned
+          rankOutEl.value = '';
+          yearEl.value    = '';
+          show(rankWarnEl, false);
+          show(yearOverEl, false);
+          show(yearErrEl,  true, json?.message || 'Error');
+          return;
+        }
 
-    } catch (e) {
-      if (e?.name !== 'AbortError') console.warn('Compute error:', e);
-    }
-  }
+        // ── Rank ──────────────────────────────────────────────────
+        rankOutEl.value = (json.rank_during_completion ?? '').toString();
+        // rank_warning (no rank / conflict) → below Rank field only
+        show(rankWarnEl, !!json.rank_warning, json.rank_warning || '');
 
-  function schedule() {
-    clearTimeout(timer);
-    timer = setTimeout(compute, 350);
-  }
+        // ── Year earned ───────────────────────────────────────────
+        yearEl.value = (json.year_earned !== null && json.year_earned !== undefined)
+                        ? json.year_earned.toString() : '';
 
-  [pmCodeEl, startEl, endEl, priEl].filter(Boolean).forEach(el => {
-    el.addEventListener('change', schedule);
-    el.addEventListener('input',  schedule);
-  });
+        // Overlap warning → year=0, record saves fine, shown below Year earned
+        show(yearOverEl, json.ok && json.year_earned === 0 && !!json.message);
 
-  if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
-    jQuery(pmCodeEl).on('select2:select select2:clear', schedule);
-    if (priEl) jQuery(priEl).on('select2:select select2:clear', schedule);
-  }
+        // Clear any lingering hard error
+        show(yearErrEl, false);
 
-  compute(); // fire immediately on edit form load
-})();
-</script>
-
-{{-- Designation / Unit / PAMU toggles --}}
-<script>
-(function () {
-  const desigSel      = document.getElementById('designation_id');
-  const newDesigBox   = document.getElementById('new_designation_container');
-  const newDesigInput = document.getElementById('new_designation_name');
-
-  if (desigSel && newDesigBox && newDesigInput) {
-    function toggleDesig() {
-      const isNew = desigSel.value === 'new';
-      newDesigBox.style.display = isNew ? 'block' : 'none';
-      newDesigInput.required    = isNew;
-      if (isNew) newDesigInput.focus(); else newDesigInput.value = '';
-    }
-    desigSel.addEventListener('change', toggleDesig);
-    if (window.jQuery) jQuery(desigSel).on('select2:select select2:clear', toggleDesig);
-  }
-
-  const unitSel    = document.getElementById('unit_id');
-  const newUnitBox = document.getElementById('new_unit_container');
-  const newUnitIn  = document.getElementById('new_unit_name');
-  const pamuSel    = document.getElementById('new_unit_pamu_id');
-  const newPamuIn  = document.getElementById('new_pamu_name');
-
-  if (unitSel && newUnitBox && newUnitIn) {
-    function toggleUnit() {
-      const isNew = unitSel.value === 'new';
-      newUnitBox.style.display = isNew ? 'block' : 'none';
-      newUnitIn.required = isNew;
-      if (isNew) newUnitIn.focus();
-      else {
-        newUnitIn.value = '';
-        if (pamuSel)   pamuSel.value = '';
-        if (newPamuIn) { newPamuIn.style.display = 'none'; newPamuIn.value = ''; }
+      } catch (e) {
+        if (e?.name !== 'AbortError') console.warn('Compute error:', e);
       }
     }
-    unitSel.addEventListener('change', toggleUnit);
-    if (window.jQuery) jQuery(unitSel).on('select2:select select2:clear', toggleUnit);
 
-    if (pamuSel && newPamuIn) {
-      pamuSel.addEventListener('change', function () {
-        const isNewPamu = this.value === 'new_pamu';
-        newPamuIn.style.display = isNewPamu ? 'block' : 'none';
-        if (isNewPamu) newPamuIn.focus(); else newPamuIn.value = '';
-      });
+    function schedule() {
+      clearTimeout(timer);
+      timer = setTimeout(compute, 350);
     }
-  }
-})();
+
+    [pmCodeEl, startEl, endEl, priEl].filter(Boolean).forEach(el => {
+      el.addEventListener('change', schedule);
+      el.addEventListener('input',  schedule);
+    });
+
+    if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
+      jQuery(pmCodeEl).on('select2:select select2:clear', schedule);
+      if (priEl) jQuery(priEl).on('select2:select select2:clear', schedule);
+    }
+
+    compute(); // fire immediately on edit form load
+  })();
+  </script>
+
+  {{-- Designation / Unit / PAMU toggles --}}
+  <script>
+  (function () {
+    const desigSel      = document.getElementById('designation_id');
+    const newDesigBox   = document.getElementById('new_designation_container');
+    const newDesigInput = document.getElementById('new_designation_name');
+
+    if (desigSel && newDesigBox && newDesigInput) {
+      function toggleDesig() {
+        const isNew = desigSel.value === 'new';
+        newDesigBox.style.display = isNew ? 'block' : 'none';
+        newDesigInput.required    = isNew;
+        if (isNew) newDesigInput.focus(); else newDesigInput.value = '';
+      }
+      desigSel.addEventListener('change', toggleDesig);
+      if (window.jQuery) jQuery(desigSel).on('select2:select select2:clear', toggleDesig);
+    }
+
+    const unitSel    = document.getElementById('unit_id');
+    const newUnitBox = document.getElementById('new_unit_container');
+    const newUnitIn  = document.getElementById('new_unit_name');
+    const pamuSel    = document.getElementById('new_unit_pamu_id');
+    const newPamuIn  = document.getElementById('new_pamu_name');
+
+    if (unitSel && newUnitBox && newUnitIn) {
+      function toggleUnit() {
+        const isNew = unitSel.value === 'new';
+        newUnitBox.style.display = isNew ? 'block' : 'none';
+        newUnitIn.required = isNew;
+        if (isNew) newUnitIn.focus();
+        else {
+          newUnitIn.value = '';
+          if (pamuSel)   pamuSel.value = '';
+          if (newPamuIn) { newPamuIn.style.display = 'none'; newPamuIn.value = ''; }
+        }
+      }
+      unitSel.addEventListener('change', toggleUnit);
+      if (window.jQuery) jQuery(unitSel).on('select2:select select2:clear', toggleUnit);
+
+      if (pamuSel && newPamuIn) {
+        pamuSel.addEventListener('change', function () {
+          const isNewPamu = this.value === 'new_pamu';
+          newPamuIn.style.display = isNewPamu ? 'block' : 'none';
+          if (isNewPamu) newPamuIn.focus(); else newPamuIn.value = '';
+        });
+      }
+    }
+
+    // ── Standalone PAMU select toggle ────────────────────────────
+    const pamuStandaloneSel = document.getElementById('pamu_id');
+    const newPamuStandaloneBox = document.getElementById('new_pamu_standalone_container');
+    const newPamuStandaloneIn  = document.getElementById('new_pamu_standalone_name');
+
+    if (pamuStandaloneSel && newPamuStandaloneBox && newPamuStandaloneIn) {
+      function togglePamuStandalone() {
+        const isNew = pamuStandaloneSel.value === 'new';
+        newPamuStandaloneBox.style.display = isNew ? 'block' : 'none';
+        newPamuStandaloneIn.required = isNew;
+        if (isNew) newPamuStandaloneIn.focus(); else newPamuStandaloneIn.value = '';
+      }
+      pamuStandaloneSel.addEventListener('change', togglePamuStandalone);
+      if (window.jQuery) jQuery(pamuStandaloneSel).on('select2:select select2:clear', togglePamuStandalone);
+    }
+  })();
 </script>
 @endsection
