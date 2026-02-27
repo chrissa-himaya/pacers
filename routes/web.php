@@ -312,6 +312,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard/afpos-rank-officers',      [HomeController::class, 'afposRankOfficers'])    
         ->name('dashboard.afpos-rank-officers');
+    
+    Route::get('/dashboard/gender-officers', [HomeController::class, 'genderOfficers'])
+    ->name('dashboard.gender-officers');
 
 });
 

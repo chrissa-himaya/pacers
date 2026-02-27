@@ -754,6 +754,46 @@ class HomeController extends Controller
     }
 
     /**
+     * GET /dashboard/gender-officers?sex=male|female
+     */
+    public function genderOfficers(Request $request)
+    {
+        abort_if(Gate::denies('dashboard_access'), Response::HTTP_FORBIDDEN);
+
+        $sex      = strtolower(trim($request->input('sex', 'male')));
+        $sexExpr  = 'UPPER(TRIM(SEX))';
+        $inValues = $sex === 'male' ? "('M','MALE')" : "('F','FEMALE')";
+
+        $officers = Officer::whereRaw("{$sexExpr} IN {$inValues}")
+            ->whereNotNull('RANK')->whereRaw("TRIM(RANK) != ''")
+            ->selectRaw("PM_CODE, NAME, UPPER(TRIM(RANK)) as rank_display, TRIM(AFPOS) as afpos, DOB")
+            ->orderByRaw("NAME ASC")
+            ->limit(500)
+            ->get()
+            ->map(function ($o) {
+                $age          = 0;
+                $dobFormatted = '';
+                try {
+                    if ($o->DOB) {
+                        $dob          = Carbon::parse($o->DOB);
+                        $age          = (int) $dob->diffInYears(Carbon::today());
+                        $dobFormatted = $dob->format('d-M-Y');
+                    }
+                } catch (\Throwable $e) {}
+                return [
+                    'pm_code' => $o->PM_CODE,
+                    'name'    => $o->NAME,
+                    'rank'    => $o->rank_display,
+                    'afpos'   => $o->afpos,
+                    'dob'     => $dobFormatted,
+                    'age'     => $age,
+                ];
+            });
+
+        return response()->json(['officers' => $officers, 'sex' => $sex]);
+    }
+
+    /**
      * GET /dashboard/cc-officers?rank=CPT&afpos=INF&type=with|without
      */
     public function ccOfficers(Request $request)
