@@ -206,7 +206,15 @@ class SourcedatasController extends Controller
         $search = $request->input('search.value');
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+                $q->orWhereHas('assignments', function ($data) use ($search) {
+                        $data->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('types', function ($query) use ($search) {
+                            $query->where('name', 'like', "%{$search}%");
+                        });
+                    })
+                    ->orWhereHas('ranks', function ($data) use ($search) {
+                        $data->where('code', 'like', "%{$search}%");
+                    });
             });
         }
 
