@@ -96,10 +96,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('officers', OfficersController::class);
     Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list'); // AJAX
 
-    Route::delete('qrsprofiles/destroy', [QRSProfilesController::class, 'massDestroy'])
-        ->name('qrsprofiles.massDestroy');
-    Route::resource('qrsprofiles', QRSProfilesController::class);
-    Route::get('/qrsprofiles-list', [QRSProfilesController::class, 'list'])->name('qrsprofiles.list');
+    // Route::delete('qrsprofiles/destroy', [QRSProfilesController::class, 'massDestroy'])
+    //     ->name('qrsprofiles.massDestroy');
+    // Route::resource('qrsprofiles', QRSProfilesController::class);
+    // Route::get('/qrsprofiles-list', [QRSProfilesController::class, 'list'])->name('qrsprofiles.list');
 
     Route::delete('schoolings/destroy', [SchoolingsController::class, 'massDestroy'])
         ->name('schoolings.massDestroy');
@@ -315,6 +315,12 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/dashboard/gender-officers', [HomeController::class, 'genderOfficers'])
     ->name('dashboard.gender-officers');
+
+    Route::get('qrsprofiles/{officer}/export-excel', [QRSProfilesController::class, 'exportExcel'])
+        ->name('qrsprofiles.export-excel');
+
+    Route::post('qrsprofiles/{officer}/upload-photo', [QRSProfilesController::class, 'uploadPhoto'])
+        ->name('qrsprofiles.upload-photo');
 
 });
 

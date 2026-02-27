@@ -35,6 +35,7 @@ class Officer extends Model implements Auditable
         'SIG',
         'SEX',
         'DOR',
+        'photo_path',
         'TACS',
         'DOC',
         'DOB',
