@@ -261,13 +261,13 @@ class OfficersController extends Controller
             'HCC',
             'SOC',
             'REMARKS',
-            'designation_id',
-            'unit_id',
+            'designations.name',
+            'units.name',
             'role_id',
             null,        // 23 Actions
         ];
 
-        $globalSearchColumns = ['SRTY', 'PM_CODE', 'NAME', 'SUFFIX', 'RANK', 'AFPSN', 'AFPOS', 'TYPE', 'SIG', 'SEX', 'DOR', 'TACS', 'DOB', 'DOC', 'RET', 'HCC', 'SOC', 'REMARKS', 'designation_id', 'unit_id', 'role_id',];
+        $globalSearchColumns = ['SRTY', 'PM_CODE', 'NAME', 'SUFFIX', 'RANK', 'AFPSN', 'AFPOS', 'TYPE', 'SIG', 'SEX', 'DOR', 'TACS', 'DOB', 'DOC', 'RET', 'HCC', 'SOC', 'REMARKS', 'designations.name', 'units.name', 'role_id',];
 
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
@@ -322,9 +322,9 @@ class OfficersController extends Controller
         $data = $query->skip($start)
             ->take($length)
             ->with([
-                'designations:id,name',
-                'units:id,name',
-                'roles:id,name',
+                'designations',
+                'units',
+                'roles',
             ])
             ->get();
 
