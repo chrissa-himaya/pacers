@@ -51,7 +51,39 @@ class OfficersController extends Controller
      */
     public function create()
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $officer      = new Officer();          // empty model for create
+        $designations = Designation::all()->pluck('name', 'id');
+        $units        = Unit::all()->pluck('name', 'id');
+        $roleType     = Role::all()->pluck('name', 'id');
+
+        return view($this->config_data->module_view_folder . '.show', [
+            'operation_type' => 'create',
+            'officer'        => $officer,
+            'designations'   => $designations,
+            'units'          => $units,
+            'roleType'       => $roleType,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $validated = $request->validate([
+            'PM_CODE' => ['required', 'string', 'unique:personnel_records,PM_CODE'],
+            // add more rules as needed
+        ]);
+
+        Officer::create($request->only([
+            'SRTY','PM_CODE','NAME','SUFFIX','RANK','AFPSN','AFPOS','TYPE','SIG','SEX',
+            'DOR','TACS','DOC','DOB','RET','HCC','SOC','REMARKS',
+            'designation_id','unit_id','role_id',
+        ]));
+
+        return redirect()->route($this->config_data->module_route . '.index')
+            ->with('success', 'Officer created successfully.');
     }
 
     public function bulkCreate()
@@ -85,14 +117,6 @@ class OfficersController extends Controller
 
         return view($this->config_data->module_view_folder . '.bulk');
         // return view($this->config_data->module_view_folder.'.show', compact('data_items'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
     }
 
     public function bulkStore(Request $request)
@@ -205,31 +229,65 @@ class OfficersController extends Controller
      */
     public function show(Officer $officer)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $designations = Designation::all()->pluck('name', 'id');
+        $units        = Unit::all()->pluck('name', 'id');
+        $roleType     = Role::all()->pluck('name', 'id');
+
+        return view($this->config_data->module_view_folder . '.show', [
+            'operation_type' => 'show',
+            'officer'        => $officer->load(['designations', 'units', 'roles']),
+            'designations'   => $designations,
+            'units'          => $units,
+            'roleType'       => $roleType,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Officer $officer)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $designations = Designation::all()->pluck('name', 'id');
+        $units        = Unit::all()->pluck('name', 'id');
+        $roleType     = Role::all()->pluck('name', 'id');
+
+        return view($this->config_data->module_view_folder . '.show', [
+            'operation_type' => 'edit',
+            'officer'        => $officer->load(['designations', 'units', 'roles']),
+            'designations'   => $designations,
+            'units'          => $units,
+            'roleType'       => $roleType,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Officer $officer)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $validated = $request->validate([
+            'PM_CODE' => ['required', 'string', 'unique:personnel_records,PM_CODE,' . $officer->id],
+            // add more rules as needed
+        ]);
+
+        $officer->fill($request->only([
+            'SRTY','PM_CODE','NAME','SUFFIX','RANK','AFPSN','AFPOS','TYPE','SIG','SEX',
+            'DOR','TACS','DOC','DOB','RET','HCC','SOC','REMARKS',
+            'designation_id','unit_id','role_id',
+        ]))->save();
+
+        return redirect()->route($this->config_data->module_route . '.index')
+            ->with('success', 'Officer updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Officer $officer)
     {
-        //
+        abort_if(Gate::denies($this->config_data->module_perm_name . '_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $officer->delete();
+
+        return redirect()->route($this->config_data->module_route . '.index')
+            ->with('success', 'Officer deleted successfully.');
     }
 
     public function list(Request $request)
