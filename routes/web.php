@@ -91,10 +91,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('sourcedatas', SourcedatasController::class);
     Route::get('/sourcedatas-list', [SourcedatasController::class, 'list'])->name('sourcedatas.list'); // AJAX
 
-    Route::delete('officers/destroy', [OfficersController::class, 'massDestroy'])
-        ->name('officers.massDestroy');
-    Route::resource('officers', OfficersController::class);
-    Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list'); // AJAX
+    // Route::delete('officers/destroy', [OfficersController::class, 'massDestroy'])
+    //     ->name('officers.massDestroy');
+    // Route::resource('officers', OfficersController::class);
+    // Route::get('/officers-list', [OfficersController::class, 'list'])->name('officers.list');
 
     // Route::delete('qrsprofiles/destroy', [QRSProfilesController::class, 'massDestroy'])
     //     ->name('qrsprofiles.massDestroy');

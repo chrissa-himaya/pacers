@@ -191,7 +191,7 @@
                 { data: 'HCC', searchable: true },
                 { data: 'SOC', searchable: true },
                 { data: 'REMARKS', searchable: true },
-                { data: 'designations.name', searchable: true },
+                { data: 'designations', searchable: true },
                 { data: 'units.name', searchable: true },
                 { data: 'roles.name', searchable: true },
                 {
