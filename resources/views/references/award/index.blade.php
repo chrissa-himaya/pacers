@@ -38,7 +38,9 @@
             processing: true,
             serverSide: true,
             ajax: "{{ route("$config_data->module_route.list") }}",
-            order: [[0, 'asc']], // default ordering
+            pageLength: 50,
+            lengthMenu: [ [50,70,100,200], [50,70,100,200] ],
+            order: [[0, 'asc']],
             columns: [
                 {
                     data: null,

@@ -210,7 +210,7 @@
 
                         if (canUpdate) {
                             buttons += `
-                                    <a href="/${url_route}/${data}/edit" class="btn btn-edit">
+                                    <a href="/${url_route}/${row.PM_CODE}/edit" class="btn btn-edit">
                                         <i class="fas fa-pen"></i> Edit
                                     </a>
                                 `;

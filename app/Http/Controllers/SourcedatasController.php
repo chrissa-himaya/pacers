@@ -57,7 +57,7 @@ class SourcedatasController extends Controller
             })
             ->prepend('Please select', '');
 
-        $ranks = Rank::all()->pluck('code', 'id')->prepend('Please select', '');
+        $ranks = Rank::orderBy('id') ->pluck('code', 'id') ->prepend('Please select', '');
         // $columnHidden = array_merge($rank->getDates(), ['id']);      
 
         $data_items = [
@@ -125,7 +125,7 @@ class SourcedatasController extends Controller
                 ];
             })
             ->prepend('Please select', '');
-        $ranks = Rank::all()->pluck('code', 'id');
+        $ranks = Rank::orderBy('id')->pluck('code', 'id');
         $rankpointsGrouped = Rankpoint::with('ranks')->get()->groupBy('name');
 
 
@@ -197,7 +197,7 @@ class SourcedatasController extends Controller
             $orderDir = 'asc';
         }
 
-        $orderColumn = $columns[$orderIndex] ?? 'id';
+        $orderColumn = $columns[$orderIndex] ?? 'rank_id';
 
         // Base query
         $query = Sourcedata::query();
