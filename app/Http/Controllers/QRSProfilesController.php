@@ -991,4 +991,398 @@ class QRSProfilesController extends Controller
     public function edit(QRSProfile $qRSProfile) {}
     public function update(Request $request, QRSProfile $qRSProfile) {}
     public function destroy(QRSProfile $qRSProfile) {}
+
+    public function list(Request $request): \Illuminate\Http\JsonResponse
+    {
+        [$assignmentIdMap, $schoolingIdMap, $eduIdMap,
+        $cseIds, $specializationIds] = $this->buildAssignmentMaps();
+
+        $schoolingCriteria = Assignment::where('type_id', 5)->orderBy('id')->get();
+
+        $sourcedataMap = $this->buildSourcedataMap();   // already exists as private method
+
+        [$query, $totalData] = $this->buildListQuery($request);
+
+        $filteredData = (clone $query)->count();
+
+        $start  = max(0, (int) $request->input('start', 0));
+        $length = max(1, (int) $request->input('length', 50));
+
+        $officers = $query->orderBy('NAME')->skip($start)->take($length)->get();
+
+        $rows = $officers->map(fn(Officer $o) => $this->buildOfficerRow(
+            $o, $assignmentIdMap, $schoolingIdMap, $eduIdMap,
+            $cseIds, $specializationIds, $sourcedataMap, $schoolingCriteria
+        ));
+
+        return response()->json([
+            'draw'            => (int) $request->input('draw'),
+            'recordsTotal'    => $totalData,
+            'recordsFiltered' => $filteredData,
+            'data'            => $rows->values(),
+        ]);
+    }
+
+    // ── Helper: build assignment id maps ─────────────────────────────────────
+    private function buildAssignmentMaps(): array
+    {
+        $assignmentKeyMap = [
+            'pts_gua_staff'           => 'GUA Staff',
+            'pts_hpa_staff'           => 'HPA Staff',
+            'pts_pamu_staff'          => 'PAMU Staff',
+            'pts_brigade_staff'       => 'Brigade Staff',
+            'pts_battalion_staff'     => 'Battalion Staff',
+            'pts_company_exo'         => 'Company Ex-O',
+            'pts_special_duty'        => 'Special Duty',
+            'pts_foreign_duty'        => 'Foreign Duty',
+            'pts_instructor_duty'     => 'Instructor Duty',
+            'pts_rescom_duty'         => 'ResCom Duty',
+            'pts_reassigned'          => 'Reassigned',
+            'pts_schooling_assign'    => 'Schooling',
+            'pts_attached'            => 'Attached',
+            'pts_platoon_leader'      => 'Platoon Leader',
+            'pts_company_commander'   => 'Company Commander',
+            'pts_battalion_commander' => 'Battalion Commander',
+            'pts_brigade_commander'   => 'Brigade Commander',
+            'pts_category_a'          => 'Category A',
+            'pts_category_b'          => 'Category B',
+            'pts_category_c'          => 'Category C',
+            'pts_ncr'                 => 'NCR',
+            'pts_luzon'               => 'Luzon',
+            'pts_visayas'             => 'Visayas',
+            'pts_mindanao'            => 'Mindanao',
+        ];
+
+        $schoolingKeyMap = [
+            'sch_pre_entry' => 'Pre-Entry',
+            'sch_obc'       => 'Officer Basic',
+            'sch_oac'       => 'Officer Advance',
+            'sch_soc'       => 'Staff Officer',
+            'sch_cgsc'      => 'CGSC',
+        ];
+
+        $eduKeyMap = [
+            'edu_undergrad' => 'Undergraduate',
+            'edu_graduate'  => 'Graduate',
+            'edu_postgrad'  => 'Post Graduate',
+        ];
+
+        $all = Assignment::all()->keyBy('id');
+
+        $resolve = function (array $map) use ($all): array {
+            $out = [];
+            foreach ($map as $key => $substr) {
+                $out[$key] = $all->filter(fn($a) => stripos($a->name, $substr) !== false)
+                                ->keys()->toArray();
+            }
+            return $out;
+        };
+
+        $assignmentIdMap = $resolve($assignmentKeyMap);
+        $schoolingIdMap  = $resolve($schoolingKeyMap);
+        $eduIdMap        = $resolve($eduKeyMap);
+
+        $cseIds = $all->filter(fn($a) => stripos($a->name, 'Civil Service') !== false)
+                    ->keys()->toArray();
+
+        $knownIds = collect($schoolingIdMap)->flatten()
+            ->merge(collect($eduIdMap)->flatten())
+            ->merge($cseIds)
+            ->unique()->toArray();
+
+        $specializationIds = $all->filter(fn($a) => $a->type_id == 5 && !in_array($a->id, $knownIds))
+                                ->keys()->toArray();
+
+        return [$assignmentIdMap, $schoolingIdMap, $eduIdMap, $cseIds, $specializationIds];
+    }
+
+    // ── Helper: base query + global search ───────────────────────────────────
+    // private function buildListQuery(Request $request): array
+    // {
+    //     $searchable = ['SRTY', 'PM_CODE', 'NAME', 'RANK', 'AFPSN', 'AFPOS', 'SEX', 'DOB', 'SOC'];
+
+    //     $query = Officer::query()->with([
+    //         'designations',
+    //         'units',
+    //         'assignmenthistories',
+    //         'schoolings',
+    //         'schoolings.schoolingnames',
+    //         'awards',
+    //         'pfts',
+    //     ]);
+
+    //     $search = trim((string) $request->input('search.value', ''));
+    //     if ($search !== '') {
+    //         $query->where(function ($q) use ($search, $searchable) {
+    //             foreach ($searchable as $col) {
+    //                 $q->orWhere($col, 'like', "%{$search}%");
+    //             }
+    //         });
+    //     }
+
+    //     // Per-column search (cols 1–11 in the DataTable)
+    //     $colMap = [
+    //         1  => 'PM_CODE',
+    //         2  => 'SRTY',
+    //         3  => 'RANK',
+    //         4  => 'NAME',
+    //         5  => 'AFPSN',
+    //         6  => 'AFPOS',
+    //         7  => 'SEX',
+    //         8  => 'DOB',
+    //         9  => 'SOC',
+    //     ];
+    //     foreach ($colMap as $idx => $col) {
+    //         $val = trim((string) $request->input("columns.{$idx}.search.value", ''));
+    //         if ($val !== '') {
+    //             $query->where($col, 'like', "%{$val}%");
+    //         }
+    //     }
+
+    //     return [$query, Officer::count()];
+    // }
+
+
+    private function buildListQuery(Request $request): array
+    {
+        $searchable = ['SRTY','PM_CODE','NAME','RANK','AFPSN','AFPOS','SEX','DOB','SOC'];
+
+        $query = Officer::query()->with(['designations','units','assignmenthistories',
+            'schoolings','schoolings.schoolingnames','awards','pfts']);
+
+        $search = trim((string) $request->input('search.value', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search, $searchable) {
+                foreach ($searchable as $col) $q->orWhere($col, 'like', "%{$search}%");
+                $q->orWhereHas('designations', fn($r) => $r->where('name', 'like', "%{$search}%"));
+                $q->orWhereHas('units',        fn($r) => $r->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $colMap = [1=>'PM_CODE',2=>'SRTY',3=>'RANK',4=>'NAME',5=>'AFPSN',6=>'AFPOS',7=>'SEX',8=>'DOB',9=>'SOC'];
+        foreach ($colMap as $idx => $col) {
+            $val = trim((string) $request->input("columns.{$idx}.search.value", ''));
+            if ($val !== '') $query->where($col, 'like', "%{$val}%");
+        }
+
+        // Cols 10 & 11 — relation-based search (were missing entirely before)
+        $desig = trim((string) $request->input('columns.10.search.value', ''));
+        if ($desig !== '') $query->whereHas('designations', fn($r) => $r->where('name', 'like', "%{$desig}%"));
+
+        $unit = trim((string) $request->input('columns.11.search.value', ''));
+        if ($unit !== '') $query->whereHas('units', fn($r) => $r->where('name', 'like', "%{$unit}%"));
+
+        return [$query, Officer::count()];
+    }
+
+    // ── Helper: build a single officer's data row ─────────────────────────────
+    private function buildOfficerRow(
+        Officer    $officer,
+        array      $assignmentIdMap,
+        array      $schoolingIdMap,
+        array      $eduIdMap,
+        array      $cseIds,
+        array      $specializationIds,
+        array      $sourcedataMap,
+        Collection $schoolingCriteria
+    ): array {
+        try {
+            $rank = $officer->RANK ?? null;
+
+            $computedTotals = $officer->assignmenthistories
+                ->filter(fn($h) =>
+                    $h->pri_sec_spec === 'primary'
+                    && !empty($h->assignment_id)
+                    && !empty($h->rank_during_completion)
+                )
+                ->groupBy(fn($h) => $h->assignment_id)
+                ->map(fn($group) => $group
+                    ->groupBy('rank_during_completion')
+                    ->map(fn($r2) => $r2->sum('computed_points'))
+                );
+
+            $row = $this->buildOfficerBaseRow($officer);
+            $row += $this->buildAssignmentPointsRow($assignmentIdMap, $computedTotals, $sourcedataMap, $rank);
+            $row += $this->buildSchoolingRow($officer, $schoolingIdMap, $eduIdMap, $cseIds, $specializationIds);
+            $row['qrs_score'] = $this->buildQrsScoreForRank(
+                $officer, $rank, $sourcedataMap, $computedTotals, $schoolingCriteria
+            );
+
+            return $row;
+
+        } catch (\Throwable $e) {
+            \Log::error("QRS list() failed for officer #{$officer->id}: " . $e->getMessage());
+            return $this->buildSkeletonRow($officer, $assignmentIdMap, $schoolingIdMap, $eduIdMap);
+        }
+    }
+
+    // ── Helper: base officer fields ───────────────────────────────────────────
+    private function buildOfficerBaseRow(Officer $officer): array
+    {
+        return [
+            'id'               => $officer->id,
+            'PM_CODE'          => $officer->PM_CODE,
+            'SRTY'             => $officer->SRTY,
+            'RANK'             => $officer->RANK,
+            'NAME'             => $officer->NAME,
+            'AFPSN'            => $officer->AFPSN,
+            'AFPOS'            => $officer->AFPOS,
+            'SEX'              => $officer->SEX,
+            'DOB'              => $officer->DOB,
+            'SOC'              => $officer->SOC,
+            'designation_name' => $officer->designations->name ?? null,
+            'unit_name'        => $officer->units->name ?? null,
+        ];
+    }
+
+    // ── Helper: assignment points columns ────────────────────────────────────
+    private function buildAssignmentPointsRow(
+        array      $assignmentIdMap,
+        Collection $computedTotals,
+        array      $sourcedataMap,
+        ?string    $rank
+    ): array {
+        $row    = [];
+        $rankId = $rank ? (self::RANK_ID_MAP[$rank] ?? null) : null;
+
+        foreach ($assignmentIdMap as $key => $ids) {
+            $total  = 0.0;
+            $hasAny = false;
+            foreach ($ids as $aId) {
+                $gained = (float) data_get($computedTotals, "{$aId}.{$rank}", 0);
+                if ($gained > 0 && $rank) {
+                    $hasAny = true;
+                    $sd     = $rankId ? ($sourcedataMap[$aId][$rankId] ?? null) : null;
+                    $maxPt  = $sd ? (float) $sd->max_point : null;
+                    $total += $maxPt !== null ? min($gained, $maxPt) : $gained;
+                }
+            }
+            $row[$key] = $hasAny ? number_format($total, 2) : null;
+        }
+
+        return $row;
+    }
+
+    // ── Helper: schooling / education / CSE / specialization columns ──────────
+    private function buildSchoolingRow(
+        Officer $officer,
+        array   $schoolingIdMap,
+        array   $eduIdMap,
+        array   $cseIds,
+        array   $specializationIds
+    ): array {
+        $row    = [];
+        $byAsgn = $officer->schoolings->groupBy('assignment_id');
+
+        // Military schooling (rating | standing/total)
+        foreach ($schoolingIdMap as $key => $ids) {
+            $record = null;
+            foreach ($ids as $id) {
+                $record = $byAsgn->get($id)?->sortByDesc('date_completed')->first();
+                if ($record) break;
+            }
+            if ($record) {
+                $rating   = $record->rating ? round((float) $record->rating, 2) : null;
+                $standing = $record->standing ?? null;
+                $total    = $record->total_student ?? null;
+                $parts    = array_filter([
+                    $rating !== null ? (string) $rating : null,
+                    ($standing !== null && $total !== null) ? "{$standing}/{$total}" : null,
+                ]);
+                $row[$key] = $parts ? implode(' | ', $parts) : null;
+            } else {
+                $row[$key] = null;
+            }
+        }
+
+        // Civil education
+        foreach ($eduIdMap as $key => $ids) {
+            $courses = [];
+            foreach ($ids as $id) {
+                foreach ($byAsgn->get($id) ?? [] as $s) {
+                    $name = trim(($s->schoolingnames->name ?? '') . ' ' . ($s->classname ?? ''));
+                    if ($name) $courses[] = $name;
+                }
+            }
+            $row[$key] = $courses ? implode('; ', array_unique($courses)) : null;
+        }
+
+        // CSE
+        $cse = [];
+        foreach ($cseIds as $id) {
+            foreach ($byAsgn->get($id) ?? [] as $s) {
+                $name = trim(($s->schoolingnames->name ?? '') . ' ' . ($s->classname ?? ''));
+                if ($name) $cse[] = $name;
+            }
+        }
+        $row['cse'] = $cse ? implode('; ', array_unique($cse)) : null;
+
+        // Specializations
+        $spec = [];
+        foreach ($specializationIds as $id) {
+            foreach ($byAsgn->get($id) ?? [] as $s) {
+                $name = trim(($s->schoolingnames->name ?? '') . ' ' . ($s->classname ?? ''));
+                if ($name) $spec[] = $name;
+            }
+        }
+        $row['specializations'] = $spec ? implode('; ', array_unique($spec)) : null;
+
+        return $row;
+    }
+
+    // ── Helper: QRS score for the officer's current rank ─────────────────────
+    private function buildQrsScoreForRank(
+        Officer    $officer,
+        ?string    $rank,
+        array      $sourcedataMap,
+        Collection $computedTotals,
+        Collection $schoolingCriteria
+    ): ?float {
+        if (!$rank || !isset(self::RANK_ID_MAP[$rank])) {
+            return null;
+        }
+
+        $rankId = self::RANK_ID_MAP[$rank];
+
+        $schoolingMap = $officer->schoolings
+            ->sortByDesc('date_completed')
+            ->groupBy('assignment_id')
+            ->map(fn($records, $id) => $id == 44 ? $records : $records->first());
+
+        $schoolingPoints = $this->buildSchoolingPoints($schoolingCriteria, $schoolingMap, $sourcedataMap);
+        $awardsPoints    = $this->buildAwardsPoints($officer, $sourcedataMap);
+        $pftPoints       = $this->buildPftPoints($officer, $sourcedataMap);
+
+        return $this->computeQrsScore(
+            $officer, $rank, $rankId,
+            $sourcedataMap, $computedTotals,
+            $schoolingPoints, $schoolingCriteria,
+            $awardsPoints, $pftPoints
+        );
+    }
+
+    // ── Helper: safe skeleton row on error ────────────────────────────────────
+    private function buildSkeletonRow(
+        Officer $officer,
+        array   $assignmentIdMap,
+        array   $schoolingIdMap,
+        array   $eduIdMap
+    ): array {
+        return array_merge(
+            [
+                'id'               => $officer->id,
+                'PM_CODE'          => $officer->PM_CODE,
+                'NAME'             => $officer->NAME,
+                'RANK'             => $officer->RANK,
+                'SRTY'             => null, 'AFPSN' => null, 'AFPOS' => null,
+                'SEX'              => null, 'DOB'   => null, 'SOC'   => null,
+                'designation_name' => null, 'unit_name' => null,
+                'qrs_score'        => null,
+                'cse'              => null, 'specializations' => null,
+            ],
+            array_fill_keys(array_keys($assignmentIdMap), null),
+            array_fill_keys(array_keys($schoolingIdMap),  null),
+            array_fill_keys(array_keys($eduIdMap),        null)
+        );
+    }
 }

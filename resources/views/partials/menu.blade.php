@@ -1,14 +1,14 @@
-<aside class="main-sidebar elevation-4" style="min-height: 917px; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);">
+<aside class="main-sidebar elevation-4" style="min-height: 917px; background: #d6f3d6">
     <!-- Brand Logo -->
     <a href="{{ route("dashboard") }}" class="brand-link text-decoration-none" style="background: rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 1.25rem 1rem;">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <i class="fas fa-users" style="color: white; font-size: 1.25rem;"></i>
-            <span class="brand-text" style="font-weight: 700; font-size: 1.1rem; color: #fff; letter-spacing: -0.025em;">{{ config('app.name', 'Laravel') }}</span>
+                <i class="fas fa-users" style="color: black; font-size: 1.25rem;"></i>
+            <span class="brand-text" style="font-weight: 700; font-size: 1.1rem; color: #080808; letter-spacing: -0.025em;">{{ config('app.name', 'Laravel') }}</span>
         </div>
     </a>
 
     <!-- Sidebar -->
-    <div class="sidebar" style="padding-top: 1rem;">
+    <div class="sidebar">
         <style>
             /* Modern Sidebar Styling */
             .sidebar {
@@ -16,11 +16,11 @@
             }
 
             .nav-sidebar {
-                padding: 0 0.75rem;
+                padding: 0 0.5rem;
             }
 
             .nav-header {
-                color: rgba(255, 255, 255, 0.5);
+                color: rgba(17, 16, 16, 0.9);
                 font-size: 0.7rem;
                 font-weight: 700;
                 text-transform: uppercase;
@@ -46,14 +46,14 @@
             }
 
             .nav-link:hover {
-                background: rgba(255, 255, 255, 0.08) !important;
+                background: rgba(87, 86, 86, 0.08) !important;
                 /* color: #fff !important; */
                 transform: translateX(4px);
             }
 
             .nav-link.active {
-                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-                color: #fff !important;
+                background: linear-gradient(135deg, #3b82f6 0%, #5e8ef7 100%) !important;
+                color: #000000 !important;
                 box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
                 font-weight: 600;
             }
@@ -79,11 +79,11 @@
             .nav-treeview .nav-link {
                 padding-left: 3rem !important;
                 font-size: 0.85rem;
-                color: rgba(255, 255, 255, 0.65) !important;
+                color: rgba(9, 9, 9, 0.65) !important;
             }
 
             .nav-treeview .nav-link:hover {
-                color: rgba(255, 255, 255, 0.95) !important;
+                color: rgba(5, 15, 153, 0.95) !important;
             }
 
             .nav-treeview .nav-link.active {
@@ -115,6 +115,10 @@
                 margin-left: auto;
             }
 
+            .nav-pills .nav-link {
+                color: #212223;
+            }
+
             /* Logout Button Special Styling */
             .logout-link {
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -123,13 +127,13 @@
             }
 
             .logout-link .nav-link {
-                background: rgba(220, 38, 38, 0.1);
-                color: #fca5a5 !important;
+                /* background: rgba(20, 19, 19, 0.1); */
+                color: #161616 !important;
             }
 
             .logout-link .nav-link:hover {
                 background: rgba(220, 38, 38, 0.2) !important;
-                color: #fff !important;
+                color: #121111 !important;
             }
         </style>
 
@@ -146,6 +150,16 @@
                 @endcan
 
                     <li class="nav-header" style="font-size: 12px;">PERSONNEL MANAGEMENT</li>
+
+                    @can('qrsprofile_access')
+                    <li class="nav-item">
+                        <a href="{{ route('qrsprofiles.index') }}"
+                            class="nav-link {{ request()->is('qrsprofiles') || request()->is('qrsprofiles/*') ? 'active' : '' }}">
+                            <i class="fas fa-users"></i>
+                            <span>QRS Profiles</span>
+                        </a>
+                    </li>
+                    @endcan
 
                     @can('officerdata_access')
                     <li class="nav-item">

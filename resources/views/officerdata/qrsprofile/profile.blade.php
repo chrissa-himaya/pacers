@@ -93,6 +93,16 @@ body {
     padding: 14px 20px;
 }
 .org-crest { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.crest-logo {
+    height: 110px;   /* adjust as needed */
+    width: auto;
+    object-fit: contain;
+}
+/* .crest-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 2px solid var(--pa-mid); background: var(--pa-wash);
+    display: grid; place-items: center; font-size: 22px; color: var(--pa-mid);
+} */
 .org-center { text-align: center; }
 .org-name { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--pa-dark); letter-spacing: .25em; text-transform: uppercase; }
 .org-sub  { font-size: 13px; color: var(--text-muted); font-weight: 600; letter-spacing: .08em; margin: 2px 0; }
@@ -103,7 +113,7 @@ body {
 }
 .officer-card { display: flex; align-items: flex-start; gap: 12px; }
 .officer-photo-wrap {
-    width: 80px; height: 96px; border: 2px solid var(--pa-mid); border-radius: var(--radius-sm);
+    width: 90px; height: 110px; border: 2px solid var(--pa-mid); border-radius: var(--radius-sm);
     overflow: hidden; flex-shrink: 0; background: var(--pa-wash);
     display: grid; place-items: center; color: var(--pa-light); font-size: 28px;
     position: relative; cursor: pointer;
@@ -332,7 +342,7 @@ body {
     }
     .letterhead-stripe { height: 4px !important; }
     .letterhead-body   { padding: 8px 14px !important; gap: 12px !important; }
-    .officer-photo-wrap { width: 68px !important; height: 82px !important; }
+    .officer-photo-wrap { width: 90px !important; height: 110px !important; }
     .photo-placeholder  { font-size: 22px !important; }
     .officer-name { font-size: 17px !important; margin-bottom: 4px !important; }
     .officer-meta { font-size: 12px !important; gap: 2px 8px !important; }
@@ -516,6 +526,17 @@ body {
     <div class="letterhead">
         <div class="letterhead-stripe"></div>
         <div class="letterhead-body">
+            <div class="org-crest">
+                <img src="{{ asset('images/pmc-logo-header.png') }}" 
+                    alt="PMC Logo" 
+                    class="crest-logo">
+            </div>
+            <div class="org-center">
+                <div class="org-name">Philippine Army</div>
+                <div class="org-sub">Personnel Management Center</div>
+                <div class="org-sub" style="font-size:12px;font-weight:400;letter-spacing:.04em;color:var(--text-muted)">Fort Andres Bonifacio, Taguig City</div>
+                <div class="doc-title">Quantitative Rating System (QRS) Sheet</div>
+            </div>
             <div class="officer-card">
                 <div class="officer-info">
                     <div class="officer-name">{{ $data->RANK }} {{ $data->NAME }}</div>
@@ -526,14 +547,6 @@ body {
                         <span class="meta-lbl">DOR</span><span class="meta-val">{{ $data->DOR }}</span>
                     </div>
                 </div>
-            </div>
-            <div class="org-center">
-                <div class="org-name">Philippine Army</div>
-                <div class="org-sub">Personnel Management Center</div>
-                <div class="org-sub" style="font-size:12px;font-weight:400;letter-spacing:.04em;color:var(--text-muted)">Fort Andres Bonifacio, Taguig City</div>
-                <div class="doc-title">Quantitative Rating System (QRS) Sheet</div>
-            </div>
-            <div class="org-crest">
                 <div class="officer-photo-wrap" id="photoWrap" title="Click to upload photo (max 1MB)">
                     @if($data->photo_path)
                         <img src="{{ asset('storage/' . $data->photo_path) }}" alt="Profile photo" id="officerPhoto">
