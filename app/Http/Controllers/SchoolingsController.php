@@ -312,8 +312,8 @@ class SchoolingsController extends Controller
                     'otd'         => $officer->OTD,
                     'dor'         => $officer->DOR,
                     'sig'         => $officer->SIG,
-                    'designation' => $officer->designations->name,
-                    'unit'        => $officer->units->name,
+                    'designation' => $officer->designations->name ?? '',
+                    'unit'        => $officer->units->name ?? '',
                     'pm_code'     => $pm_code,
                 ]);
 

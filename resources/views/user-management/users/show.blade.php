@@ -36,7 +36,7 @@
                                 </th>
                                 <td>
                                 @if($key=="pm_code")
-                                <select name="pm_code" class="form-control select2" required {{$data_items["operation_type"] == "show" ? "disabled" : ""}} required>
+                                <select name="pm_code" class="form-control select2" {{$data_items["operation_type"] == "show" ? "disabled" : ""}}>
                                     @foreach($data_items["pmcode"] as $id => $pmcode)
                                         <option value="{{ $id }}" {{ (isset($data_items["data"]) && $data_items["data"]->pm_code ? $data_items["data"]->pm_code : old('pm_code')) == $id ? 'selected' : '' }}>
                                             {{ $pmcode }}</option>
