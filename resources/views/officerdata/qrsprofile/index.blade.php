@@ -177,7 +177,7 @@
                 {
                     data: 'PM_CODE', searchable: true,
                     render: function (data, type, row) {
-                        return `<a href="/profile/${data}" class="text-primary font-weight-bold">
+                        return `<a href="/profile/${data}" target="_blank" class="text-primary font-weight-bold">
                                         ${data}
                                     </a>`;
                     }
