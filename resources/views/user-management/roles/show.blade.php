@@ -58,7 +58,7 @@
                                     <span class="btn btn-info btn-sm select-all">{{ "Select all" }}</span>
                                     <span class="btn btn-info btn-sm deselect-all">{{ "Deselect all" }}</span>
                                 @endunless
-                                <select name="permissions[]" id="selectItem" class="form-control select2" multiple="multiple">
+                                <select name="permissions[]" id="selectItem" class="form-control select2" multiple="multiple" @disabled($data_items["operation_type"] === "show")>
                                     @foreach($data_items["permissions"] as $id => $permissionName)
                                         <option value="{{ $id }}"
                                             {{ (in_array($id, old('permissions', [])) || (isset($data_items['role']) && $data_items['role']->permissions->contains($id))) ? 'selected' : '' }}>
