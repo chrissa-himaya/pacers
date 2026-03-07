@@ -31,12 +31,12 @@ class LoginController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('admin')) {
-            return '/dashboard';
+        if ($user->hasRole('user')) {
+            return '/profile/' . $user->pm_code;
         }
 
         // This pulls the pm_code dynamically from the logged-in user
-        return '/profile/' . $user->pm_code;
+        return '/dashboard';
     }
 
     /**
