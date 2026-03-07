@@ -99,7 +99,7 @@ class PftHistoryController extends Controller
         $officerData = Officer::where('PM_CODE', $pfthistory->pm_code)->first();
         $this->storeOfficerInSession($pfthistory->pm_code, $officerData);
 
-        $relatedPftRecords = $this->getRelatedPftRecords($pfthistory->pm_code);
+        $relatedPftRecords = $this->getRelatedPftRecords($pfthistory->pm_code, "");
         session(['relatedPftRecords' => $relatedPftRecords]);
 
         $data_items = [
@@ -132,7 +132,7 @@ class PftHistoryController extends Controller
         $officer = $pm_code ? Officer::where('PM_CODE', $pm_code)->first() : null;
 
         if ($action === 'Fetch Data') {
-            $relatedPftRecords = $this->getRelatedPftRecords($pm_code);
+            $relatedPftRecords = $this->getRelatedPftRecords($pm_code, "");
             $this->storeOfficerInSession($pm_code, $officer);
             session(['relatedPftRecords' => $relatedPftRecords]);
 
@@ -205,7 +205,7 @@ class PftHistoryController extends Controller
             $officerData = Officer::where('PM_CODE', $pfthistory->pm_code)->first();
         }
 
-        $relatedPftRecords = $this->getRelatedPftRecords($pfthistory->pm_code);
+        $relatedPftRecords = $this->getRelatedPftRecords($pfthistory->pm_code, $pfthistory->id);
 
         $data_items = [
             "data" => $pfthistory,
@@ -234,7 +234,7 @@ class PftHistoryController extends Controller
         if ($wasFetched && $fetchedPmCode) {
             // Use fetched data from session
             $officerData = Officer::where('PM_CODE', $fetchedPmCode)->first();
-            $relatedPftRecords = session('relatedPftRecords', $this->getRelatedPftRecords($fetchedPmCode));
+            $relatedPftRecords = session('relatedPftRecords', $this->getRelatedPftRecords($fetchedPmCode,""));
         } else {
             // Use existing record's PM code
             $officerData = null;
@@ -242,7 +242,7 @@ class PftHistoryController extends Controller
 
             if ($pfthistory->pm_code) {
                 $officerData = Officer::where('PM_CODE', $pfthistory->pm_code)->first();
-                $relatedPftRecords = $this->getRelatedPftRecords($pfthistory->pm_code);
+                $relatedPftRecords = $this->getRelatedPftRecords($pfthistory->pm_code, $pfthistory->id);
             }
         }
 
@@ -276,7 +276,7 @@ class PftHistoryController extends Controller
 
         if ($action === 'Fetch Data') {
             $officer = $pm_code ? Officer::where('PM_CODE', $pm_code)->first() : null;
-            $relatedPftRecords = $pm_code ? $this->getRelatedPftRecords($pm_code) : collect([]);
+            $relatedPftRecords = $pm_code ? $this->getRelatedPftRecords($pm_code, "") : collect([]);
 
             $this->storeOfficerInSession($pm_code, $officer);
             session(['relatedPftRecords' => $relatedPftRecords, 'fetched' => true]);
@@ -437,9 +437,12 @@ class PftHistoryController extends Controller
         return Rank::orderBy('code')->pluck('code', 'code')->toArray();
     }
 
-    private function getRelatedPftRecords(string $pmCode)
+    private function getRelatedPftRecords(string $pmCode, $id = null)
     {
         return PftHistory::where('pm_code', $pmCode)
+            ->when($id, function ($query, $id) {
+                return $query->where('id', '!=', $id);
+            })
             ->orderBy('date_taken', 'desc')
             ->get();
     }

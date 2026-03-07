@@ -90,7 +90,7 @@ class AwardHistoryController extends Controller
         $officerData = Officer::where('PM_CODE', $awardhistory->pm_code)->first();
         $this->storeOfficerInSession($awardhistory->pm_code, $officerData);
 
-        $relatedAwards = $this->getRelatedAwards($awardhistory->pm_code);
+        $relatedAwards = $this->getRelatedAwards($awardhistory->pm_code, "");
         session(['relatedAwards' => $relatedAwards]);
 
         $data_items = [
@@ -123,7 +123,7 @@ class AwardHistoryController extends Controller
 
         // ── Fetch Data ──────────────────────────────────────
         if ($action === 'Fetch Data') {
-            $relatedAwards = $this->getRelatedAwards($pm_code);
+            $relatedAwards = $this->getRelatedAwards($pm_code, "");
             $this->storeOfficerInSession($pm_code, $officer);
             session(['relatedAwards' => $relatedAwards]);
 
@@ -207,7 +207,7 @@ class AwardHistoryController extends Controller
             $officerData = Officer::where('PM_CODE', $awardhistory->pm_code)->first();
         }
 
-        $relatedAwards = $this->getRelatedAwards($awardhistory->pm_code);
+        $relatedAwards = $this->getRelatedAwards($awardhistory->pm_code, $awardhistory->id);
 
         $data_items = [
             "data"           => $awardhistory,
@@ -235,7 +235,7 @@ class AwardHistoryController extends Controller
             // Officer data is already in session from storeOfficerInSession()
             // Query it fresh to pass as officerData to the view
             $officerData   = Officer::where('PM_CODE', $fetchedPmCode)->first();
-            $relatedAwards = session('relatedAwards', $this->getRelatedAwards($fetchedPmCode));
+            $relatedAwards = session('relatedAwards', $this->getRelatedAwards($fetchedPmCode, ""));
         } else {
             // ── Normal edit: use the record's own pm_code ──
             $officerData   = null;
@@ -243,7 +243,7 @@ class AwardHistoryController extends Controller
 
             if ($awardhistory->pm_code) {
                 $officerData   = Officer::where('PM_CODE', $awardhistory->pm_code)->first();
-                $relatedAwards = $this->getRelatedAwards($awardhistory->pm_code);
+                $relatedAwards = $this->getRelatedAwards($awardhistory->pm_code, $awardhistory->id);
             }
         }
 
@@ -277,7 +277,7 @@ class AwardHistoryController extends Controller
         // ── Fetch Data — only fetch officer info, do NOT touch the record ──
         if ($action === 'Fetch Data') {
             $officer       = $pm_code ? Officer::where('PM_CODE', $pm_code)->first() : null;
-            $relatedAwards = $pm_code ? $this->getRelatedAwards($pm_code) : collect([]);
+            $relatedAwards = $pm_code ? $this->getRelatedAwards($pm_code, "") : collect([]);
 
             // Persist into session so edit() picks it up after redirect
             $this->storeOfficerInSession($pm_code, $officer);
@@ -586,9 +586,12 @@ class AwardHistoryController extends Controller
         return Award::orderBy('name')->pluck('name', 'id')->toArray();
     }
 
-    private function getRelatedAwards(string $pmCode)
+    private function getRelatedAwards(string $pmCode, $id = null)
     {
         return AwardHistory::where('pm_code', $pmCode)
+            ->when($id, function ($query, $id) {
+                return $query->where('id', '!=', $id);
+            })        
             ->with(['awards', 'awardType', 'dateranks.ranks'])
             ->orderBy('date', 'desc')
             ->get();
