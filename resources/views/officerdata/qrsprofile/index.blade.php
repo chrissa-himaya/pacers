@@ -68,8 +68,6 @@
                                 <th class="text-center">Graduate</th>
                                 <th class="text-center">Post Graduate</th>
                             </tr>
-                        </thead>
-                        <tfoot>
                             <tr class="filter-row">
                                 <th></th>
                                 <th><input type="text" placeholder="PM Code" class="form-control form-control-sm col-filter"
@@ -94,6 +92,8 @@
                                         class="form-control form-control-sm col-filter" data-col="10"></th>
                                 <th><input type="text" placeholder="Unit" class="form-control form-control-sm col-filter"
                                         data-col="11"></th>
+                                <th><input type="text" placeholder="GUA STAFF" class="form-control form-control-sm col-filter"
+                                        data-col="12"></th>
                                 <th></th>
                                 <th></th>
                                 <th></th>
@@ -127,8 +127,9 @@
                                 <th></th>
                                 <th></th>
                                 <th></th>
-                            </tr>
-                        </tfoot>
+                                <th></th>
+                            </tr>                            
+                        </thead>
                         <tbody></tbody>
                     </table>
                 </div>
