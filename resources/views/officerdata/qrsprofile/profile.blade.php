@@ -628,12 +628,15 @@ body {
                 </div>
                 <div class="rank-tabs" id="rankTabsMain">
                     @foreach ($rankIdMap as $rankLabel => $rankId)
-                        <div class="rank-tab @if($loop->first) active @endif" data-rank="{{ $rankLabel }}">{{ $rankLabel }}</div>
+                        <div class="rank-tab {{ $rankLabel == $data->RANK ? 'active' : '' }}" 
+                            data-rank="{{ $rankLabel }}">
+                            {{ $rankLabel }}
+                        </div>
                     @endforeach
                 </div>
                 <div class="pts-tab-body" id="assignPtsBody">
                     @foreach ($rankIdMap as $rankLabel => $rankId)
-                        <div class="pts-tab-content @if($loop->first) active @endif" data-rank="{{ $rankLabel }}">
+                    <div class="pts-tab-content {{ $rankLabel == $data->RANK ? 'active' : '' }}" data-rank="{{ $rankLabel }}">
                             <table class="tbl pts-tbl" style="flex:1">
                                 <colgroup>
                                     <col class="col-max"><col class="col-maxpt"><col class="col-gained">
