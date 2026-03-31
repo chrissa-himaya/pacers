@@ -28,8 +28,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css">
 
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/main.js'])
-
 </head>
     <body class="sidebar-mini layout-fixed" style="height: auto;">
         @guest
